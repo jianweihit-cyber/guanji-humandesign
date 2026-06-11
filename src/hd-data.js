@@ -93,9 +93,9 @@ export const GATE_CENTER = (() => {
 export const PLANETS = [
   { key: 'Sun',       glyph: '☉', zh: '太阳' },
   { key: 'Earth',     glyph: '⨁', zh: '地球' },
+  { key: 'Moon',      glyph: '☽', zh: '月亮' },
   { key: 'NorthNode', glyph: '☊', zh: '北交点' },
   { key: 'SouthNode', glyph: '☋', zh: '南交点' },
-  { key: 'Moon',      glyph: '☽', zh: '月亮' },
   { key: 'Mercury',   glyph: '☿', zh: '水星' },
   { key: 'Venus',     glyph: '♀', zh: '金星' },
   { key: 'Mars',      glyph: '♂', zh: '火星' },
