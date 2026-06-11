@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>命盘卡 · 观己</title>
+<link rel="stylesheet" href="hd.css" />
+<style>body{background:var(--paper)}</style>
+</head>
+<body>
+<div class="report" id="card">
+  <div class="rhead">
+    <div class="t">观<span class="li" style="color:var(--li)">己</span> · 人类图命盘</div>
+    <div class="s" id="rsub"></div>
+  </div>
+  <div id="rbody"></div>
+  <div class="foot">观<span class="li">己</span> · 以东方之眼，照见自己 &nbsp;|&nbsp; 再遇行者</div>
+</div>
+<script src="hd-render.js"></script>
+<script src="report-data.js"></script>
+<script src="i18n.js"></script>
+<script>
+  const d = window.HD_CHART;
+  document.getElementById('rsub').textContent = d.label;
+  HDRender.fill(document.getElementById('rbody'), d.chart, { linkKB:false });
+</script>
+</body>
+</html>

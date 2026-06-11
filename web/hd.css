@@ -1,0 +1,91 @@
+/* hd.css — 观己·人类图 共享样式（离卦暖色主题） */
+:root{
+  --paper:#FBF6EE; --ink:#2B2620; --sub:#8A7F70;
+  --cinnabar:#C0392B; --inkline:#23201B;
+  --gold:#E0A93B; --gold-d:#9A6B1F;
+  --faint:#E7DECF; --line-open:#E0D6C4; --li:#A8321F;
+  --card:#fff; --border:#ECE3D2;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:18px 16px 70px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:700;letter-spacing:.04em}.brand .li{color:var(--li)}
+.sub{color:var(--sub);font-weight:400;font-size:13px}
+a{color:var(--li)}
+
+/* 表单 */
+.form{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin:14px 0}
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11.5px;color:var(--sub)}
+.field input,.field select{font-size:15px;padding:8px 10px;border:1px solid #DDD2BE;border-radius:10px;background:#fff;color:var(--ink)}
+.field.in input{width:64px}.field.yr input{width:78px}
+.btn{background:var(--li);color:#fff;border:none;border-radius:12px;padding:11px 20px;font-size:15px;font-weight:650;cursor:pointer}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:#fff;color:var(--li);border:1px solid #E3CFC4}
+.adv{display:flex;gap:10px;align-items:center;margin-top:10px;font-size:12.5px;color:var(--sub)}
+.adv select{font-size:12.5px;padding:5px 8px;border:1px solid #E5DBCB;border-radius:8px}
+.status{font-size:13px;color:var(--sub);min-height:18px;margin:4px 2px}
+.status.err{color:var(--cinnabar)}
+
+/* 结果 */
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:14px 0 6px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+.card .k{font-size:12px;color:var(--sub);margin-bottom:3px}
+.card .v{font-size:17px;font-weight:650;line-height:1.25}
+.card .vs{font-size:12.5px;color:var(--sub);margin-top:2px}
+.stage{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;margin-top:8px}
+.graph{flex:1 1 340px;min-width:300px}
+svg.bodygraph{width:100%;height:auto;display:block}
+.cols{flex:0 0 auto;display:flex;gap:16px;padding-top:6px}
+.pcol{font-variant-numeric:tabular-nums}
+.pcol h4{margin:0 0 6px;font-size:12px;color:var(--sub);font-weight:600;text-align:center}
+.prow{display:flex;align-items:center;gap:7px;font-size:13px;padding:1.5px 0}
+.prow .g{font-size:15px;width:18px;text-align:center}
+.prow.dz .gl{color:var(--cinnabar);font-weight:650}.prow.pz .gl{color:var(--inkline);font-weight:650}
+.gl{min-width:34px}.deg{color:var(--sub);font-size:11.5px}
+.sec{margin-top:20px}.sec h3{font-size:14px;margin:0 0 10px;color:var(--li);letter-spacing:.03em}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:13px}.chip b{color:var(--li)}
+.muted{color:var(--sub);font-size:12.5px;line-height:1.7}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--sub);margin-top:8px;flex-wrap:wrap}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+
+/* tabs / nav */
+.tabs{display:flex;gap:8px;margin:6px 0 2px;flex-wrap:wrap}
+.tab{padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--sub);font-size:13.5px;cursor:pointer;text-decoration:none}
+.tab.on{background:var(--li);color:#fff;border-color:var(--li)}
+
+/* 知识库 */
+.kb-search{width:100%;font-size:15px;padding:10px 12px;border:1px solid #DDD2BE;border-radius:12px;margin:8px 0 14px}
+.kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.kb-cell{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer}
+.kb-cell:hover{border-color:var(--gold)}
+.kb-cell .n{font-weight:700}.kb-cell .t{font-size:12.5px;color:var(--sub);margin-top:2px}
+.kb-detail{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px;line-height:1.8}
+.kb-detail h2{margin:0 0 4px;font-size:20px}
+.kb-detail .tag{display:inline-block;background:#F3ECE0;color:var(--sub);border-radius:6px;padding:2px 8px;font-size:12px;margin-right:6px}
+.kb-detail .gloss{color:var(--sub);margin:8px 0}
+.kb-detail .lines div{margin:3px 0}
+
+/* Variables / PHS table */
+.vtable{display:flex;flex-direction:column;gap:8px}
+.vrow{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px}
+.varrow{font-size:20px;font-weight:800;width:24px;text-align:center;flex:0 0 auto}
+.varrow.l{color:var(--li)}.varrow.r{color:var(--gold-d)}
+.vmain{flex:1;min-width:0}
+.vsys{font-size:12px;color:var(--sub);font-weight:600}
+.vsrc{color:#B9AE9A;font-weight:400;margin-left:4px}
+.vval{font-size:14.5px;margin-top:1px}.vval b{color:var(--li)}
+.vctb{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums;flex:0 0 auto;text-align:right}
+
+/* report card */
+.report{max-width:480px;margin:0 auto;background:var(--paper);padding:22px 20px 26px}
+.report .rhead{text-align:center;margin-bottom:6px}
+.report .rhead .t{font-size:20px;font-weight:750}
+.report .rhead .s{font-size:13px;color:var(--sub);margin-top:3px}
+.report .foot{text-align:center;color:var(--sub);font-size:12px;margin-top:18px}
+.report .foot .li{color:var(--li);font-weight:700}

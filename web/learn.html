@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>人类图 · 知识库 · 观己</title>
+<link rel="stylesheet" href="hd.css" />
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">观<span class="li">己</span> · 人类图 <span class="sub">知识库</span></div>
+  </header>
+  <div class="tabs">
+    <a class="tab" href="index.html">排盘</a>
+    <a class="tab" href="history.html">记录</a>
+    <a class="tab" href="solve.html">反推</a>
+    <a class="tab" href="connect.html">合盘</a>
+    <a class="tab on" href="learn.html">学习 · 知识库</a>
+  </div>
+
+  <input id="q" class="kb-search" placeholder="搜索：类型 / 权威 / 闸门号或卦名 / 通道 / 中心…（如「41」「损」「情绪」「投射」）" />
+  <div class="tabs" id="cats"></div>
+  <div id="detail"></div>
+  <div class="kb-grid" id="grid"></div>
+  <p class="muted" id="note" style="margin-top:22px"></p>
+</div>
+
+<script src="i18n.js"></script>
+<script type="module">
+import { TYPES, AUTHORITIES, LINES, PROFILES, DEFINITION_KB, CENTERS_KB, GATES_KB, CHANNELS_KB, PHS_KB, PHS_TONES_KB, KB_NOTE } from '/src/hd-knowledge.js';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+// 统一索引
+const ALL=[];
+for(const [k,v] of Object.entries(TYPES)) ALL.push({cat:'type',key:k,name:v.zh,sub:v.strategy,s:`${k}${v.zh}${v.strategy}类型`});
+for(const [k,v] of Object.entries(AUTHORITIES)) ALL.push({cat:'authority',key:k,name:v.zh,sub:'内在权威',s:`${k}${v.zh}权威`});
+for(const [k,v] of Object.entries(PROFILES)) ALL.push({cat:'profile',key:k,name:k,sub:v.angle,s:`${k}${v.desc}角色profile`});
+for(const [k,v] of Object.entries(LINES)) ALL.push({cat:'line',key:k,name:`第${k}爻 ${v.name}`,sub:v.name,s:`${k}爻${v.name}${v.desc}`});
+for(const [k,v] of Object.entries(CENTERS_KB)) ALL.push({cat:'center',key:k,name:v.zh,sub:v.type,s:`${k}${v.zh}${v.theme}中心`});
+for(const [k,v] of Object.entries(DEFINITION_KB)) ALL.push({cat:'definition',key:k,name:v.zh,sub:'定义',s:`${k}${v.zh}定义`});
+for(const [k,v] of Object.entries(CHANNELS_KB)) ALL.push({cat:'channel',key:k,name:`${k} ${v.zh}`,sub:v.centers.join('–'),s:`${k}${v.zh}${v.en}${v.theme}通道`});
+for(const [k,v] of Object.entries(GATES_KB)) ALL.push({cat:'gate',key:k,name:`${v.glyph} ${k}·${v.hex}`,sub:v.theme,s:`${k}${v.hex}${v.iching}${v.theme}${v.centerZh}闸门门`});
+for(const [k,v] of Object.entries(PHS_KB)) ALL.push({cat:'phs',key:k,name:v.title,sub:v.zh,s:`phs变量箭头variable${k}${v.title}${v.zh}${v.colors.map(c=>c.base.join('')+c.l.join('')+c.r.join('')).join('')}`});
+
+const CATS=[['type','类型'],['authority','内在权威'],['profile','人生角色'],['line','六爻'],['center','九大中心'],['channel','36通道'],['gate','64闸门'],['definition','定义'],['phs','PHS 四箭头']];
+let curCat='type', curTerm='';
+
+// 分类导航
+$('#cats').innerHTML=CATS.map(([id,n])=>`<span class="tab" data-cat="${id}">${n}</span>`).join('');
+$('#cats').onclick=e=>{const c=e.target.dataset.cat;if(!c)return;curCat=c;curTerm='';$('#q').value='';$('#detail').innerHTML='';location.hash='';renderGrid();};
+
+$('#q').oninput=()=>{curTerm=$('#q').value.trim().toLowerCase();renderGrid();};
+
+function renderGrid(){
+  for(const t of $('#cats').children) t.classList.toggle('on', !curTerm && t.dataset.cat===curCat);
+  const items = curTerm ? ALL.filter(x=>x.s.toLowerCase().includes(curTerm)) : ALL.filter(x=>x.cat===curCat);
+  $('#grid').innerHTML = items.map(x=>`<div class="kb-cell" data-cat="${x.cat}" data-key="${esc(x.key)}"><div class="n">${esc(x.name)}</div><div class="t">${esc(x.sub||'')}</div></div>`).join('') || '<p class="muted">无匹配</p>';
+}
+$('#grid').onclick=e=>{const c=e.target.closest('.kb-cell');if(!c)return;openDetail(c.dataset.cat,c.dataset.key);};
+
+function tag(t){return `<span class="tag">${esc(t)}</span>`;}
+function detailHTML(cat,key){
+  if(cat==='type'){const v=TYPES[key];return `<h2>${v.zh} <span class="sub">${key}</span></h2>${tag(v.pct)}${tag('光环：'+v.aura)}<div class="gloss">${v.desc}</div><div><b>策略</b>：${v.strategy}　<b>签名</b>：${v.signature}　<b>非自己</b>：${v.notSelf}</div><div class="gloss">💡 ${v.tip}</div>`;}
+  if(cat==='authority'){const v=AUTHORITIES[key];return `<h2>${v.zh}</h2><div class="gloss">${v.desc}</div><div class="gloss">💡 ${v.tip}</div>`;}
+  if(cat==='profile'){const v=PROFILES[key];const [a,b]=key.split('/');return `<h2>人生角色 ${key}</h2>${tag(v.angle+'交叉')}<div class="gloss">${v.desc}</div><div class="lines"><div><b>第${a}爻 ${LINES[a].name}</b>：${LINES[a].desc}</div><div><b>第${b}爻 ${LINES[b].name}</b>：${LINES[b].desc}</div></div>`;}
+  if(cat==='line'){const v=LINES[key];return `<h2>第${key}爻 · ${v.name}</h2><div class="gloss">${v.desc}</div>`;}
+  if(cat==='center'){const v=CENTERS_KB[key];return `<h2>${v.zh}</h2>${tag(v.type)}${tag(v.theme)}<div class="gloss"><b>已定义</b>：${v.defined}</div><div class="gloss"><b>开放</b>：${v.open}</div>`;}
+  if(cat==='definition'){const v=DEFINITION_KB[key];return `<h2>${v.zh}</h2><div class="gloss">${v.desc}</div>`;}
+  if(cat==='channel'){const v=CHANNELS_KB[key];return `<h2>${v.key} ${v.zh}通道 <span class="sub">${v.en}</span></h2>${tag(v.centers.join(' – '))}<div class="gloss">${v.theme}</div><div class="muted">连接闸门 ${v.gates[0]} 与 ${v.gates[1]}</div>`;}
+  if(cat==='gate'){const v=GATES_KB[key];return `<h2><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>${v.gate} 号闸门 · ${v.hex}卦 <span class="sub">${v.iching}</span></h2>${tag('所在：'+v.centerZh)}<div class="gloss">${v.theme}</div>`;}
+  if(cat==='phs'){const v=PHS_KB[key];const tones=PHS_TONES_KB[v.tones];
+    let h=`<h2>${v.title} <span class="sub">${v.zh}</span></h2>${tag('来源：'+v.src)}`;
+    if(v.side) h+=tag('◀ '+v.side.l.join(' '))+tag('▶ '+v.side.r.join(' '));
+    h+=`<div class="muted" style="margin:8px 0 4px">Tone：${tones.map((t,i)=>`${i+1} ${t[1]}`).join(' · ')}（Tone 1-3 → ◀ 左 / Tone 4-6 → ▶ 右）</div>`;
+    h+=v.colors.map((c,i)=>`<div class="gloss"><b>Color ${i+1} · ${c.base[0]} ${c.base[1]}</b>${c.q?`<div class="muted">${c.q}</div>`:''}${c.shared?`<div>${c.shared}</div>`:''}<div style="margin-top:4px">◀ <b>${c.l[0]} ${c.l[1]}</b>：${c.ldesc}</div><div>▶ <b>${c.r[0]} ${c.r[1]}</b>：${c.rdesc}</div></div>`).join('');
+    return h;}
+  return '';
+}
+function openDetail(cat,key){
+  const html=detailHTML(cat,key);
+  $('#detail').innerHTML = html ? `<div class="kb-detail">${html}</div>` : '';
+  if(html) $('#detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// 深链：#type:Generator / #gate:41 / #profile:1/3 / #channel:30-41 ...
+function fromHash(){
+  const m=location.hash.slice(1);
+  if(!m)return false;
+  const i=m.indexOf(':');if(i<0)return false;
+  const cat=m.slice(0,i), key=decodeURIComponent(m.slice(i+1));
+  if(ALL.some(x=>x.cat===cat&&String(x.key)===key)){ curCat=cat; renderGrid(); openDetail(cat,key); return true; }
+  return false;
+}
+window.addEventListener('hashchange',fromHash);
+
+$('#note').textContent='ⓘ '+KB_NOTE;
+if(!fromHash()) renderGrid();
+</script>
+</body>
+</html>

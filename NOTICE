@@ -1,0 +1,37 @@
+NOTICE — 版权与许可说明 / Copyright & Licensing Notice
+========================================================
+
+1. 代码 / Source Code
+   本仓库内的源代码（排盘引擎、页面、渲染器、工具脚本）以
+   GNU General Public License v3.0 (GPL-3.0) 发布，见 LICENSE 文件。
+   The source code in this repository (chart engine, web pages,
+   renderer, tooling) is released under GPL-3.0. See LICENSE.
+
+2. 知识库内容与品牌 / Knowledge-base Content & Brand
+   「观己」品牌名称、Logo、视觉风格，以及知识库中的中文解读文案
+   （src/hd-knowledge.js 中的描述性文字及后续扩充的解读内容）
+   © 再遇行者，保留所有权利（All Rights Reserved），
+   不在 GPL-3.0 授权范围内。未经书面许可，不得将上述内容用于
+   其他产品或商业用途。
+   The "GuanJi (观己)" brand name, logo, visual identity, and the
+   Chinese interpretive texts in the knowledge base are
+   © ZaiYuXingZhe, All Rights Reserved, and are NOT licensed
+   under GPL-3.0.
+
+3. Swiss Ephemeris 署名 / Attribution
+   本项目使用 Swiss Ephemeris（via npm package "swisseph-wasm"）。
+   Swiss Ephemeris © Astrodienst AG, Switzerland —
+   https://www.astro.com/swisseph/
+   依其双重许可（GPL / 商业专业许可）之 GPL 路线分发。
+   This product uses the Swiss Ephemeris, © Astrodienst AG,
+   distributed here under the GPL branch of its dual license.
+   Commercial (closed-source) use requires the Swiss Ephemeris
+   Professional License from Astrodienst.
+
+4. 贡献政策 / Contributions
+   本仓库目前不接受外部代码贡献（Pull Request），欢迎以 Issue
+   形式反馈问题与建议。原因：保留作者整体重新授权（含闭源商用）
+   的权利。
+   This repository does NOT accept external code contributions
+   (pull requests) at this time; please use Issues for feedback.
+   This preserves the author's right to relicense future versions.

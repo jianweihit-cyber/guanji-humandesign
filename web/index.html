@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>人类图排盘 · 观己</title>
+<link rel="stylesheet" href="hd.css" />
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">观<span class="li">己</span> · 人类图 <span class="sub">Bodygraph</span></div>
+    <select id="pick" class="adv" title="示例盘"><option value="">— 示例盘 —</option></select>
+  </header>
+  <div class="tabs">
+    <a class="tab on" href="index.html">排盘</a>
+    <a class="tab" href="history.html">记录</a>
+    <a class="tab" href="solve.html">反推</a>
+    <a class="tab" href="connect.html">合盘</a>
+    <a class="tab" href="learn.html">学习 · 知识库</a>
+  </div>
+
+  <div class="form">
+    <div class="frow">
+      <div class="field yr"><label>年</label><input id="y" type="number" value="1990" /></div>
+      <div class="field in"><label>月</label><input id="mo" type="number" min="1" max="12" value="3" /></div>
+      <div class="field in"><label>日</label><input id="d" type="number" min="1" max="31" value="5" /></div>
+      <div class="field in"><label>时</label><input id="h" type="number" min="0" max="23" value="13" /></div>
+      <div class="field in"><label>分</label><input id="mi" type="number" min="0" max="59" value="30" /></div>
+      <div class="field" style="flex:1;min-width:150px"><label>出生地（决定时区）</label><select id="loc"></select></div>
+      <button class="btn" id="go">生成人类图</button>
+    </div>
+    <div class="frow" id="tzCustom" hidden style="margin-top:8px">
+      <div class="field" style="flex:1"><label>自定义 IANA 时区（如 Asia/Shanghai）</label><input id="tzText" placeholder="Asia/Shanghai" /></div>
+    </div>
+    <div class="frow" style="margin-top:10px;align-items:center;gap:10px">
+      <label style="font-size:12px;color:var(--sub);white-space:nowrap">时间微调 Time</label>
+      <input type="range" id="tslider" min="0" max="1439" value="810" style="flex:1;min-width:140px" />
+      <span id="tlabel" style="font-variant-numeric:tabular-nums;font-size:13px;min-width:44px;text-align:right">13:30</span>
+    </div>
+    <div class="adv">
+      <span>高级：</span>
+      <select id="mode"><option value="MOSEPH">Moshier(离线)</option><option value="SWIEPH">JPL(高精)</option></select>
+      <select id="node"><option value="TRUE">真交点</option><option value="MEAN">平交点</option></select>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="frow" id="savebar" hidden style="margin-top:10px;align-items:flex-end">
+      <div class="field" style="flex:1;min-width:160px"><label>盘主名字</label><input id="sname" placeholder="如：张三 / Alex" /></div>
+      <button class="btn" id="saveBtn">保存此盘</button>
+      <span class="status" id="savemsg" style="margin:0 0 8px 4px"></span>
+    </div>
+  </div>
+
+  <div id="result" hidden></div>
+  <div id="interpret" hidden></div>
+</div>
+
+<script type="importmap">
+{ "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }
+</script>
+<script src="sample-data.js"></script>
+<script src="hd-render.js"></script>
+<script src="hd-store.js"></script>
+<script src="i18n.js"></script>
+<script type="module">
+import { generateChart } from '/src/chart.js';
+import { TYPES, AUTHORITIES, PROFILES, CENTERS_KB } from '/src/hd-knowledge.js';
+const $ = id => document.getElementById(id);
+
+const LOCS=[['上海/北京/广州(中国)','Asia/Shanghai'],['香港','Asia/Hong_Kong'],['台北','Asia/Taipei'],['东京','Asia/Tokyo'],['新加坡','Asia/Singapore'],['曼谷','Asia/Bangkok'],['伦敦','Europe/London'],['巴黎','Europe/Paris'],['纽约','America/New_York'],['洛杉矶','America/Los_Angeles'],['檀香山','Pacific/Honolulu'],['悉尼','Australia/Sydney'],['— 自定义 IANA —','__custom__']];
+const loc=$('loc');for(const [n,tz] of LOCS){const o=document.createElement('option');o.value=tz;o.textContent=n;loc.appendChild(o);}
+loc.onchange=()=>{$('tzCustom').hidden=loc.value!=='__custom__';};
+
+function interpret(c){
+  const box=$('interpret'); box.hidden=false;
+  const t=TYPES[c.type], a=AUTHORITIES[c.authority], p=PROFILES[c.profile.str];
+  const defList=c.definedCenters.map(k=>CENTERS_KB[k].zh).join('、')||'—';
+  const openList=c.openCenters.map(k=>`<li><b>${CENTERS_KB[k].zh}</b>：${CENTERS_KB[k].open}</li>`).join('');
+  box.innerHTML=`<div class="sec"><h3>你的解读 · 看懂自己</h3><div class="kb-detail">
+    <div class="gloss"><b>类型 · ${t.zh}</b>（${t.pct}）：${t.desc}<br>💡 ${t.tip}</div>
+    <div class="gloss"><b>内在权威 · ${a.zh}</b>：${a.desc}<br>💡 ${a.tip}</div>
+    ${p?`<div class="gloss"><b>人生角色 · ${c.profile.str}（${c.profile.zh}）</b>：${p.desc}</div>`:''}
+    <div class="gloss"><b>能量结构</b>：已定义中心 <b>${defList}</b> 是稳定、可依靠的你；开放中心是你学习、放大世界、也最容易活成「非自己」的地方——</div>
+    <ul class="muted" style="margin:4px 0 0;padding-left:20px;line-height:1.9">${openList||'<li>九大中心全开放（反映者）。</li>'}</ul>
+    <div class="muted" style="margin-top:8px">ⓘ 解读为初稿，可在「学习·知识库」查看每一项的完整词条。</div>
+  </div></div>`;
+}
+function show(c,statusText){ $('result').hidden=false; HDRender.fill($('result'),c,{linkKB:true}); interpret(c); $('status').textContent=statusText; }
+
+let busy=false, lastRun=null;
+async function run(tag){
+  if(busy)return; busy=true;
+  const st=$('status'); st.className='status'; st.textContent='⏳ Calculating…';
+  try{
+    const tz=loc.value==='__custom__'?($('tzText').value.trim()||'Asia/Shanghai'):loc.value;
+    const input={year:+$('y').value,month:+$('mo').value,day:+$('d').value,hour:+$('h').value,minute:+$('mi').value,tz,ephemerisMode:$('mode').value,nodeType:$('node').value};
+    const c=await generateChart(input);
+    const label=`${input.year}-${String(input.month).padStart(2,'0')}-${String(input.day).padStart(2,'0')} ${input.hour}:${String(input.minute).padStart(2,'0')} ${tz}`;
+    show(c, `${tag?tag+' · ':''}✓ ${label} · ${c.config.mode}/${c.config.node} · design −${c.designDaysBefore.toFixed(1)}d`);
+    lastRun={input,chart:c}; $('savebar').hidden=false; $('savemsg').textContent='';
+  }catch(e){ st.className='status err'; st.textContent='Error: '+(e.message||e); console.error(e); }
+  busy=false;
+}
+$('go').onclick=()=>run();
+
+// 时间微调滑块：拖动 → 实时重算（rAF 节流 + busy 防抖）
+const tslider=$('tslider'), tlabel=$('tlabel');
+const hm=v=>String(Math.floor(v/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0');
+function syncSlider(){ const v=(+$('h').value||0)*60+(+$('mi').value||0); tslider.value=v; tlabel.textContent=hm(v); }
+let raf=null;
+tslider.oninput=()=>{ const v=+tslider.value; $('h').value=Math.floor(v/60); $('mi').value=v%60; tlabel.textContent=hm(v);
+  if(!raf) raf=requestAnimationFrame(async()=>{ raf=null; await run(); }); };
+tslider.onchange=()=>run();
+$('h').onchange=syncSlider; $('mi').onchange=syncSlider;
+
+const data=window.SAMPLE_CHARTS||{}; const pick=$('pick');
+for(const [k,v] of Object.entries(data)){const o=document.createElement('option');o.value=k;o.textContent=v.label;pick.appendChild(o);}
+pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, 'Sample · '+d.label); $('savebar').hidden=true; } };
+
+// 保存此盘 → 本地记录（hd-store）
+$('saveBtn').onclick=()=>{
+  if(!lastRun) return;
+  const name=$('sname').value.trim()||'—';
+  HDStore.add({ name, input:lastRun.input, sum:HDStore.summarize(lastRun.chart) });
+  $('savemsg').textContent='✓ 已保存';
+};
+
+const setTz=tz=>{ if(![...loc.options].some(o=>o.value===tz)){ const o=document.createElement('option'); o.value=tz; o.textContent=tz; loc.insertBefore(o,loc.firstChild); } loc.value=tz; };
+const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.day; $('h').value=i.hour; $('mi').value=i.minute; setTz(i.tz); syncSlider(); };
+
+// 启动：?load=记录 → 重排该盘；否则即时盘（当前系统时间+所在时区，取不到回退上海）
+(function boot(){
+  const sp=new URLSearchParams(location.search);
+  const pid=sp.get('load');
+  const rec=pid&&window.HDStore?HDStore.get(pid):null;
+  if(rec){ fillForm(rec.input); $('sname').value=rec.name==='—'?'':rec.name; run(rec.name); return; }
+  if(sp.get('y')&&sp.get('mo')){ // 反推页等外部带参直开：?y&mo&d&h&mi&tz&name
+    fillForm({year:+sp.get('y'),month:+sp.get('mo'),day:+sp.get('d')||1,hour:+sp.get('h')||12,minute:+sp.get('mi')||0,tz:sp.get('tz')||'Asia/Shanghai'});
+    $('sname').value=sp.get('name')||'';
+    run(sp.get('name')||''); return;
+  }
+  const now=new Date();
+  let tz='Asia/Shanghai';
+  try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||tz; }catch(e){}
+  fillForm({year:now.getFullYear(),month:now.getMonth()+1,day:now.getDate(),hour:now.getHours(),minute:now.getMinutes(),tz});
+  run('Now');
+})();
+</script>
+</body>
+</html>

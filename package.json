@@ -1,0 +1,13 @@
+{
+  "name": "humandesign-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "人类图排盘引擎（观己 · 再遇行者）",
+  "scripts": {
+    "test": "node test/calibrate.js"
+  },
+  "dependencies": {
+    "swisseph-wasm": "^0.0.5"
+  }
+}

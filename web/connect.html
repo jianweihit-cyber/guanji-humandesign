@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>合盘 · Penta · 观己</title>
+<link rel="stylesheet" href="hd.css" />
+<style>
+  .pickrow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:10px}
+  .pickrow select{padding:8px;border:1px solid #D8CFC0;border-radius:10px;min-width:180px;font-size:14px;background:#fff}
+  .plist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+  .plist label{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #EDE4D4;border-radius:10px;padding:8px 10px;font-size:14px;cursor:pointer}
+  .plist .sub{color:var(--sub);font-size:12px}
+  .cat{margin-top:14px}
+  .cat h4{margin:0 0 6px;font-size:14px}
+  .cat .hint{font-size:12px;color:var(--sub);margin-left:6px;font-weight:400}
+  table.pg{width:100%;border-collapse:collapse;background:#fff;border:1px solid #EDE4D4;border-radius:12px;overflow:hidden;margin-top:10px}
+  .pg th,.pg td{padding:6px 8px;border-bottom:1px solid #F3ECDF;font-size:13px;text-align:left}
+  .pg th{background:#FAF5EA;color:#8A7A5E}
+  .pg td.gap{color:#B3433A;font-weight:700}
+  .duo{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+  .duo .graph{flex:1 1 320px;min-width:280px}
+  .duo .side{flex:1 1 300px;min-width:260px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">观<span class="li">己</span> · 人类图 <span class="sub">合盘 · Penta</span></div>
+  </header>
+  <div class="tabs">
+    <a class="tab" href="index.html">排盘</a>
+    <a class="tab" href="history.html">记录</a>
+    <a class="tab" href="solve.html">反推</a>
+    <a class="tab on" href="connect.html">合盘</a>
+    <a class="tab" href="learn.html">学习 · 知识库</a>
+  </div>
+
+  <div class="tabs" id="mode">
+    <span class="tab on" data-m="conn">合盘（2人）</span>
+    <span class="tab" data-m="penta">Penta（3-5人）</span>
+  </div>
+
+  <div class="form" id="connForm">
+    <div class="pickrow">
+      <div class="field"><label>人 A（墨）</label><select id="selA"></select></div>
+      <div class="field"><label>人 B（朱）</label><select id="selB"></select></div>
+      <button class="btn" id="goConn">生成合盘</button>
+    </div>
+    <div class="status" id="connSt"></div>
+  </div>
+
+  <div class="form" id="pentaForm" hidden>
+    <p class="muted" style="margin:6px 2px 0;font-size:13px">勾选 3-5 人（来自「记录」）。Penta 只看 喉咙-G-荐骨 纵列的 6 条通道 / 12 个闸门：小组场域的角色与缺口。</p>
+    <div class="plist" id="plist"></div>
+    <div class="pickrow"><button class="btn" id="goPenta">生成 Penta</button><span class="status" id="pentaSt"></span></div>
+  </div>
+
+  <div id="out" style="margin-top:14px"></div>
+</div>
+
+<script type="importmap">
+{ "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }
+</script>
+<script src="hd-render.js"></script>
+<script src="hd-store.js"></script>
+<script src="i18n.js"></script>
+<script type="module">
+import { generateChart } from '/src/chart.js';
+import { connection, penta, unionGates, PENTA_CHANNELS, PENTA_GATES } from '/src/hd-connect.js';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const recs=HDStore.all();
+
+// 选人控件
+const opt=r=>`<option value="${r.id}">${esc(r.name)} · ${esc(r.sum.type)} ${esc(r.sum.profile)}</option>`;
+if(recs.length<2){ $('connForm').innerHTML='<p class="muted" style="margin:10px 0">需要至少 2 条记录——先去「排盘」页生成并保存。</p>'; }
+else { $('selA').innerHTML=recs.map(opt).join(''); $('selB').innerHTML=recs.map(opt).join(''); if(recs[1]) $('selB').value=recs[1].id; }
+$('plist').innerHTML = recs.map(r=>`<label><input type="checkbox" value="${r.id}" /> <b>${esc(r.name)}</b> <span class="sub">${esc(r.sum.type)} ${esc(r.sum.profile)}</span></label>`).join('') || '<p class="muted">暂无记录</p>';
+
+$('mode').onclick=e=>{const t=e.target.closest('[data-m]');if(!t)return;
+  for(const x of $('mode').children)x.classList.toggle('on',x===t);
+  $('connForm').hidden=t.dataset.m!=='conn'; $('pentaForm').hidden=t.dataset.m!=='penta'; $('out').innerHTML='';};
+
+const charts={}; // id → chart 缓存
+async function chartOf(id){ if(charts[id])return charts[id]; const r=HDStore.get(id); const c=await generateChart(r.input); charts[id]=c; return c; }
+
+// ── 合盘 ──
+const CATS=[['companionship','友谊 · 双方完整','彼此都有整条通道：舒适、共鸣，也容易彼此放大'],
+  ['dominance','主导 · 一方完整','一方完整、另一方全开放：单向示范与学习，注意尊重差异'],
+  ['compromise','妥协 · 一方挂单门','一方完整、另一方只有一门：单门方容易感到被带跑，需要觉察'],
+  ['electromagnetic','电磁 · 你一门我一门','两人各出一门合成通道：吸引与摩擦并存，是关系的火花']];
+$('goConn').onclick=async()=>{
+  const a=$('selA').value,b=$('selB').value;
+  if(!a||!b||a===b){ $('connSt').textContent='请选择两个不同的人'; return; }
+  $('connSt').textContent='⏳';
+  const rA=HDStore.get(a), rB=HDStore.get(b);
+  const cA=await chartOf(a), cB=await chartOf(b);
+  const cx=connection(cA,cB);
+  $('connSt').textContent='';
+  const fake={ personality:[...cx.gatesA].map(g=>({gate:g})), design:[...cx.gatesB].map(g=>({gate:g})), definedCenters:cx.definedCenters, phs:null };
+  const catHtml=CATS.map(([k,t,d])=>{
+    const list=cx.channels.filter(c=>c.cat===k||c.cat===k+'A'||c.cat===k+'B');
+    if(!list.length)return '';
+    const chip=c=>{ let who='';
+      if(c.cat==='dominanceA')who=` ←${esc(rA.name)}`; if(c.cat==='dominanceB')who=` ←${esc(rB.name)}`;
+      if(c.cat==='compromiseA')who=` ·${esc(rA.name)}妥协`; if(c.cat==='compromiseB')who=` ·${esc(rB.name)}妥协`;
+      return `<span class="chip"><b>${c.key}</b> ${esc(c.zh)}${who}</span>`; };
+    return `<div class="cat"><h4>${t}<span class="hint">${d}</span></h4><div class="chips">${list.map(chip).join('')}</div></div>`;
+  }).join('');
+  $('out').innerHTML=`<div class="duo">
+    <div class="graph"><svg class="bodygraph" viewBox="0 0 460 665"></svg>
+      <div class="legend"><span><span class="dot" style="background:var(--inkline)"></span>${esc(rA.name)}</span>
+      <span><span class="dot" style="background:var(--cinnabar)"></span>${esc(rB.name)}</span>
+      <span><span class="dot" style="background:repeating-linear-gradient(90deg,var(--inkline) 0 3px,var(--cinnabar) 3px 6px)"></span>双方皆有</span></div></div>
+    <div class="side">
+      <div class="summary" style="grid-template-columns:1fr 1fr">
+        <div class="card"><div class="k">合体定义中心</div><div class="v">${cx.definedCenters.length} / 9</div></div>
+        <div class="card"><div class="k">合体分裂数</div><div class="v">${cx.splits||0}</div></div>
+      </div>
+      ${catHtml || '<p class="muted">两人之间没有形成任何通道连接。</p>'}
+      <p class="muted" style="margin-top:10px;font-size:12px">ⓘ 合盘解读文案为初稿；分类规则：友谊/主导/妥协/电磁。</p>
+    </div></div>`;
+  HDRender.bodygraph(document.querySelector('#out svg.bodygraph'), fake);
+};
+
+// ── Penta ──
+const PXY={31:[130,76],8:[150,76],33:[170,76],7:[130,146],1:[150,122],13:[170,146],15:[130,168],46:[170,168],2:[150,190],5:[130,272],14:[150,272],29:[170,272]};
+const PCH=[[31,7],[8,1],[33,13],[15,5],[2,14],[46,29]];
+$('goPenta').onclick=async()=>{
+  const ids=[...document.querySelectorAll('#plist input:checked')].map(i=>i.value);
+  if(ids.length<3||ids.length>5){ $('pentaSt').textContent='请选择 3-5 人'; return; }
+  $('pentaSt').textContent='⏳';
+  const members=[]; for(const id of ids){ const r=HDStore.get(id); members.push({name:r.name, chart:await chartOf(id)}); }
+  const px=penta(members);
+  $('pentaSt').textContent='';
+  // 纵列 SVG
+  const NS='http://www.w3.org/2000/svg';
+  let svg=`<svg viewBox="0 0 300 340" style="max-width:300px;display:block">`;
+  for(const [a,b] of PCH){ const A=PXY[a],B=PXY[b];
+    svg+=`<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#E0D4BE" stroke-width="8" stroke-linecap="round"/>`;
+    svg+=`<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#FFFFFF" stroke-width="5.4" stroke-linecap="round"/>`;
+    const ca=px.carriers[a].length>0, cb=px.carriers[b].length>0;
+    const M=[(A[0]+B[0])/2,(A[1]+B[1])/2];
+    if(ca&&cb) svg+=`<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#E0A93E" stroke-width="5.4" stroke-linecap="butt"/>`;
+    else{ if(ca) svg+=`<line x1="${A[0]}" y1="${A[1]}" x2="${M[0]}" y2="${M[1]}" stroke="var(--inkline,#2B2B26)" stroke-width="5.4" stroke-linecap="butt"/>`;
+          if(cb) svg+=`<line x1="${B[0]}" y1="${B[1]}" x2="${M[0]}" y2="${M[1]}" stroke="var(--inkline,#2B2B26)" stroke-width="5.4" stroke-linecap="butt"/>`; }
+  }
+  const tD=px.channels.filter(c=>c.complete&&['7-31','1-8','13-33'].includes(c.key)).length>0;
+  const sD=px.channels.filter(c=>c.complete&&['5-15','2-14','29-46'].includes(c.key)).length>0;
+  svg+=`<rect x="110" y="20" width="80" height="60" rx="6" fill="${tD?'#EFD75C':'#fff'}" stroke="#D8CFC0"/>`;
+  svg+=`<polygon points="150,112 196,158 150,204 104,158" fill="${(tD||sD)?'#E9C46A':'#fff'}" stroke="#D8CFC0"/>`;
+  svg+=`<rect x="110" y="260" width="80" height="60" rx="6" fill="${sD?'#C03B2D':'#fff'}" stroke="#D8CFC0"/>`;
+  for(const g of PENTA_GATES){ const [x,y]=PXY[g]; const on=px.carriers[g].length>0;
+    if(on) svg+=`<circle cx="${x}" cy="${y}" r="7" fill="var(--inkline,#2B2B26)" stroke="#fff" stroke-width="1"/>`;
+    svg+=`<text x="${x}" y="${y+0.5}" text-anchor="middle" dominant-baseline="middle" font-size="8" font-weight="700" fill="${on?'#fff':'#B3433A'}">${g}</text>`; }
+  svg+='</svg>';
+  const rows=PENTA_CHANNELS.flatMap(ch=>ch.gates.map(g=>({g, ch, who:px.carriers[g]})));
+  $('out').innerHTML=`<div class="duo"><div class="graph">${svg}
+      <p class="muted" style="font-size:12px">金=通道完整 · 墨=半边 · 红字=缺口</p></div>
+    <div class="side">
+      <div class="summary" style="grid-template-columns:1fr 1fr">
+        <div class="card"><div class="k">成员</div><div class="v">${px.size} 人</div></div>
+        <div class="card"><div class="k">缺口</div><div class="v">${px.gaps.length?px.gaps.join(', '):'无 ✓'}</div></div>
+      </div>
+      <table class="pg"><tr><th>闸门</th><th>角色</th><th>承载成员</th></tr>
+      ${rows.map(r=>`<tr><td${r.who.length?'':' class="gap"'}>${r.g}</td><td>${esc(r.ch.roles[r.g])}<span class="hint" style="color:var(--sub)"> · ${r.ch.key} ${esc(r.ch.zh)}</span></td><td>${r.who.length?r.who.map(esc).join('、'):'<span style="color:#B3433A">缺口</span>'}</td></tr>`).join('')}
+      </table>
+      <p class="muted" style="margin-top:10px;font-size:12px">ⓘ Penta 为 3-5 人场域；2 人是伴侣连结、6 人以上进入更大场域。角色文案为观己白话初稿。</p>
+    </div></div>`;
+};
+</script>
+</body>
+</html>

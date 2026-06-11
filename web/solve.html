@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>反推出生时间 · 观己</title>
+<link rel="stylesheet" href="hd.css" />
+<style>
+  table.solv{width:100%;border-collapse:collapse;background:#fff;border:1px solid #EDE4D4;border-radius:12px;overflow:hidden;margin-top:10px}
+  .solv th,.solv td{padding:6px 8px;text-align:center;border-bottom:1px solid #F3ECDF;font-size:13px}
+  .solv th{background:#FAF5EA;color:#8A7A5E;font-weight:600}
+  .solv td.p{font-weight:700;white-space:nowrap;text-align:center}
+  .solv input{width:58px;padding:5px 6px;border:1px solid #D8CFC0;border-radius:8px;text-align:center;font-size:13px}
+  .solv select{padding:5px 4px;border:1px solid #D8CFC0;border-radius:8px;font-size:13px}
+  .solv .pz input,.solv .pz select{border-color:#bdb6a8}
+  .solv .dz input,.solv .dz select{border-color:#E0B5AE}
+  .res{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #EDE4D4;border-radius:12px;padding:10px 12px;margin-top:8px}
+  .res .t{flex:1;font-size:14px}
+  .res .w{font-size:12px;color:var(--sub)}
+  .btn-sm{font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid #D8CFC0;background:#fff;cursor:pointer;color:#6B5B43;text-decoration:none;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">观<span class="li">己</span> · 人类图 <span class="sub">反推出生时间</span></div>
+  </header>
+  <div class="tabs">
+    <a class="tab" href="index.html">排盘</a>
+    <a class="tab" href="history.html">记录</a>
+    <a class="tab on" href="solve.html">反推</a>
+    <a class="tab" href="connect.html">合盘</a>
+    <a class="tab" href="learn.html">学习 · 知识库</a>
+  </div>
+
+  <p class="muted" style="margin:10px 2px 0;font-size:13px">只有人类图、没有出生时间？填入图上各行星的闸门(.爻线)——填得越多越准；至少需要 个性太阳。地球/南交点也可填（与太阳/北交点互为对宫，可作校验）。</p>
+
+  <table class="solv">
+    <thead><tr><th colspan="2" style="color:#B3433A">设计 Design（红）</th><th></th><th colspan="2">个性 Personality（黑）</th></tr>
+    <tr><th>闸门</th><th>爻</th><th></th><th>闸门</th><th>爻</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <div class="form" style="margin-top:10px">
+    <div class="frow" style="align-items:flex-end">
+      <div class="field in"><label>起始年</label><input id="y0" type="number" value="1940" /></div>
+      <div class="field in"><label>结束年</label><input id="y1" type="number" value="2010" /></div>
+      <div class="field" style="flex:1;min-width:160px"><label>显示时区 (IANA)</label><input id="tz" /></div>
+      <button class="btn" id="go">开始反推</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+  <div id="out"></div>
+</div>
+
+<script type="importmap">
+{ "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }
+</script>
+<script src="i18n.js"></script>
+<script type="module">
+import { solveBirth, jdToLocal } from '/src/hd-solve.js';
+import { PLANETS } from '/src/hd-data.js';
+const $=id=>document.getElementById(id);
+
+// 13 行星输入行
+$('rows').innerHTML = PLANETS.map(p=>`
+  <tr data-k="${p.key}">
+    <td class="dz"><input class="dg" type="number" min="1" max="64" /></td>
+    <td class="dz"><select class="dl"><option value="">—</option>${[1,2,3,4,5,6].map(i=>`<option>${i}</option>`).join('')}</select></td>
+    <td class="p">${p.glyph} ${p.zh}</td>
+    <td class="pz"><input class="pg" type="number" min="1" max="64" /></td>
+    <td class="pz"><select class="pl"><option value="">—</option>${[1,2,3,4,5,6].map(i=>`<option>${i}</option>`).join('')}</select></td>
+  </tr>`).join('');
+
+try{ $('tz').value=Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Shanghai'; }catch(e){ $('tz').value='Asia/Shanghai'; }
+
+function collect(){
+  const t={personality:{},design:{}};
+  for(const tr of document.querySelectorAll('#rows tr')){
+    const k=tr.dataset.k;
+    const pg=+tr.querySelector('.pg').value, pl=+tr.querySelector('.pl').value;
+    const dg=+tr.querySelector('.dg').value, dl=+tr.querySelector('.dl').value;
+    if(pg>=1&&pg<=64) t.personality[k]={gate:pg,line:pl||null};
+    if(dg>=1&&dg<=64) t.design[k]={gate:dg,line:dl||null};
+  }
+  return t;
+}
+
+let busy=false;
+$('go').onclick=async()=>{
+  if(busy)return; busy=true;
+  const st=$('status'); st.className='status'; $('out').innerHTML='';
+  const targets=collect(), tz=$('tz').value.trim()||'Asia/Shanghai';
+  try{
+    const t0=performance.now();
+    const res=await solveBirth({ targets, yearFrom:+$('y0').value||1940, yearTo:+$('y1').value||2010,
+      onProgress:(y,rs)=>{ st.textContent=`⏳ ${y} … (${rs.length})`; } });
+    const ms=((performance.now()-t0)/1000).toFixed(1);
+    st.textContent=res.length?`✓ ${res.length} · ${ms}s`:'';
+    $('out').innerHTML = res.length ? res.map(r=>{
+      const a=jdToLocal(r.jdStart,tz), b=jdToLocal(r.jdEnd,tz);
+      const mid=jdToLocal((r.jdStart+r.jdEnd)/2,tz);
+      const w=((r.jdEnd-r.jdStart)*1440).toFixed(0);
+      const [d,hm]=mid.split(' '), [Y,Mo,D]=d.split('-'), [H,Mi]=hm.split(':');
+      const link=`index.html?y=${Y}&mo=${+Mo}&d=${+D}&h=${+H}&mi=${+Mi}&tz=${encodeURIComponent(tz)}&name=${encodeURIComponent('Rectified '+d)}`;
+      return `<div class="res"><div class="t"><b>${a}</b> ~ <b>${b.split(' ')[1]||b}</b> <span class="w">(${tz})</span><div class="w">± window ${w} min · mid ${mid.split(' ')[1]}</div></div><a class="btn-sm" href="${link}">用中点出盘</a></div>`;
+    }).join('') : '<p class="muted" style="margin-top:14px">无匹配：检查输入或放宽年份范围（爻线不确定就先留空）</p>';
+  }catch(e){
+    st.className='status err';
+    st.textContent = e.message==='need-personality-sun' ? '至少填写：个性太阳的闸门' : ('Error: '+(e.message||e));
+  }
+  busy=false;
+};
+</script>
+</body>
+</html>
