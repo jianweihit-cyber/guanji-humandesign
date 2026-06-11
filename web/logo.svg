@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="观己 离目 logo">
+  <!-- 方案二 · 离目：离卦为目，观=见，九运之眼，照见自身 -->
+  <!-- 光明三芒（离为明/火） -->
+  <g stroke="#A6392C" stroke-width="5" stroke-linecap="round">
+    <line x1="100" y1="46" x2="100" y2="29"/>
+    <line x1="73"  y1="52" x2="65"  y2="37"/>
+    <line x1="127" y1="52" x2="135" y2="37"/>
+  </g>
+  <!-- 眼形（观/目） -->
+  <path d="M30,100 C70,50 130,50 170,100 C130,150 70,150 30,100 Z"
+        fill="none" stroke="#A6392C" stroke-width="11" stroke-linejoin="round"/>
+  <!-- 瞳（己/中宫） -->
+  <circle cx="100" cy="100" r="19" fill="#A6392C"/>
+  <!-- 神光点 -->
+  <circle cx="108" cy="92" r="5" fill="#F6F0E2"/>
+</svg>

@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>反推出生时间 · 观己</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="stylesheet" href="hd.css" />
 <style>
   table.solv{width:100%;border-collapse:collapse;background:#fff;border:1px solid #EDE4D4;border-radius:12px;overflow:hidden;margin-top:10px}
@@ -18,12 +19,15 @@
   .res .t{flex:1;font-size:14px}
   .res .w{font-size:12px;color:var(--sub)}
   .btn-sm{font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid #D8CFC0;background:#fff;cursor:pointer;color:#6B5B43;text-decoration:none;white-space:nowrap}
+  .btn-sm:disabled{opacity:.4;cursor:default}
+  .field.in input{width:92px;font-size:15px}
+  .pager{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="brand">观<span class="li">己</span> · 人类图 <span class="sub">反推出生时间</span></div>
+    <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub">反推出生时间</span></div>
   </header>
   <div class="tabs">
     <a class="tab" href="index.html">排盘</a>
@@ -45,7 +49,8 @@
     <div class="frow" style="align-items:flex-end">
       <div class="field in"><label>起始年</label><input id="y0" type="number" value="1940" /></div>
       <div class="field in"><label>结束年</label><input id="y1" type="number" value="2010" /></div>
-      <div class="field" style="flex:1;min-width:160px"><label>显示时区 (IANA)</label><input id="tz" /></div>
+      <div class="field" style="flex:1;min-width:160px"><label>显示时区 (IANA)</label><input id="tz" list="tzlist" placeholder="Asia/Shanghai" />
+      <datalist id="tzlist"><option>Asia/Shanghai</option><option>Asia/Hong_Kong</option><option>Asia/Taipei</option><option>Asia/Tokyo</option><option>Asia/Seoul</option><option>Asia/Singapore</option><option>Asia/Bangkok</option><option>Asia/Kolkata</option><option>Asia/Dubai</option><option>Europe/London</option><option>Europe/Paris</option><option>Europe/Berlin</option><option>Europe/Moscow</option><option>America/New_York</option><option>America/Chicago</option><option>America/Denver</option><option>America/Los_Angeles</option><option>America/Sao_Paulo</option><option>Australia/Sydney</option><option>Pacific/Auckland</option></datalist></div>
       <button class="btn" id="go">开始反推</button>
     </div>
     <div class="status" id="status"></div>
@@ -57,6 +62,7 @@
 { "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }
 </script>
 <script src="i18n.js"></script>
+<script src="wheel.js"></script>
 <script type="module">
 import { solveBirth, jdToLocal } from '/src/hd-solve.js';
 import { PLANETS, GATE_ORDER } from '/src/hd-data.js';
@@ -86,6 +92,13 @@ document.getElementById('rows').addEventListener('change',e=>{
 
 try{ $('tz').value=Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Shanghai'; }catch(e){ $('tz').value='Asia/Shanghai'; }
 
+// 年份滚轮选择（点击 From/To 弹出）
+for(const id of ['y0','y1']){ const el=$(id); el.readOnly=true; el.style.cursor='pointer';
+  el.addEventListener('click',()=>window.HDWheel&&HDWheel.openYear({y:+el.value||1970,
+    title:(window.HDI18N&&HDI18N.lang==='en')?(id==='y0'?'From year':'To year'):(id==='y0'?'起始年':'结束年'),
+    onDone:y=>{el.value=y;}}));}
+
+
 function collect(){
   const t={personality:{},design:{}};
   for(const tr of document.querySelectorAll('#rows tr')){
@@ -105,18 +118,28 @@ $('go').onclick=async()=>{
   const targets=collect(), tz=$('tz').value.trim()||'Asia/Shanghai';
   try{
     const t0=performance.now();
-    const res=await solveBirth({ targets, yearFrom:+$('y0').value||1940, yearTo:+$('y1').value||2010,
+    const res=await solveBirth({ targets, yearFrom:+$('y0').value||1940, yearTo:+$('y1').value||2010, maxResults:2000,
       onProgress:(y,rs)=>{ st.textContent=`⏳ ${y} … (${rs.length})`; } });
     const ms=((performance.now()-t0)/1000).toFixed(1);
     st.textContent=res.length?`✓ ${res.length} · ${ms}s`:'';
-    $('out').innerHTML = res.length ? res.map(r=>{
+    const row=r=>{
       const a=jdToLocal(r.jdStart,tz), b=jdToLocal(r.jdEnd,tz);
       const mid=jdToLocal((r.jdStart+r.jdEnd)/2,tz);
       const w=((r.jdEnd-r.jdStart)*1440).toFixed(0);
       const [d,hm]=mid.split(' '), [Y,Mo,D]=d.split('-'), [H,Mi]=hm.split(':');
       const link=`index.html?y=${Y}&mo=${+Mo}&d=${+D}&h=${+H}&mi=${+Mi}&tz=${encodeURIComponent(tz)}&name=${encodeURIComponent('Rectified '+d)}`;
       return `<div class="res"><div class="t"><b>${a}</b> ~ <b>${b.split(' ')[1]||b}</b> <span class="w">(${tz})</span><div class="w">± window ${w} min · mid ${mid.split(' ')[1]}</div></div><a class="btn-sm" href="${link}">用中点出盘</a></div>`;
-    }).join('') : '<p class="muted" style="margin-top:14px">无匹配：检查输入或放宽年份范围（爻线不确定就先留空）</p>';
+    };
+    const PP=10; let pg=0;
+    const renderPage=()=>{
+      const tot=Math.max(1,Math.ceil(res.length/PP));
+      $('out').innerHTML = res.length
+        ? res.slice(pg*PP,(pg+1)*PP).map(row).join('')
+          + (res.length>PP?`<div class="pager"><button class="btn-sm" id="pgP" ${pg?'':'disabled'}>‹ Prev</button><span style="font-size:12px;color:var(--sub)">${pg+1} / ${tot} · ${res.length}</span><button class="btn-sm" id="pgN" ${pg<tot-1?'':'disabled'}>Next ›</button></div>`:'')
+        : '<p class="muted" style="margin-top:14px">无匹配：检查输入或放宽年份范围（爻线不确定就先留空）</p>';
+      if(res.length>PP){ $('pgP').onclick=()=>{ if(pg>0){pg--;renderPage();} }; $('pgN').onclick=()=>{ if(pg<tot-1){pg++;renderPage();} }; }
+    };
+    renderPage();
   }catch(e){
     st.className='status err';
     st.textContent = e.message==='need-personality-sun' ? '至少填写：个性太阳的闸门' : ('Error: '+(e.message||e));

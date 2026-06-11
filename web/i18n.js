@@ -40,7 +40,7 @@
     '出生地（决定时区）': 'Birth place (sets timezone)', '生成人类图': 'Generate Chart',
     '自定义 IANA 时区（如 Asia/Shanghai）': 'Custom IANA timezone (e.g. Asia/Shanghai)',
     '时间微调 Time': 'Time', '高级：': 'Advanced:', 'Moshier(离线)': 'Moshier (offline)', 'JPL(高精)': 'JPL (precise)',
-    '真交点': 'True Node', '平交点': 'Mean Node', '上海/北京/广州(中国)': 'Shanghai/Beijing (China)',
+    '真交点': 'True Node', '平交点': 'Mean Node', '上海/北京/广州(中国)': 'Shanghai/Beijing (China)', '🇨🇳 中国 · 选省市区': '🇨🇳 China · region picker', '选择出生时间': 'Birth date & time', '选择出生地（中国）': 'Birth place (China)', '起始年': 'From year', '结束年': 'To year',
     '香港': 'Hong Kong', '台北': 'Taipei', '东京': 'Tokyo', '新加坡': 'Singapore', '曼谷': 'Bangkok', '伦敦': 'London',
     '巴黎': 'Paris', '纽约': 'New York', '洛杉矶': 'Los Angeles', '檀香山': 'Honolulu', '悉尼': 'Sydney', '— 自定义 IANA —': '— Custom IANA —',
     '类型': 'Type', '策略': 'Strategy', '内在权威': 'Inner Authority', '人生角色': 'Profile', '定义': 'Definition',

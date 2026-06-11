@@ -4,12 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>人类图排盘 · 观己</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="stylesheet" href="hd.css" />
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="brand">观<span class="li">己</span> · 人类图 <span class="sub">Bodygraph</span></div>
+    <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub">Bodygraph</span></div>
     <select id="pick" class="adv" title="示例盘"><option value="">— 示例盘 —</option></select>
   </header>
   <div class="tabs">
@@ -29,6 +30,7 @@
       <div class="field in"><label>分</label><input id="mi" type="number" min="0" max="59" value="30" /></div>
       <div class="field" style="flex:1;min-width:150px"><label>出生地（决定时区）</label><select id="loc"></select></div>
       <button class="btn" id="go">生成人类图</button>
+      <span id="placeTag" class="muted" style="font-size:12px;align-self:flex-end;padding-bottom:10px"></span>
     </div>
     <div class="frow" id="tzCustom" hidden style="margin-top:8px">
       <div class="field" style="flex:1"><label>自定义 IANA 时区（如 Asia/Shanghai）</label><input id="tzText" placeholder="Asia/Shanghai" /></div>
@@ -62,6 +64,7 @@
 <script src="hd-render.js"></script>
 <script src="hd-store.js"></script>
 <script src="i18n.js"></script>
+<script src="wheel.js"></script>
 <script type="module">
 import { generateChart } from '/src/chart.js';
 import { TYPES, AUTHORITIES, PROFILES, CENTERS_KB } from '/src/hd-knowledge.js';
@@ -70,7 +73,7 @@ const $ = id => document.getElementById(id);
 const ENM = window.HDI18N && window.HDI18N.lang==='en';
 const CENTER_EN={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
 
-const LOCS=[['上海/北京/广州(中国)','Shanghai/Beijing (China)','Asia/Shanghai'],['香港','Hong Kong','Asia/Hong_Kong'],['台北','Taipei','Asia/Taipei'],['东京','Tokyo','Asia/Tokyo'],['新加坡','Singapore','Asia/Singapore'],['曼谷','Bangkok','Asia/Bangkok'],['伦敦','London','Europe/London'],['巴黎','Paris','Europe/Paris'],['纽约','New York','America/New_York'],['洛杉矶','Los Angeles','America/Los_Angeles'],['檀香山','Honolulu','Pacific/Honolulu'],['悉尼','Sydney','Australia/Sydney'],['— 自定义 IANA —','— Custom IANA —','__custom__']];
+const LOCS=[['🇨🇳 中国 · 选省市区','🇨🇳 China · region picker','__cn__'],['上海/北京/广州(中国)','Shanghai/Beijing (China)','Asia/Shanghai'],['香港','Hong Kong','Asia/Hong_Kong'],['台北','Taipei','Asia/Taipei'],['东京','Tokyo','Asia/Tokyo'],['新加坡','Singapore','Asia/Singapore'],['曼谷','Bangkok','Asia/Bangkok'],['伦敦','London','Europe/London'],['巴黎','Paris','Europe/Paris'],['纽约','New York','America/New_York'],['洛杉矶','Los Angeles','America/Los_Angeles'],['檀香山','Honolulu','Pacific/Honolulu'],['悉尼','Sydney','Australia/Sydney'],['— 自定义 IANA —','— Custom IANA —','__custom__']];
 const loc=$('loc');for(const [zh,en,tz] of LOCS){const o=document.createElement('option');o.value=tz;o.textContent=ENM?en:zh;loc.appendChild(o);}
 loc.onchange=()=>{$('tzCustom').hidden=loc.value!=='__custom__';};
 
@@ -129,6 +132,33 @@ tslider.oninput=()=>{ const v=+tslider.value; $('h').value=Math.floor(v/60); $('
   if(!raf) raf=requestAnimationFrame(async()=>{ raf=null; await run(); }); };
 tslider.onchange=()=>run();
 $('h').onchange=syncSlider; $('mi').onchange=syncSlider;
+// 滚轮选择：点 年/月/日/时/分 → 五列滚动（中间放大/吸附/震动反馈）
+const dtOpen=()=>{ if(!window.HDWheel) return;
+  HDWheel.openDateTime({ y:+$('y').value||1990, mo:+$('mo').value||1, d:+$('d').value||1, h:+$('h').value||12, mi:+$('mi').value||0,
+    title:(window.HDI18N&&HDI18N.lang==='en')?'Birth date & time':'选择出生时间',
+    onDone:(Y,Mo,D,H,Mi)=>{ $('y').value=Y;$('mo').value=Mo;$('d').value=D;$('h').value=H;$('mi').value=Mi; syncSlider(); run(); } });
+};
+for(const id of ['y','mo','d','h','mi']){ const el=$(id); el.readOnly=true; el.style.cursor='pointer'; el.addEventListener('click',dtOpen); }
+
+// 中国省市区三级滚轮（计算仍走时区 Asia/Shanghai，地名随记录保存）
+let CN=null, placeLabel='';
+const cnData=async()=>{ if(!CN){ const r=await fetch('cn-pca.json'); CN=await r.json(); } return CN; };
+async function openRegion(){
+  const data=await cnData();
+  const P=n=>data.find(x=>x.name===n);
+  const init=P('上海市')||data[0];
+  HDWheel.open({ title:(window.HDI18N&&HDI18N.lang==='en')?'Birth place (China)':'选择出生地（中国）',
+    cols:[{values:data.map(x=>x.name),value:init.name},
+          {values:init.children.map(c=>c.name),value:init.children[0].name},
+          {values:(init.children[0].children||[]).map(d=>d.name),value:null}],
+    onChange:(ci,v,set)=>{ const prov=P(v[0])||init;
+      if(ci===0){ set(1,prov.children.map(c=>c.name)); const c0=prov.children[0]; set(2,(c0.children||[]).map(d=>d.name)); }
+      else if(ci===1){ const city=prov.children.find(c=>c.name===v[1])||prov.children[0]; set(2,(city.children||[]).map(d=>d.name)); } },
+    onDone:(v)=>{ placeLabel=[v[0],v[1],v[2]].filter(x=>x&&x!=='市辖区').join(' · ');
+      setTz('Asia/Shanghai'); $('placeTag').textContent='📍 '+placeLabel; } });
+}
+loc.addEventListener('change',()=>{ if(loc.value==='__cn__'){ loc.value='Asia/Shanghai'; openRegion(); } });
+
 
 const data=window.SAMPLE_CHARTS||{}; const pick=$('pick');
 for(const [k,v] of Object.entries(data)){const o=document.createElement('option');o.value=k;o.textContent=ENM?v.label.replace('样例','Sample').replace('上海','Shanghai').replace('檀香山','Honolulu').replace('奥巴马','Obama'):v.label;pick.appendChild(o);}
@@ -138,7 +168,7 @@ pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, 'Sam
 $('saveBtn').onclick=()=>{
   if(!lastRun) return;
   const name=$('sname').value.trim()||'—';
-  HDStore.add({ name, input:lastRun.input, sum:HDStore.summarize(lastRun.chart) });
+  HDStore.add({ name, input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
   $('savemsg').textContent='✓ 已保存';
 };
 

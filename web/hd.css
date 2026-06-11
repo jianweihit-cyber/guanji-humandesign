@@ -89,3 +89,5 @@ svg.bodygraph{width:100%;height:auto;display:block}
 .report .rhead .s{font-size:13px;color:var(--sub);margin-top:3px}
 .report .foot{text-align:center;color:var(--sub);font-size:12px;margin-top:18px}
 .report .foot .li{color:var(--li);font-weight:700}
+
+.brandlogo{width:24px;height:24px;vertical-align:-5px;margin-right:7px}
