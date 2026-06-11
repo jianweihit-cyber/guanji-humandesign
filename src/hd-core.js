@@ -6,6 +6,8 @@ import {
   PHS_LR, PHS_SIDE, PHS_ZH,
 } from './hd-data.js';
 import { CROSSES } from './hd-crosses.js';
+import { CROSSES_ZH } from './hd-crosses-zh.js';
+import { CHANNEL_INFO } from './hd-book-data.js';
 
 const degnorm = (x) => ((x % 360) + 360) % 360;
 
@@ -123,6 +125,7 @@ export function computeChart({ personalityBodies, designBodies }) {
     angle,
     angleZh: angle ? ANGLE_ZH[angle] : '异常Profile(请校准)',
     name: crossName,
+    zhName: angleKey ? (CROSSES_ZH[angleKey]?.[pBy.Sun.gate] || null) : null,
     gates: crossGates,
     notation: `${crossName || (angle ? angle + ' Cross' : 'Cross')} (${crossGates[0]}/${crossGates[1]} | ${crossGates[2]}/${crossGates[3]})`,
   };
@@ -189,9 +192,11 @@ export function computeChart({ personalityBodies, designBodies }) {
     incarnationCross,
     definedCenters: [...definedCenters],
     openCenters,
-    definedChannels: definedChannels.map((ch) => ({
-      key: `${ch.gates[0]}-${ch.gates[1]}`, gates: ch.gates, centers: ch.centers, zh: ch.zh, en: ch.en,
-    })),
+    definedChannels: definedChannels.map((ch) => {
+      const key = `${ch.gates[0]}-${ch.gates[1]}`;
+      const bi = CHANNEL_INFO[key] || {};   // 书中标准名优先（《区分的科学》）
+      return { key, gates: ch.gates, centers: ch.centers, zh: bi.zh ? bi.zh + '通道' : ch.zh, en: bi.en || ch.en };
+    }),
     variables,
     phs,
     activatedGates: [...activated].sort((a, b) => a - b),

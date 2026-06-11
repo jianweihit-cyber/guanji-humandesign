@@ -172,7 +172,7 @@
     q('.chips.channels').innerHTML = c.definedChannels.length
       ? c.definedChannels.map(x=>`<span class="chip"><b>${x.key}</b> ${x.zh}</span>`).join('')
       : '<span class="muted">无（反映者 / 全开放）</span>';
-    q('.cross').innerHTML = `<b>${c.incarnationCross.name || c.incarnationCross.notation}</b><br>${c.incarnationCross.gates[0]}/${c.incarnationCross.gates[1]} | ${c.incarnationCross.gates[2]}/${c.incarnationCross.gates[3]} · ${c.incarnationCross.angleZh}`;
+    q('.cross').innerHTML = `<b>${c.incarnationCross.name || c.incarnationCross.notation}</b>${c.incarnationCross.zhName ? `<span data-noi18n> · ${c.incarnationCross.zhName}</span>` : ''}<br>${c.incarnationCross.gates[0]}/${c.incarnationCross.gates[1]} | ${c.incarnationCross.gates[2]}/${c.incarnationCross.gates[3]} · ${c.incarnationCross.angleZh}`;
   }
 
   window.HDRender = { CENTERS, GXY, CH, bodygraph, fill, deg };

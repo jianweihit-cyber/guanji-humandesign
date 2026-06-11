@@ -41,7 +41,7 @@ for(const [k,v] of Object.entries(LINES)) ALL.push({cat:'line',key:k,name:`第${
 for(const [k,v] of Object.entries(CENTERS_KB)) ALL.push({cat:'center',key:k,name:v.zh,sub:v.type,s:`${k}${v.zh}${v.theme}中心`});
 for(const [k,v] of Object.entries(DEFINITION_KB)) ALL.push({cat:'definition',key:k,name:v.zh,sub:'定义',s:`${k}${v.zh}定义`});
 for(const [k,v] of Object.entries(CHANNELS_KB)) ALL.push({cat:'channel',key:k,name:`${k} ${v.zh}`,sub:v.centers.join('–'),s:`${k}${v.zh}${v.en}${v.theme}通道`});
-for(const [k,v] of Object.entries(GATES_KB)) ALL.push({cat:'gate',key:k,name:`${v.glyph} ${k}·${v.hex}`,sub:v.theme,s:`${k}${v.hex}${v.iching}${v.theme}${v.centerZh}闸门门`});
+for(const [k,v] of Object.entries(GATES_KB)) ALL.push({cat:'gate',key:k,name:`${v.glyph} ${k}·${v.name||v.hex}`,sub:v.theme,s:`${k}${v.hex}${v.iching}${v.name}${v.alias}${v.nameEn}${v.circuit}${v.theme}${v.centerZh}闸门门`});
 for(const [k,v] of Object.entries(PHS_KB)) ALL.push({cat:'phs',key:k,name:v.title,sub:v.zh,s:`phs变量箭头variable${k}${v.title}${v.zh}${v.colors.map(c=>c.base.join('')+c.l.join('')+c.r.join('')).join('')}`});
 
 const CATS=[['type','类型'],['authority','内在权威'],['profile','人生角色'],['line','六爻'],['center','九大中心'],['channel','36通道'],['gate','64闸门'],['definition','定义'],['phs','PHS 四箭头']];
@@ -68,8 +68,8 @@ function detailHTML(cat,key){
   if(cat==='line'){const v=LINES[key];return `<h2>第${key}爻 · ${v.name}</h2><div class="gloss">${v.desc}</div>`;}
   if(cat==='center'){const v=CENTERS_KB[key];return `<h2>${v.zh}</h2>${tag(v.type)}${tag(v.theme)}<div class="gloss"><b>已定义</b>：${v.defined}</div><div class="gloss"><b>开放</b>：${v.open}</div>`;}
   if(cat==='definition'){const v=DEFINITION_KB[key];return `<h2>${v.zh}</h2><div class="gloss">${v.desc}</div>`;}
-  if(cat==='channel'){const v=CHANNELS_KB[key];return `<h2>${v.key} ${v.zh}通道 <span class="sub">${v.en}</span></h2>${tag(v.centers.join(' – '))}<div class="gloss">${v.theme}</div><div class="muted">连接闸门 ${v.gates[0]} 与 ${v.gates[1]}</div>`;}
-  if(cat==='gate'){const v=GATES_KB[key];return `<h2><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>${v.gate} 号闸门 · ${v.hex}卦 <span class="sub">${v.iching}</span></h2>${tag('所在：'+v.centerZh)}<div class="gloss">${v.theme}</div>`;}
+  if(cat==='channel'){const v=CHANNELS_KB[key];return `<h2>${v.key} ${v.zh.endsWith('通道')?v.zh:v.zh+'通道'} <span class="sub">${v.en}</span></h2>${tag(v.centers.join(' – '))}${v.circuit?tag('回路：'+v.circuit):''}${v.keyline?tag('关键句：'+v.keyline):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}<div class="muted">连接闸门 ${v.gates[0]} 与 ${v.gates[1]}</div>`;}
+  if(cat==='gate'){const v=GATES_KB[key];return `<h2><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>${v.gate} 号闸门${v.name?` · ${v.name}`:''} <span class="sub">${v.nameEn||v.iching}</span></h2>${tag('所在：'+v.centerZh)}${tag(v.hex+'卦')}${v.circuit?tag('回路：'+v.circuit):''}${v.alias?tag('别名：'+v.alias):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}`;}
   if(cat==='phs'){const v=PHS_KB[key];const tones=PHS_TONES_KB[v.tones];
     let h=`<h2>${v.title} <span class="sub">${v.zh}</span></h2>${tag('来源：'+v.src)}`;
     if(v.side) h+=tag('◀ '+v.side.l.join(' '))+tag('▶ '+v.side.r.join(' '));
