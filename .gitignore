@@ -2,3 +2,6 @@ node_modules/
 .DS_Store
 .claude/
 *.log
+
+# 参考书籍（版权材料，绝不入公开仓/不部署）
+99_RefBooks/
