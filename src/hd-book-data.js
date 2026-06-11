@@ -933,3 +933,113 @@ export const CHANNEL_INFO = {
   "keynote": "A materialist; control of communal resources"
  }
 };
+
+export const EN_KB = {
+ "types": {
+  "Manifestor": {
+   "strategy": "To Inform before acting",
+   "signature": "Peace",
+   "notSelf": "Anger",
+   "keynote": "Closed repelling aura; initiates impact (~8%)"
+  },
+  "Generator": {
+   "strategy": "To Respond (wait to respond)",
+   "signature": "Satisfaction",
+   "notSelf": "Frustration",
+   "keynote": "Open enveloping aura; sacral life-force builder (~37%)"
+  },
+  "Manifesting Generator": {
+   "strategy": "To Respond, then inform before acting",
+   "signature": "Satisfaction (and Peace)",
+   "notSelf": "Frustration (and Anger)",
+   "keynote": "Sacral being with manifesting shortcut; multi-tasker (~33%)"
+  },
+  "Projector": {
+   "strategy": "Wait for the Invitation",
+   "signature": "Success",
+   "notSelf": "Bitterness",
+   "keynote": "Focused absorbing aura; guide needing recognition (~21%)"
+  },
+  "Reflector": {
+   "strategy": "Wait a Lunar Cycle (~28 days)",
+   "signature": "Surprise",
+   "notSelf": "Disappointment",
+   "keynote": "Resistant sampling aura; no definition, mirrors community (~1%)"
+  }
+ },
+ "profiles": {
+  "1/3": "Investigator/Martyr — foundation through trial and error",
+  "1/4": "Investigator/Opportunist — studied foundation shared through network",
+  "2/4": "Hermit/Opportunist — natural talent called out by others",
+  "2/5": "Hermit/Heretic — reluctant genius projected with expectations",
+  "3/5": "Martyr/Heretic — resilient experimenter offering practical solutions",
+  "3/6": "Martyr/Role Model — trial-and-error youth maturing into wisdom",
+  "4/6": "Opportunist/Role Model — networked authority maturing into example",
+  "4/1": "Opportunist/Investigator — fixed fate; foundation externalized through friends",
+  "5/1": "Heretic/Investigator — practical general, projected savior on solid base",
+  "5/2": "Heretic/Hermit — projected savior needing self-motivated withdrawal",
+  "6/2": "Role Model/Hermit — three-phase life toward objective wisdom",
+  "6/3": "Role Model/Martyr — wisdom seasoned by lifelong experiential bumps"
+ },
+ "authorities": {
+  "Emotional": {
+   "keynote": "Wait out the wave; no truth in the now; clarity over time"
+  },
+  "Sacral": {
+   "keynote": "Gut response in the moment; uh-huh / un-un"
+  },
+  "Splenic": {
+   "keynote": "Spontaneous instinctive knowing; speaks once, in the now"
+  },
+  "Ego": {
+   "keynote": "Willpower speaks: what do I want? (Ego Manifested/Projected)"
+  },
+  "SelfProjected": {
+   "keynote": "Truth heard in own voice; identity and direction"
+  },
+  "Mental": {
+   "keynote": "Mental Projector: sounding board, talk it out in correct environment"
+  },
+  "Lunar": {
+   "keynote": "Wait a full lunar cycle (~28 days) before deciding"
+  }
+ },
+ "centers": {
+  "Head": {
+   "alt": "Crown",
+   "keynote": "Pressure center: inspiration; questions seeking meaning"
+  },
+  "Ajna": {
+   "alt": "Mind",
+   "keynote": "Awareness center: conceptualization, opinions, certainty"
+  },
+  "Throat": {
+   "alt": "Throat",
+   "keynote": "Manifestation hub: communication and action; all roads lead here"
+  },
+  "G": {
+   "alt": "Self",
+   "keynote": "Identity, love, direction; magnetic monopole"
+  },
+  "Heart": {
+   "alt": "Heart",
+   "keynote": "Motor: willpower, worth, ego, material bargains"
+  },
+  "Sacral": {
+   "alt": "Sacral",
+   "keynote": "Motor: generative life-force; response and fertility"
+  },
+  "SolarPlexus": {
+   "alt": "Emotions",
+   "keynote": "Motor + awareness: emotional wave, desire, spirit"
+  },
+  "Spleen": {
+   "alt": "Spleen",
+   "keynote": "Awareness: instinct, intuition, health, fear, in-the-now"
+  },
+  "Root": {
+   "alt": "Root",
+   "keynote": "Pressure motor: adrenaline, stress, drive to begin"
+  }
+ }
+};

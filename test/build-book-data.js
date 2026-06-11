@@ -50,11 +50,21 @@ for (const c of rows('channels-zh.md')) {
 }
 if (Object.keys(CHANNEL_INFO).length !== 36) throw new Error('channels != 36: ' + Object.keys(CHANNEL_INFO).length);
 
+// ── 3. EN 知识表（类型/权威/角色/中心，键名归一到引擎代码）──
+const normKey = (s, map) => { for (const [pat, code] of map) if (s.toLowerCase().includes(pat)) return code; return null; };
+const AUTH_MAP = [['self-projected','SelfProjected'],['self projected','SelfProjected'],['emotional','Emotional'],['solar','Emotional'],['sacral','Sacral'],['splenic','Splenic'],['spleen','Splenic'],['ego','Ego'],['heart','Ego'],['will','Ego'],['mental','Mental'],['environment','Mental'],['outer','Mental'],['lunar','Lunar'],['moon','Lunar']];
+const CENTER_MAP = [['head','Head'],['crown','Head'],['ajna','Ajna'],['mind','Ajna'],['throat','Throat'],['g cent','G'],['identity','G'],['self','G'],['heart','Heart'],['ego','Heart'],['will','Heart'],['sacral','Sacral'],['solar','SolarPlexus'],['emotion','SolarPlexus'],['spleen','Spleen'],['splenic','Spleen'],['root','Root']];
+const EN_KB = { types: en.types || {}, profiles: en.profiles || {}, authorities: {}, centers: {} };
+for (const [k, v] of Object.entries(en.authorities || {})) { const c = normKey(k, AUTH_MAP); if (c && !EN_KB.authorities[c]) EN_KB.authorities[c] = v; }
+for (const [k, v] of Object.entries(en.centers || {})) { const c = normKey(k, CENTER_MAP); if (c && !EN_KB.centers[c]) EN_KB.centers[c] = v; }
+console.log('EN_KB: auth', Object.keys(EN_KB.authorities).length, '| centers', Object.keys(EN_KB.centers).length, '| types', Object.keys(EN_KB.types).length, '| profiles', Object.keys(EN_KB.profiles).length);
+
 writeFileSync(S('hd-book-data.js'),
   '// hd-book-data.js — 闸门/通道权威信息（由 test/build-book-data.js 自参考书笔记生成，勿手改）\n'
   + '// 中文名/主旨/回路 源自《人类图：区分的科学》提炼；英文名/keynote 源自 Ra/Jovian 标准（Complete Guide）\n'
   + 'export const GATE_INFO = ' + JSON.stringify(GATE_INFO, null, 1) + ';\n\n'
-  + 'export const CHANNEL_INFO = ' + JSON.stringify(CHANNEL_INFO, null, 1) + ';\n');
+  + 'export const CHANNEL_INFO = ' + JSON.stringify(CHANNEL_INFO, null, 1) + ';\n\n'
+  + 'export const EN_KB = ' + JSON.stringify(EN_KB, null, 1) + ';\n');
 
 console.log('✓ hd-crosses-zh.js 192 条 | GATE_INFO 64 | CHANNEL_INFO 36');
 console.log('样例:', zh.Right[1], '|', JSON.stringify(GATE_INFO[1], null, 0).slice(0, 120));
