@@ -59,7 +59,7 @@
 <script src="i18n.js"></script>
 <script type="module">
 import { solveBirth, jdToLocal } from '/src/hd-solve.js';
-import { PLANETS } from '/src/hd-data.js';
+import { PLANETS, GATE_ORDER } from '/src/hd-data.js';
 const $=id=>document.getElementById(id);
 
 // 13 行星输入行
@@ -71,6 +71,18 @@ $('rows').innerHTML = PLANETS.map(p=>`
     <td class="pz"><input class="pg" type="number" min="1" max="64" /></td>
     <td class="pz"><select class="pl"><option value="">—</option>${[1,2,3,4,5,6].map(i=>`<option>${i}</option>`).join('')}</select></td>
   </tr>`).join('');
+
+// 对宫联动：日↔地、北交↔南交（黑/红两层各自独立）——闸门=对宫(轮序+32)、爻线=同爻
+const OPP=g=>{const i=GATE_ORDER.indexOf(+g);return i<0?null:GATE_ORDER[(i+32)%64];};
+const PAIRS={Sun:'Earth',Earth:'Sun',NorthNode:'SouthNode',SouthNode:'NorthNode'};
+document.getElementById('rows').addEventListener('change',e=>{
+  const tr=e.target.closest('tr'); if(!tr||!PAIRS[tr.dataset.k]) return;
+  const side=e.target.className.startsWith('p')?'p':'d';
+  const ptr=document.querySelector(`#rows tr[data-k="${PAIRS[tr.dataset.k]}"]`);
+  const g=tr.querySelector('.'+side+'g').value, l=tr.querySelector('.'+side+'l').value;
+  if(g){const og=OPP(g); if(og) ptr.querySelector('.'+side+'g').value=og;}
+  ptr.querySelector('.'+side+'l').value=l||'';
+});
 
 try{ $('tz').value=Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Shanghai'; }catch(e){ $('tz').value='Asia/Shanghai'; }
 
