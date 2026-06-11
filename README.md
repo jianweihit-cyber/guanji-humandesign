@@ -2,7 +2,7 @@
 
 离线优先的人类图（Human Design）排盘引擎与全功能 Web 应用：排盘 / 命盘记录 / 反推出生时间（生时校正）/ 合盘 & Penta / 知识库，简体·繁體·English 三语。
 
-**Live demo:** https://guanji-humandesign.fly.dev
+**Live:** https://humandesign.zaiyuxingzhe.com （备用 https://guanji-humandesign.fly.dev）
 
 ## 功能 Features
 
