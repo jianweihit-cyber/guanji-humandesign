@@ -136,7 +136,7 @@
     const link=(cat,key,txt)=> opts.linkKB ? `<a href="learn.html#${cat}:${key}" style="text-decoration:none;color:inherit">${txt}</a>` : txt;
     const cards=[
       // EN 模式：主=英文术语、副=中文(豁免翻译)；中文模式：主=中文、副=英文
-      ['类型', link('type',c.type, isEN()?c.type:c.typeZh), isEN()?`<span data-noi18n>${c.typeZh}</span>`:c.type],
+      ['类型', link('type',c.type, isEN()?c.type:c.typeZh), isEN()?'':c.type],
       ['策略',c.strategy,''],
       ['内在权威',c.authorityZh.split('（')[0],''],
       ['人生角色',link('profile',c.profile.str,c.profile.str),c.profile.zh],
@@ -154,12 +154,12 @@
     if (c.phs && c.variables) {
       const V = c.variables, P = c.phs, T = P.types || {};
       const ctb = v => `C${v.color} · T${v.tone} · B${v.base}`;
-      const fmt = (t, base) => t ? `<b>${t.en} ${t.zh}</b>（${base}${t.baseZh ? ' ' + t.baseZh : ''}）` : base;
+      const fmt = (t, base) => t ? (isEN() ? `<b>${t.en}</b> (${base})` : `<b>${t.en} ${t.zh}</b>（${base}${t.baseZh ? ' ' + t.baseZh : ''}）`) : base;
       const rows = [
         { sys: 'Digestion',   src: '设计 ☉', v: V.digestion,   main: 'Determination', val: fmt(T.determination, P.determination), sub: 'Cognition: ' + P.cognition },
-        { sys: 'Awareness',   src: '个性 ☉', v: V.awareness,   main: 'Motivation',    val: fmt(T.motivation, P.motivation),       sub: T.motivation && T.motivation.side ? T.motivation.side.en + ' ' + T.motivation.side.zh : '' },
+        { sys: 'Awareness',   src: '个性 ☉', v: V.awareness,   main: 'Motivation',    val: fmt(T.motivation, P.motivation),       sub: T.motivation && T.motivation.side ? isEN() ? T.motivation.side.en : T.motivation.side.en + ' ' + T.motivation.side.zh : '' },
         { sys: 'Environment', src: '设计 ☊', v: V.environment, main: 'Environment',   val: fmt(T.environment, P.environment),     sub: '' },
-        { sys: 'Perspective', src: '个性 ☊', v: V.perspective, main: 'View',          val: fmt(T.view, P.view),                   sub: T.view && T.view.side ? T.view.side.en + ' ' + T.view.side.zh : '' },
+        { sys: 'Perspective', src: '个性 ☊', v: V.perspective, main: 'View',          val: fmt(T.view, P.view),                   sub: T.view && T.view.side ? isEN() ? T.view.side.en : T.view.side.en + ' ' + T.view.side.zh : '' },
       ];
       q('.vtable').innerHTML = rows.map(r => `
         <div class="vrow">
@@ -172,7 +172,7 @@
     q('.chips.channels').innerHTML = c.definedChannels.length
       ? c.definedChannels.map(x=>`<span class="chip"><b>${x.key}</b> ${isEN()?(x.en||x.zh):x.zh}</span>`).join('')
       : '<span class="muted">无（反映者 / 全开放）</span>';
-    q('.cross').innerHTML = `<b>${c.incarnationCross.name || c.incarnationCross.notation}</b>${c.incarnationCross.zhName ? `<span data-noi18n> · ${c.incarnationCross.zhName}</span>` : ''}<br>${c.incarnationCross.gates[0]}/${c.incarnationCross.gates[1]} | ${c.incarnationCross.gates[2]}/${c.incarnationCross.gates[3]} · ${c.incarnationCross.angleZh}`;
+    q('.cross').innerHTML = `<b>${c.incarnationCross.name || c.incarnationCross.notation}</b>${c.incarnationCross.zhName && !isEN() ? `<span data-noi18n> · ${c.incarnationCross.zhName}</span>` : ''}<br>${c.incarnationCross.gates[0]}/${c.incarnationCross.gates[1]} | ${c.incarnationCross.gates[2]}/${c.incarnationCross.gates[3]} · ${isEN()?(c.incarnationCross.angle||''):c.incarnationCross.angleZh}`;
   }
 
   window.HDRender = { CENTERS, GXY, CH, bodygraph, fill, deg };

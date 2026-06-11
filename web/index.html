@@ -65,14 +65,31 @@
 <script type="module">
 import { generateChart } from '/src/chart.js';
 import { TYPES, AUTHORITIES, PROFILES, CENTERS_KB } from '/src/hd-knowledge.js';
+import { EN_KB } from '/src/hd-book-data.js';
 const $ = id => document.getElementById(id);
+const ENM = window.HDI18N && window.HDI18N.lang==='en';
+const CENTER_EN={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
 
-const LOCS=[['上海/北京/广州(中国)','Asia/Shanghai'],['香港','Asia/Hong_Kong'],['台北','Asia/Taipei'],['东京','Asia/Tokyo'],['新加坡','Asia/Singapore'],['曼谷','Asia/Bangkok'],['伦敦','Europe/London'],['巴黎','Europe/Paris'],['纽约','America/New_York'],['洛杉矶','America/Los_Angeles'],['檀香山','Pacific/Honolulu'],['悉尼','Australia/Sydney'],['— 自定义 IANA —','__custom__']];
-const loc=$('loc');for(const [n,tz] of LOCS){const o=document.createElement('option');o.value=tz;o.textContent=n;loc.appendChild(o);}
+const LOCS=[['上海/北京/广州(中国)','Shanghai/Beijing (China)','Asia/Shanghai'],['香港','Hong Kong','Asia/Hong_Kong'],['台北','Taipei','Asia/Taipei'],['东京','Tokyo','Asia/Tokyo'],['新加坡','Singapore','Asia/Singapore'],['曼谷','Bangkok','Asia/Bangkok'],['伦敦','London','Europe/London'],['巴黎','Paris','Europe/Paris'],['纽约','New York','America/New_York'],['洛杉矶','Los Angeles','America/Los_Angeles'],['檀香山','Honolulu','Pacific/Honolulu'],['悉尼','Sydney','Australia/Sydney'],['— 自定义 IANA —','— Custom IANA —','__custom__']];
+const loc=$('loc');for(const [zh,en,tz] of LOCS){const o=document.createElement('option');o.value=tz;o.textContent=ENM?en:zh;loc.appendChild(o);}
 loc.onchange=()=>{$('tzCustom').hidden=loc.value!=='__custom__';};
 
 function interpret(c){
   const box=$('interpret'); box.hidden=false;
+  if(ENM){ // EN 模式：英文独占解读（来自 Ra/Jovian 标准提炼）
+    const e=EN_KB.types[c.type]||{}, ea=EN_KB.authorities[c.authority]||{}, ep=EN_KB.profiles[c.profile.str];
+    const defList=c.definedCenters.map(k=>CENTER_EN[k]||k).join(', ')||'—';
+    const openList=c.openCenters.map(k=>`<li><b>${CENTER_EN[k]||k}</b>: ${(EN_KB.centers[k]||{}).keynote||'open — takes in and amplifies others'}</li>`).join('');
+    box.innerHTML=`<div class="sec"><h3 data-noi18n>Your Reading</h3><div class="kb-detail" data-noi18n>
+      <div class="gloss"><b>Type · ${c.type}</b>${e.keynote?` — ${e.keynote}`:''}<br>💡 <b>Strategy:</b> ${e.strategy||''} · <b>Signature:</b> ${e.signature||''} · <b>Not-Self:</b> ${e.notSelf||''}</div>
+      <div class="gloss"><b>Inner Authority · ${c.authority}</b>${ea.keynote?` — ${ea.keynote}`:''}</div>
+      ${ep?`<div class="gloss"><b>Profile ${c.profile.str}</b> — ${typeof ep==='string'?ep:(ep.keynote||ep.name||'')}</div>`:''}
+      <div class="gloss"><b>Energy design</b> — defined centers (<b>${defList}</b>) are your consistent nature; open centers are where you take in and amplify the world:</div>
+      <ul class="muted" style="margin:4px 0 0;padding-left:20px;line-height:1.9">${openList||'<li>All nine centers open (Reflector) — wisdom through sampling.</li>'}</ul>
+      <div class="muted" style="margin-top:8px">ⓘ First-draft reading — open Learn · Library for full entries.</div>
+    </div></div>`;
+    return;
+  }
   const t=TYPES[c.type], a=AUTHORITIES[c.authority], p=PROFILES[c.profile.str];
   const defList=c.definedCenters.map(k=>CENTERS_KB[k].zh).join('、')||'—';
   const openList=c.openCenters.map(k=>`<li><b>${CENTERS_KB[k].zh}</b>：${CENTERS_KB[k].open}</li>`).join('');
@@ -114,7 +131,7 @@ tslider.onchange=()=>run();
 $('h').onchange=syncSlider; $('mi').onchange=syncSlider;
 
 const data=window.SAMPLE_CHARTS||{}; const pick=$('pick');
-for(const [k,v] of Object.entries(data)){const o=document.createElement('option');o.value=k;o.textContent=v.label;pick.appendChild(o);}
+for(const [k,v] of Object.entries(data)){const o=document.createElement('option');o.value=k;o.textContent=ENM?v.label.replace('样例','Sample').replace('上海','Shanghai').replace('檀香山','Honolulu').replace('奥巴马','Obama'):v.label;pick.appendChild(o);}
 pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, 'Sample · '+d.label); $('savebar').hidden=true; } };
 
 // 保存此盘 → 本地记录（hd-store）
