@@ -31,6 +31,7 @@
 <script type="module">
 import { TYPES, AUTHORITIES, LINES, PROFILES, DEFINITION_KB, CENTERS_KB, GATES_KB, CHANNELS_KB, PHS_KB, PHS_TONES_KB, KB_NOTE } from '/src/hd-knowledge.js';
 import { EN_KB } from '/src/hd-book-data.js';
+import { EN_TEXT, ORIGIN } from '/src/hd-web-kb.js';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 // EN 模式：英文独占（不露中文）；繁/简由 i18n 全站处理
@@ -40,7 +41,7 @@ const LINE_EN={1:['Investigator','Introspective foundation — needs to study an
 const DEF_EN={'Single':'All defined centers form one continuous connection — self-contained and consistent.','Split':'Two separate areas of definition; specific people feel like the bridge.','Triple Split':'Three areas; integration comes through varied environments and patience.','Quadruple Split':'Four areas; fixed, complex processing that benefits from stable routine.','None':'No definition (Reflector) — a fluid, sampling presence shaped by place and people.'};
 const ANGLE_EN={'右角度':'Right Angle','左角度':'Left Angle','并列':'Juxtaposition'};
 const CENTER_EN={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
-const CIRCUIT_EN={'整合型':'Integration','个体人·觉知':'Individual (Knowing)','个体人·中央':'Individual (Centering)','社会人·理解-逻辑':'Collective (Logic)','社会人·感知-抽象':'Collective (Sensing)','家族人·防护':'Tribal (Defense)','家族人·意志力':'Tribal (Ego)'};
+const CIRCUIT_EN={'整合型':'Integration','整合型（兼觉知）':'Integration (w/ Knowing)','整合型（兼中央）':'Integration (w/ Centering)','整合型（兼觉知/中央）':'Integration (w/ Knowing/Centering)','个体人·觉知':'Individual (Knowing)','个体人·中央':'Individual (Centering)','社会人·理解-逻辑':'Collective (Logic)','社会人·理解(逻辑)':'Collective (Logic)','社会人·感知-抽象':'Collective (Abstract)','社会人·感知(抽象)':'Collective (Abstract)','家族人·防护':'Tribal (Defense)','家族人·意志力':'Tribal (Ego)'};
 const cEN=s=>CIRCUIT_EN[s]||s;
 
 // 统一索引
@@ -55,7 +56,8 @@ for(const [k,v] of Object.entries(CHANNELS_KB)) ALL.push({cat:'channel',key:k,na
 for(const [k,v] of Object.entries(GATES_KB)) ALL.push({cat:'gate',key:k,name:`${v.glyph} ${k}·${ENM&&v.nameEn?v.nameEn:(v.name||v.hex)}`,sub:ENM?(v.keynote||v.theme):v.theme,s:`${k}${v.hex}${v.iching}${v.name}${v.alias}${v.nameEn}${v.circuit}${v.theme}${v.centerZh}闸门门`});
 for(const [k,v] of Object.entries(PHS_KB)) ALL.push({cat:'phs',key:k,name:v.title,sub:v.zh,s:`phs变量箭头variable${k}${v.title}${v.zh}${v.colors.map(c=>c.base.join('')+c.l.join('')+c.r.join('')).join('')}`});
 
-const CATS=[['type','类型'],['authority','内在权威'],['profile','人生角色'],['line','六爻'],['center','九大中心'],['channel','36通道'],['gate','64闸门'],['definition','定义'],['phs','PHS 四箭头']];
+ALL.push({cat:'about',key:'origin',name:ENM?'Origin of Human Design':'人类图的起源',sub:ENM?'Ra Uru Hu · 1987 · Ibiza':'拉·乌卢·胡 1987',s:'about关于origin起源源起历史history ra uru hu拉乌卢胡伊维萨ibiza'});
+const CATS=[['type','类型'],['authority','内在权威'],['profile','人生角色'],['line','六爻'],['center','九大中心'],['channel','36通道'],['gate','64闸门'],['definition','定义'],['phs','PHS 四箭头'],['about',ENM?'About':'关于人类图']];
 let curCat='type', curTerm='';
 
 // 分类导航
@@ -74,19 +76,20 @@ $('#grid').onclick=e=>{const c=e.target.closest('.kb-cell');if(!c)return;openDet
 function tag(t){return `<span class="tag">${esc(t)}</span>`;}
 function detailHTML(cat,key){
   if(cat==='type'){const v=TYPES[key];const e=EN_KB.types[key]||{};
-    if(ENM) return `<h2 data-noi18n>${esc(key)}</h2><div data-noi18n>${e.keynote?`<div class="gloss">${esc(e.keynote)}</div>`:''}<div class="gloss"><b>Strategy:</b> ${esc(e.strategy||'')}<br><b>Signature:</b> ${esc(e.signature||'')}　<b>Not-Self:</b> ${esc(e.notSelf||'')}</div></div>`;
+    if(ENM) return `<h2 data-noi18n>${esc(key)}</h2><div data-noi18n>${e.keynote?`<div class="gloss">${esc(e.keynote)}</div>`:''}${EN_TEXT.types[key]?`<div class="gloss">${esc(EN_TEXT.types[key])}</div>`:''}<div class="gloss"><b>Strategy:</b> ${esc(e.strategy||'')}<br><b>Signature:</b> ${esc(e.signature||'')}　<b>Not-Self:</b> ${esc(e.notSelf||'')}</div></div>`;
     return `<h2>${v.zh} <span class="sub">${key}</span></h2>${tag(v.pct)}${tag('光环：'+v.aura)}<div class="gloss">${v.desc}</div><div><b>策略</b>：${v.strategy}　<b>签名</b>：${v.signature}　<b>非自己</b>：${v.notSelf}</div><div class="gloss">💡 ${v.tip}</div>`;}
   if(cat==='authority'){const v=AUTHORITIES[key];const e=EN_KB.authorities[key]||{};
-    if(ENM) return `<h2 data-noi18n>${esc(key)} Authority</h2><div data-noi18n class="gloss">${esc(e.keynote||e.name||'Inner authority — decision-making by design.')}</div>`;
+    if(ENM) return `<h2 data-noi18n>${esc(key)} Authority</h2><div data-noi18n>${e.keynote?`<div class="gloss">${esc(e.keynote)}</div>`:''}<div class="gloss">${esc(EN_TEXT.authorities[key]||e.name||'Inner authority — decision-making by design.')}</div></div>`;
     return `<h2>${v.zh}</h2><div class="gloss">${v.desc}</div><div class="gloss">💡 ${v.tip}</div>`;}
   if(cat==='profile'){const v=PROFILES[key];const e=EN_KB.profiles[key];const [a,b]=key.split('/');
-    if(ENM) return `<h2 data-noi18n>Profile ${esc(key)}</h2><div data-noi18n>${tag(ANGLE_EN[v.angle]||'')}<div class="gloss">${esc(typeof e==='string'?e:(e&&(e.keynote||e.name))||'')}</div><div class="lines"><div><b>Line ${a} · ${LINE_EN[a][0]}</b>: ${esc(LINE_EN[a][1])}</div><div><b>Line ${b} · ${LINE_EN[b][0]}</b>: ${esc(LINE_EN[b][1])}</div></div></div>`;
+    if(ENM) return `<h2 data-noi18n>Profile ${esc(key)}</h2><div data-noi18n>${tag(ANGLE_EN[v.angle]||'')}<div class="gloss">${esc(EN_TEXT.profiles[key]||(typeof e==='string'?e:(e&&(e.keynote||e.name))||''))}</div><div class="lines"><div><b>Line ${a} · ${LINE_EN[a][0]}</b>: ${esc(LINE_EN[a][1])}</div><div><b>Line ${b} · ${LINE_EN[b][0]}</b>: ${esc(LINE_EN[b][1])}</div></div></div>`;
     return `<h2>人生角色 ${key}</h2>${tag(v.angle+'交叉')}<div class="gloss">${v.desc}</div><div class="lines"><div><b>第${a}爻 ${LINES[a].name}</b>：${LINES[a].desc}</div><div><b>第${b}爻 ${LINES[b].name}</b>：${LINES[b].desc}</div></div>`;}
   if(cat==='line'){const v=LINES[key];
     if(ENM) return `<h2 data-noi18n>Line ${esc(key)} · ${LINE_EN[key][0]}</h2><div class="gloss" data-noi18n>${esc(LINE_EN[key][1])}</div>`;
     return `<h2>第${key}爻 · ${v.name}</h2><div class="gloss">${v.desc}</div>`;}
   if(cat==='center'){const v=CENTERS_KB[key];const e=EN_KB.centers[key]||{};
-    if(ENM) return `<h2 data-noi18n>${CENTER_EN[key]||key} Center</h2><div class="gloss" data-noi18n>${esc(e.keynote||e.name||'')}</div>`;
+    if(ENM){const t=EN_TEXT.centers[key]||{};
+      return `<h2 data-noi18n>${CENTER_EN[key]||key} Center</h2><div data-noi18n>${e.keynote||e.name?`<div class="gloss">${esc(e.keynote||e.name)}</div>`:''}${t.defined?`<div class="gloss"><b>Defined:</b> ${esc(t.defined)}</div>`:''}${t.open?`<div class="gloss"><b>Open:</b> ${esc(t.open)}</div>`:''}</div>`;}
     return `<h2>${v.zh}</h2>${tag(v.type)}${tag(v.theme)}<div class="gloss"><b>已定义</b>：${v.defined}</div><div class="gloss"><b>开放</b>：${v.open}</div>`;}
   if(cat==='definition'){const v=DEFINITION_KB[key];
     if(ENM) return `<h2 data-noi18n>${esc(key)} Definition</h2><div class="gloss" data-noi18n>${esc(DEF_EN[key]||'')}</div>`;
@@ -109,6 +112,9 @@ function detailHTML(cat,key){
     h+=`<div class="muted" style="margin:8px 0 4px">Tone：${tones.map((t,i)=>`${i+1} ${t[1]}`).join(' · ')}（Tone 1-3 → ◀ 左 / Tone 4-6 → ▶ 右）</div>`;
     h+=v.colors.map((c,i)=>`<div class="gloss"><b>Color ${i+1} · ${c.base[0]} ${c.base[1]}</b>${c.q?`<div class="muted">${c.q}</div>`:''}${c.shared?`<div>${c.shared}</div>`:''}<div style="margin-top:4px">◀ <b>${c.l[0]} ${c.l[1]}</b>：${c.ldesc}</div><div>▶ <b>${c.r[0]} ${c.r[1]}</b>：${c.rdesc}</div></div>`).join('');
     return h;}
+  if(cat==='about'){
+    if(ENM) return `<h2 data-noi18n>Origin of Human Design</h2><div data-noi18n>${tag('Ra Uru Hu')}${tag('1987 · Ibiza')}<div class="gloss">${esc(ORIGIN.en)}</div></div>`;
+    return `<h2>人类图的起源 <span class="sub">Origin</span></h2>${tag('Ra Uru Hu')}${tag('1987 · 伊维萨')}<div class="gloss">${ORIGIN.zh}</div>`;}
   return '';
 }
 function openDetail(cat,key){
