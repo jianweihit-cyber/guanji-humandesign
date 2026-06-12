@@ -6,6 +6,11 @@
 <title>人类图排盘 · 观己</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="stylesheet" href="hd.css" />
+<!-- importmap 必须先于任何 modulepreload 注册：预加载链一旦先行解析裸名 swisseph-wasm，
+     Chrome 会整个忽略 importmap → 主模块静默死亡（时灵时不灵的竞态，2026-06-13 实锤修复） -->
+<script type="importmap">
+{ "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }
+</script>
 <!-- 模块图预加载：消掉 五跳串行 import 瀑布；两个大件与 HTML 解析同时起跑 -->
 <link rel="modulepreload" href="/src/chart.js" />
 <link rel="modulepreload" href="/src/ephemeris.js" />
@@ -74,9 +79,6 @@
   <div id="result" hidden></div>
 </div>
 
-<script type="importmap">
-{ "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }
-</script>
 <script src="sample-data.js"></script>
 <script src="hd-render.js"></script>
 <script src="hd-store.js"></script>
@@ -91,23 +93,46 @@ const $ = id => document.getElementById(id);
 const ENM = window.HDI18N && window.HDI18N.lang==='en';
 const CENTER_EN={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
 
-// ── 出生地：搜索联想（精选全球城市 places.js + 中国省市区 cn-pca + IANA 直填）──
-let selTz='Asia/Shanghai', placeLabel='', sexVal='F';
+// ── 出生地：搜索联想（精选城市 places.js + GeoNames 全球 3.3 万城 + 中国省市区 cn-pca + IANA 直填）──
+let selTz='Asia/Shanghai', placeLabel='', sexVal='F', chartSource='';   // chartSource: ''=正常排盘 / 'solve'=反推页带入
 const locq=$('locq'), drop=$('locdrop');
 const PL=window.HD_PLACES||[];
+// GeoNames 海外城市库（与 humdes.com 同源数据，CC-BY © GeoNames.org）：首次输入拉丁字母时懒加载
+let WORLD=null, worldP=null;
+const worldData=()=>worldP||(worldP=fetch('world-cities-v1.json').then(r=>r.json()).then(d=>(WORLD=d)).catch(()=>{worldP=null;}));
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const escq=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const pLab=p=>ENM?`${p[0]}, ${p[2]}`:`${p[3]} · ${p[1]}`;
 const IT_CN={act:'cn',label:ENM?'🇨🇳 China · province / city / district':'🇨🇳 中国 · 选省市区（区县级）'};
 const IT_CUSTOM={act:'custom',label:ENM?'⌨ Custom IANA timezone':'⌨ 自定义 IANA 时区'};
 let items=[];
 function renderDrop(){
-  drop.innerHTML=items.map((it,i)=>`<div class="it" data-i="${i}">${it.label}${it.tz?`<span class="tzs">${it.tz}</span>`:''}</div>`).join('');
+  drop.innerHTML=items.map((it,i)=>`<div class="it" data-i="${i}"><span class="lb">${it.label}</span>${it.tz?`<span class="tzs">${it.tz}</span>`:''}</div>`).join('');
   drop.hidden=!items.length;
 }
 async function suggest(){
   const raw=locq.value.trim(), q=raw.toLowerCase();
   if(!raw){ items=[IT_CN,...PL.slice(0,12).map(p=>({label:pLab(p),tz:p[4]})),IT_CUSTOM]; renderDrop(); return; }
   const out=[];
-  for(const p of PL){ if(p[0].toLowerCase().includes(q)||p[2].toLowerCase().includes(q)||p[1].includes(raw)||p[3].includes(raw)){ out.push({label:pLab(p),tz:p[4]}); if(out.length>=9)break; } }
+  for(const p of PL){ if(p[0].toLowerCase().includes(q)||p[2].toLowerCase().includes(q)||p[1].includes(raw)||p[3].includes(raw)){ out.push({label:pLab(p),tz:p[4],en:norm(p[0])+'|'+norm(p[2])}); if(out.length>=9)break; } }
+  // 海外联想：GeoNames 3.3 万城（前缀优先、人口排序、命中高亮，自动带 IANA 时区）
+  if(!/[一-鿿]/.test(raw)&&raw.length>=2){
+    if(!WORLD){ worldData().then(()=>{ if(locq.value.trim()===raw) suggest(); }); }
+    else{
+      const nq=norm(raw), seenW=new Set(out.map(o=>o.en).filter(Boolean));
+      const starts=[],incl=[];
+      for(const c of WORLD){ const n=norm(c[0]);
+        if(n.startsWith(nq)){ if(starts.length<8) starts.push(c); }
+        else if(incl.length<8&&n.includes(nq)) incl.push(c);
+        if(starts.length>=8) break; }
+      for(const c of [...starts,...incl].slice(0,8)){
+        const k=norm(c[0])+'|'+norm(c[2]); if(seenW.has(k)) continue; seenW.add(k);
+        const i=c[0].toLowerCase().indexOf(q);
+        const city=i<0?escq(c[0]):escq(c[0].slice(0,i))+'<b>'+escq(c[0].slice(i,i+raw.length))+'</b>'+escq(c[0].slice(i+raw.length));
+        out.push({label:`${city}, ${c[1]?escq(c[1])+', ':''}${escq(c[2])}`,tz:c[3],place:`${c[0]}, ${c[2]}`});
+      }
+    }
+  }
   if(/[一-鿿]/.test(raw)){ // 中文 → 在省市区三级里联想（区县级，统一 Asia/Shanghai）
     try{ const data=await cnData();
       outer: for(const prov of data){
@@ -131,7 +156,7 @@ function applyItem(it){
   if(it.act==='custom'){ selTz='__custom__'; $('tzCustom').hidden=false; locq.value=it.label.replace('⌨ ',''); $('placeTag').textContent=''; return; }
   selTz=it.tz; $('tzCustom').hidden=true;
   placeLabel=it.isTz?'':(it.place||it.label.replace('🇨🇳 ',''));
-  locq.value=it.isTz?it.tz:it.label.replace('🇨🇳 ','');
+  locq.value=it.isTz?it.tz:(it.place||it.label.replace('🇨🇳 ',''));   // place=纯文本（label 可能含高亮 <b>）
   $('placeTag').textContent='🕐 '+it.tz;
   run();
 }
@@ -147,13 +172,14 @@ const setSex=v=>{ sexVal=v; for(const b of sexBox.children) b.classList.toggle('
 if(ENM){ sexBox.children[0].textContent='Female'; sexBox.children[1].textContent='Male'; }
 sexBox.onclick=e=>{ const b=e.target.closest('button'); if(b) setSex(b.dataset.v); };
 
-function interpret(c){
+function interpret(c,auto){
   const box=document.querySelector('#result .interp'); if(!box) return;
   if(ENM){ // EN 模式：英文独占解读（来自 Ra/Jovian 标准提炼）
     const e=EN_KB.types[c.type]||{}, ea=EN_KB.authorities[c.authority]||{}, ep=EN_KB.profiles[c.profile.str];
     const defList=c.definedCenters.map(k=>CENTER_EN[k]||k).join(', ')||'—';
     const openList=c.openCenters.map(k=>`<li><b>${CENTER_EN[k]||k}</b>: ${(EN_KB.centers[k]||{}).keynote||'open — takes in and amplifies others'}</li>`).join('');
     box.innerHTML=`<div class="sec"><h3 data-noi18n>Your Reading</h3><div class="kb-detail" data-noi18n>
+      ${auto?`<div class="muted" style="margin-bottom:8px">ⓘ This reading describes the transit chart above — the energy of right now, not your personal design. Enter your birth info above to make it yours.</div>`:''}
       <div class="gloss"><b>Type · ${c.type}</b>${e.keynote?` — ${e.keynote}`:''}<br>💡 <b>Strategy:</b> ${e.strategy||''} · <b>Signature:</b> ${e.signature||''} · <b>Not-Self:</b> ${e.notSelf||''}</div>
       <div class="gloss"><b>Inner Authority · ${c.authority}</b>${ea.keynote?` — ${ea.keynote}`:''}</div>
       ${ep?`<div class="gloss"><b>Profile ${c.profile.str}</b> — ${typeof ep==='string'?ep:(ep.keynote||ep.name||'')}</div>`:''}
@@ -167,6 +193,7 @@ function interpret(c){
   const defList=c.definedCenters.map(k=>CENTERS_KB[k].zh).join('、')||'—';
   const openList=c.openCenters.map(k=>`<li><b>${CENTERS_KB[k].zh}</b>：${CENTERS_KB[k].open}</li>`).join('');
   box.innerHTML=`<div class="sec"><h3>你的解读 · 看懂自己</h3><div class="kb-detail">
+    ${auto?`<div class="muted" style="margin-bottom:8px">ⓘ 以下解读的是上方「此刻」的流日盘（当下的能量天气），不是你的本命解读——填入出生信息生成你的图后，这里就是你的专属解读。</div>`:''}
     <div class="gloss"><b>类型 · ${t.zh}</b>（${t.pct}）：${t.desc}<br>💡 ${t.tip}</div>
     <div class="gloss"><b>内在权威 · ${a.zh}</b>：${a.desc}<br>💡 ${a.tip}</div>
     ${p?`<div class="gloss"><b>人生角色 · ${c.profile.str}（${c.profile.zh}）</b>：${p.desc}</div>`:''}
@@ -175,8 +202,8 @@ function interpret(c){
     <div class="muted" style="margin-top:8px">ⓘ 解读为初稿，可在「学习·知识库」查看每一项的完整词条。</div>
   </div></div>`;
 }
-// auto=true（首访自动流日盘）：不渲染个人化解读、不出保存栏、顶部亮流日横幅
-function show(c,statusText,auto){ $('result').hidden=false; HDRender.fill($('result'),c,{linkKB:true}); if(!auto) interpret(c); $('status').textContent=statusText; }
+// auto=true（首访自动流日盘）：解读照常显示但带流日注释、不出保存栏、顶部亮流日横幅
+function show(c,statusText,auto){ $('result').hidden=false; HDRender.fill($('result'),c,{linkKB:true}); interpret(c,auto); $('status').textContent=statusText; }
 
 let busy=false, lastRun=null;
 async function run(tag,auto){
@@ -193,7 +220,7 @@ async function run(tag,auto){
   }catch(e){ st.className='status err'; st.textContent='Error: '+(e.message||e); console.error(e); }
   busy=false;
 }
-$('go').onclick=()=>run();
+$('go').onclick=()=>{ chartSource=''; run(); };   // 手动生成视为正常排盘
 
 // 时间微调滑块：拖动 → 实时重算（rAF 节流 + busy 防抖）
 const tslider=$('tslider'), tlabel=$('tlabel');
@@ -241,7 +268,7 @@ $('saveBtn').onclick=()=>{
   if(!lastRun) return;
   const btn=$('saveBtn'); if(btn.disabled) return; btn.disabled=true; setTimeout(()=>btn.disabled=false,800); // 防连点重复
   const name=$('sname').value.trim()||'—';
-  const id=HDStore.add({ name, gender:sexVal||'F', input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
+  const id=HDStore.add({ name, gender:sexVal||'F', ...(chartSource?{source:chartSource}:{}), input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
   $('savemsg').textContent = id ? '✓ 已保存' : '✕ 保存失败：浏览器存储不可用或已满';
 };
 if(window.HDStore&&HDStore.requestPersist) HDStore.requestPersist(); // 申请持久化保护，降低被清风险
@@ -257,8 +284,10 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
   if(rec){ fillForm(rec.input);
     if(rec.input.place){ placeLabel=rec.input.place; locq.value=placeLabel; $('placeTag').textContent='🕐 '+rec.input.tz; }
     if(rec.gender) setSex(rec.gender);
+    chartSource=rec.source||'';                       // 重开反推记录再保存仍保留标识
     $('sname').value=rec.name==='—'?'':rec.name; run(rec.name); return; }
-  if(sp.get('y')&&sp.get('mo')){ // 反推页等外部带参直开：?y&mo&d&h&mi&tz&name
+  if(sp.get('y')&&sp.get('mo')){ // 反推页等外部带参直开：?y&mo&d&h&mi&tz&name&src
+    if(sp.get('src')==='solve') chartSource='solve';
     fillForm({year:+sp.get('y'),month:+sp.get('mo'),day:+sp.get('d')||1,hour:+sp.get('h')||12,minute:+sp.get('mi')||0,tz:sp.get('tz')||'Asia/Shanghai'});
     $('sname').value=sp.get('name')||'';
     run(sp.get('name')||''); return;

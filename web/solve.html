@@ -128,7 +128,7 @@ $('go').onclick=async()=>{
       const mid=jdToLocal((r.jdStart+r.jdEnd)/2,tz);
       const w=((r.jdEnd-r.jdStart)*1440).toFixed(0);
       const [d,hm]=mid.split(' '), [Y,Mo,D]=d.split('-'), [H,Mi]=hm.split(':');
-      const link=`index.html?y=${Y}&mo=${+Mo}&d=${+D}&h=${+H}&mi=${+Mi}&tz=${encodeURIComponent(tz)}&name=${encodeURIComponent('Rectified '+d)}`;
+      const link=`index.html?y=${Y}&mo=${+Mo}&d=${+D}&h=${+H}&mi=${+Mi}&tz=${encodeURIComponent(tz)}&name=${encodeURIComponent('Rectified '+d)}&src=solve`;
       return `<div class="res"><div class="t"><b>${a}</b> ~ <b>${b.split(' ')[1]||b}</b> <span class="w">(${tz})</span><div class="w">± window ${w} min · mid ${mid.split(' ')[1]}</div></div><a class="btn-sm" href="${link}">用中点出盘</a></div>`;
     };
     const PP=10; let pg=0;
