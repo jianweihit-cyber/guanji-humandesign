@@ -45,21 +45,31 @@ const CENTER_EN={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:
 const CIRCUIT_EN={'整合型':'Integration','整合型（兼觉知）':'Integration (w/ Knowing)','整合型（兼中央）':'Integration (w/ Centering)','整合型（兼觉知/中央）':'Integration (w/ Knowing/Centering)','个体人·觉知':'Individual (Knowing)','个体人·中央':'Individual (Centering)','社会人·理解-逻辑':'Collective (Logic)','社会人·理解(逻辑)':'Collective (Logic)','社会人·感知-抽象':'Collective (Abstract)','社会人·感知(抽象)':'Collective (Abstract)','家族人·防护':'Tribal (Defense)','家族人·意志力':'Tribal (Ego)'};
 const cEN=s=>CIRCUIT_EN[s]||s;
 
-// 统一索引
+// 统一索引（s 串含小白同义词与英文别名，供分词搜索）
 const ALL=[];
-for(const [k,v] of Object.entries(TYPES)) ALL.push({cat:'type',key:k,name:ENM?k:v.zh,sub:ENM?((EN_KB.types[k]||{}).strategy||''):v.strategy,s:`${k}${v.zh}${v.strategy}类型`});
-for(const [k,v] of Object.entries(AUTHORITIES)) ALL.push({cat:'authority',key:k,name:ENM?k+' Authority':v.zh,sub:ENM?'Inner Authority':'内在权威',s:`${k}${v.zh}权威`});
-for(const [k,v] of Object.entries(PROFILES)) ALL.push({cat:'profile',key:k,name:k,sub:ENM?(ANGLE_EN[v.angle]||''):v.angle,s:`${k}${v.desc}角色profile${EN_KB.profiles[k]||''}`});
-for(const [k,v] of Object.entries(LINES)) ALL.push({cat:'line',key:k,name:ENM?`Line ${k} · ${LINE_EN[k][0]}`:`第${k}爻 ${v.name}`,sub:ENM?'':v.name,s:`${k}爻${v.name}${v.desc}${LINE_EN[k][0]}`});
-for(const [k,v] of Object.entries(CENTERS_KB)) ALL.push({cat:'center',key:k,name:ENM?CENTER_EN[k]:v.zh,sub:ENM?'':v.type,s:`${k}${v.zh}${v.theme}中心`});
-for(const [k,v] of Object.entries(DEFINITION_KB)) ALL.push({cat:'definition',key:k,name:ENM?k:v.zh,sub:ENM?'Definition':'定义',s:`${k}${v.zh}定义`});
-for(const [k,v] of Object.entries(CHANNELS_KB)) ALL.push({cat:'channel',key:k,name:`${k} ${ENM?(v.en||v.zh):v.zh}`,sub:ENM?(v.keynote||v.centers.join('–')):v.centers.join('–'),s:`${k}${v.zh}${v.en}${v.theme}${v.circuit}通道`});
-for(const [k,v] of Object.entries(GATES_KB)) ALL.push({cat:'gate',key:k,name:`${v.glyph} ${k}·${ENM&&v.nameEn?v.nameEn:(v.name||v.hex)}`,sub:ENM?`${v.iching}${v.keynote?' · '+v.keynote:''}`:`${v.hex}卦 · ${v.theme}`,s:`${k}${v.hex}${v.iching}${v.name}${v.alias}${v.nameEn}${v.circuit}${v.theme}${v.centerZh}闸门门`});
-for(const [k,v] of Object.entries(PHS_KB)) ALL.push({cat:'phs',key:k,name:v.title,sub:v.zh,s:`phs变量箭头variable${k}${v.title}${v.zh}${v.colors.map(c=>c.base.join('')+c.l.join('')+c.r.join('')).join('')}`});
+// ⭐ 从这里开始：小白入门路线（内容在 detailHTML 的 start 分支）
+const START=[
+  ['intro',     '人类图是什么','3 分钟速览','What is Human Design','3-minute overview','start入门新手小白人类图是什么whatishumandesignintrohd开始'],
+  ['readchart', '拿到盘先看什么','三步读盘法','How to read your chart','Three steps','start入门读盘看盘怎么看盘三步readchart新手从哪开始'],
+  ['strategy',  '策略速查表','5 类型 × 策略/签名/非自己','Strategy cheat sheet','5 types at a glance','start策略strategy速查表签名signature非自己notselfnot-self类型type'],
+  ['signature', '签名与非自己','你的情绪指南针','Signature & Not-Self','Your emotional compass','start签名signature非自己非己notselfnot-self情绪指南针compass'],
+  ['defined-open','有定义 vs 开放','「制约」是什么','Defined vs Open','What conditioning means','start定义开放中心制约conditioningdefinedopen空白有颜色'],
+  ['faq',       '新手 FAQ','准不准 / 和星座的区别…','Beginner FAQ','Common questions','startfaq常见问题准不准科学星座占星区别轮回交叉incarnationcross学习路线'],
+];
+for(const [k,zn,zs,en,es,s] of START) ALL.push({cat:'start',key:k,name:ENM?en:zn,sub:ENM?es:zs,s});
+for(const [k,v] of Object.entries(TYPES)) ALL.push({cat:'type',key:k,name:ENM?k:v.zh,sub:ENM?((EN_KB.types[k]||{}).strategy||''):v.strategy,s:`${k}${v.zh}${v.strategy}${v.signature}${v.notSelf}类型type策略strategy签名signature非自己我是什么类型`});
+for(const [k,v] of Object.entries(AUTHORITIES)) ALL.push({cat:'authority',key:k,name:ENM?k+' Authority':v.zh,sub:ENM?'Inner Authority':'内在权威',s:`${k}${v.zh}权威authority内在权威怎么做决定decision`});
+for(const [k,v] of Object.entries(PROFILES)) ALL.push({cat:'profile',key:k,name:k,sub:ENM?(ANGLE_EN[v.angle]||''):v.angle,s:`${k}${v.desc}角色profile人生角色${EN_KB.profiles[k]||''}`});
+for(const [k,v] of Object.entries(LINES)) ALL.push({cat:'line',key:k,name:ENM?`Line ${k} · ${LINE_EN[k][0]}`:`第${k}爻 ${v.name}`,sub:ENM?'':v.name,s:`${k}爻${v.name}${v.desc}${LINE_EN[k][0]}line爻线`});
+for(const [k,v] of Object.entries(CENTERS_KB)) ALL.push({cat:'center',key:k,name:ENM?CENTER_EN[k]:v.zh,sub:ENM?'':v.type,s:`${k}${v.zh}${v.theme}中心center`});
+for(const [k,v] of Object.entries(DEFINITION_KB)) ALL.push({cat:'definition',key:k,name:ENM?k:v.zh,sub:ENM?'Definition':'定义',s:`${k}${v.zh}定义definition`});
+for(const [k,v] of Object.entries(CHANNELS_KB)) ALL.push({cat:'channel',key:k,name:`${k} ${ENM?(v.en||v.zh):v.zh}`,sub:ENM?(v.keynote||v.centers.join('–')):v.centers.join('–'),s:`${k}${v.zh}${v.en}${v.theme}${v.circuit}通道channel`});
+for(const [k,v] of Object.entries(GATES_KB)) ALL.push({cat:'gate',key:k,name:`${v.glyph} ${k}·${ENM&&v.nameEn?v.nameEn:(v.name||v.hex)}`,sub:ENM?`${v.iching}${v.keynote?' · '+v.keynote:''}`:`${v.hex}卦 · ${v.theme}`,s:`${k}号闸门${v.hex}${v.iching}${v.name}${v.alias}${v.nameEn}${v.circuit}${v.theme}${v.centerZh}闸门门gate`});
+for(const [k,v] of Object.entries(PHS_KB)) ALL.push({cat:'phs',key:k,name:v.title,sub:v.zh,s:`phs变量箭头variablearrow${k}${v.title}${v.zh}${v.colors.map(c=>c.base.join('')+c.l.join('')+c.r.join('')).join('')}`});
 
 ALL.push({cat:'about',key:'origin',name:ENM?'Origin of Human Design':'人类图的起源',sub:ENM?'Ra Uru Hu · 1987 · Ibiza':'拉·乌卢·胡 1987',s:'about关于origin起源源起历史history ra uru hu拉乌卢胡伊维萨ibiza'});
-const CATS=[['type','类型'],['authority','内在权威'],['profile','人生角色'],['line','六爻'],['center','九大中心'],['channel','36通道'],['gate','64闸门'],['definition','定义'],['phs','PHS 四箭头'],['about',ENM?'About':'关于人类图']];
-let curCat='type', curTerm='';
+const CATS=[['start',ENM?'⭐ Start Here':'⭐ 从这里开始'],['type','类型'],['authority','内在权威'],['profile','人生角色'],['line','六爻'],['center','九大中心'],['channel','36通道'],['gate','64闸门'],['definition','定义'],['phs','PHS 四箭头'],['about',ENM?'About':'关于人类图']];
+let curCat='start', curTerm='';
 
 // 分类导航
 $('#cats').innerHTML=CATS.map(([id,n])=>`<span class="tab" data-cat="${id}">${n}</span>`).join('');
@@ -67,24 +77,68 @@ $('#cats').onclick=e=>{const c=e.target.dataset.cat;if(!c)return;curCat=c;curTer
 
 $('#q').oninput=()=>{curTerm=$('#q').value.trim().toLowerCase();renderGrid();};
 
+// 搜索：按空白分词后 AND 匹配（「情绪 权威」「41 闸门」这类组合词可命中）
 function renderGrid(){
   for(const t of $('#cats').children) t.classList.toggle('on', !curTerm && t.dataset.cat===curCat);
-  const items = curTerm ? ALL.filter(x=>x.s.toLowerCase().includes(curTerm)) : ALL.filter(x=>x.cat===curCat);
-  $('#grid').innerHTML = items.map(x=>`<div class="kb-cell" data-cat="${x.cat}" data-key="${esc(x.key)}"><div class="n">${esc(x.name)}</div><div class="t">${esc(x.sub||'')}</div></div>`).join('') || '<p class="muted">无匹配</p>';
+  const terms=curTerm.split(/\s+/).filter(Boolean);
+  const items = terms.length ? ALL.filter(x=>{const s=x.s.toLowerCase();return terms.every(t=>s.includes(t));}) : ALL.filter(x=>x.cat===curCat);
+  $('#grid').innerHTML = items.map(x=>`<div class="kb-cell" data-cat="${x.cat}" data-key="${esc(x.key)}"><div class="n">${esc(x.name)}</div><div class="t">${esc(x.sub||'')}</div></div>`).join('') || emptyGuide();
 }
-$('#grid').onclick=e=>{const c=e.target.closest('.kb-cell');if(!c)return;openDetail(c.dataset.cat,c.dataset.key);};
+// 0 结果不再是死胡同：给热门搜索词 + 入门入口
+function emptyGuide(){
+  const ex = ENM?['type','authority','41','emotional','channel']:['类型','权威','41','情绪','投射'];
+  return `<div style="grid-column:1/-1"><p class="muted">${ENM?'No matches. Try one of these:':'没有找到。试试搜：'} ${ex.map(t=>`<a href="#" data-q="${t}">${t}</a>`).join(' · ')}</p>
+  <p class="muted">${ENM?'New to Human Design? Start here →':'第一次接触人类图？从这里开始 →'} <a href="#start:intro">${ENM?'What is Human Design':'人类图是什么'}</a></p></div>`;
+}
+$('#grid').onclick=e=>{
+  const s=e.target.closest('[data-q]');
+  if(s){e.preventDefault();$('#q').value=s.dataset.q;curTerm=s.dataset.q.toLowerCase();renderGrid();return;}
+  const c=e.target.closest('.kb-cell');if(!c)return;openDetail(c.dataset.cat,c.dataset.key);};
 
 function tag(t){return `<span class="tag">${esc(t)}</span>`;}
+// ⭐ 入门词条（观己白话原创，非引用任何出版物；EN 独立成文）
+function startHTML(key){
+  const nx=(h,t)=>`<div class="muted" style="margin-top:12px">→ ${ENM?'Next: ':'下一步：'}<a href="${h}">${t}</a></div>`;
+  if(key==='intro'){
+    if(ENM) return `<h2 data-noi18n>What is Human Design</h2><div data-noi18n><div class="gloss">Human Design is a tool for self-knowledge, synthesized by Ra Uru Hu in 1987. It combines Western astrology, the 64 hexagrams of the I Ching, the Kabbalah and the chakra system into one map — your Bodygraph — calculated from your birth date, time and place.</div><div class="gloss">You are not asked to believe any of it. Treat it as a hypothesis about how you best make decisions and run your energy — experiment in real life, and keep only what proves true for you.</div>${nx('#start:readchart','How to read your chart')}<div class="muted">Curious about the story? <a href="#about:origin">Origin of Human Design</a></div></div>`;
+    return `<h2>人类图是什么 <span class="sub">Human Design</span></h2><div class="gloss">人类图是一套「认识自己」的工具，1987 年由 Ra Uru Hu 整理成体系，框架融合了西方占星、易经六十四卦、卡巴拉与脉轮——用你的出生日期、时间、地点，算出一张专属于你的能量地图（Bodygraph）。</div><div class="gloss">它不要求你相信任何东西：把它当成一份关于「你适合怎样做决定、能量如何运作」的假设，拿到日常生活里实验、验证，只保留对你确实有用的部分。</div>${nx('#start:readchart','拿到盘先看什么')}<div class="muted">想看来历？<a href="#about:origin">人类图的起源</a></div>`;
+  }
+  if(key==='readchart'){
+    if(ENM) return `<h2 data-noi18n>How to read your chart — 3 steps</h2><div data-noi18n><div class="gloss"><b>Step 1 · Type</b>: which of the five energy types you are (Generator / Manifesting Generator / Manifestor / Projector / Reflector) — your basic stance toward the world. → <a href="#cat:type">Types</a></div><div class="gloss"><b>Step 2 · Strategy</b>: each type has a built-in way of initiating (e.g. Generators "wait to respond"). Acting with your strategy makes life flow; against it, everything is friction. → <a href="#start:strategy">Strategy cheat sheet</a></div><div class="gloss"><b>Step 3 · Inner Authority</b>: the decision compass in your body (Sacral / Emotional / Splenic…), more reliable than the mind for big decisions. → <a href="#cat:authority">Authorities</a></div><div class="muted">All three are clickable on the chart page's summary cards.</div>${nx('#start:strategy','Strategy cheat sheet')}</div>`;
+    return `<h2>拿到盘先看什么 <span class="sub">三步读盘法</span></h2><div class="gloss"><b>第一步 · 类型</b>：你是五种能量类型中的哪一种（生产者 / 显化生产者 / 显示者 / 投射者 / 反映者）——它决定你与世界互动的基本姿势。→ <a href="#cat:type">看「类型」</a></div><div class="gloss"><b>第二步 · 策略</b>：每种类型自带一条「正确的启动方式」（比如生产者是「等待，然后回应」）。顺着策略行动，事情顺；逆着来，处处阻力。→ <a href="#start:strategy">策略速查表</a></div><div class="gloss"><b>第三步 · 内在权威</b>：你身体里那个比头脑更可靠的「决策指南针」（荐骨 / 情绪 / 直觉……）。大事交给它。→ <a href="#cat:authority">看「内在权威」</a></div><div class="muted">这三项在排盘页的摘要卡上都可以直接点进对应词条。</div>${nx('#start:strategy','策略速查表')}`;
+  }
+  if(key==='strategy'){
+    const rows=Object.entries(TYPES).map(([k,v])=>{const e=EN_KB.types[k]||{};
+      return ENM?`<tr><td><a href="#type:${k}">${esc(k)}</a></td><td>${esc(e.strategy||'')}</td><td>${esc(e.signature||'')}</td><td>${esc(e.notSelf||'')}</td></tr>`
+                :`<tr><td><a href="#type:${k}">${v.zh}</a></td><td>${v.strategy}</td><td>${v.signature}</td><td>${v.notSelf}</td></tr>`;}).join('');
+    if(ENM) return `<h2 data-noi18n>Strategy cheat sheet</h2><div data-noi18n><div class="gloss">Each type ships with three things: a <b>Strategy</b> (the right way to initiate), a <b>Signature</b> (how being on track feels) and a <b>Not-Self theme</b> (the alarm when you're off track). Click a type for the full entry.</div><table class="kb-table"><tr><th>Type</th><th>Strategy</th><th>Signature</th><th>Not-Self</th></tr>${rows}</table>${nx('#start:signature','Signature & Not-Self')}</div>`;
+    return `<h2>策略速查表</h2><div class="gloss">每种类型自带三件套：<b>策略</b>（正确的启动方式）、<b>签名</b>（走对路时的感受）、<b>非自己</b>（偏航时的警报）。点类型名看完整词条。</div><table class="kb-table"><tr><th>类型</th><th>策略</th><th>签名</th><th>非自己</th></tr>${rows}</table>${nx('#start:signature','签名与非自己')}`;
+  }
+  if(key==='signature'){
+    if(ENM) return `<h2 data-noi18n>Signature & Not-Self</h2><div data-noi18n><div class="gloss">Every chart carries a pair of emotional signals: the <b>Signature</b> — the feeling that naturally shows up when you live your design — and the <b>Not-Self theme</b> — the body's alarm when you've drifted off course. Neither needs effort; they only need to be recognized.</div><div class="gloss">Frustration, bitterness, anger or disappointment doesn't mean you're broken — it's a reminder to return to your <a href="#start:strategy">strategy</a> and <a href="#cat:authority">authority</a>. Find your pair in the cheat sheet, then notice when it shows up this week.</div>${nx('#start:defined-open','Defined vs Open')}</div>`;
+    return `<h2>签名与非自己 <span class="sub">情绪指南针</span></h2><div class="gloss">每张图自带一对「情绪信号灯」：<b>签名</b>＝走在自己轨道上时自然浮现的感受；<b>非自己主题</b>＝偏离轨道时身体发出的警报。它们不需要努力争取，只需要被识别。</div><div class="gloss">感到挫败、苦涩、愤怒或失望时，不是你坏了——是提醒你回到自己的<a href="#start:strategy">策略</a>与<a href="#cat:authority">内在权威</a>。在速查表里找到你的那一对，接下来一周留意它什么时候出现。</div>${nx('#start:defined-open','有定义 vs 开放')}`;
+  }
+  if(key==='defined-open'){
+    if(ENM) return `<h2 data-noi18n>Defined vs Open — what "conditioning" means</h2><div data-noi18n><div class="gloss">The nine shapes on the Bodygraph are energy centers. <b>Colored = defined</b>: your fixed, reliable equipment — energy that's consistently yours. <b>White = open</b>: where you take in and amplify everyone else's energy, and where the environment shapes ("conditions") you the most.</div><div class="gloss">Open is not broken. Once recognized, your open centers become where you read other people and grow wisdom. The reading section on the chart page lists each of yours. → <a href="#cat:center">Nine Centers</a></div>${nx('#start:faq','Beginner FAQ')}</div>`;
+    return `<h2>有定义 vs 开放 <span class="sub">「制约」是什么</span></h2><div class="gloss">Bodygraph 上九个几何图形是「能量中心」。<b>有颜色＝有定义</b>：你稳定、固定、可依靠的出厂配置，是始终属于你的能量；<b>空白＝开放</b>：你吸收并放大外界能量的地方，最容易被环境和身边的人带着走——这就是「制约」（conditioning）。</div><div class="gloss">开放不是缺陷：识别之后，它反而是你阅读他人、长出智慧的窗口。排盘页的解读区会逐个列出你的开放中心。→ <a href="#cat:center">九大中心</a></div>${nx('#start:faq','新手 FAQ')}`;
+  }
+  if(key==='faq'){
+    if(ENM) return `<h2 data-noi18n>Beginner FAQ</h2><div data-noi18n><div class="gloss"><b>Is it accurate?</b> Human Design can't be scientifically proven. Use it as a mirror, not a verdict — adopt only what your own experiment confirms.</div><div class="gloss"><b>How is it different from astrology?</b> Both use birth time, but Human Design layers the I Ching, chakras and more on top, and outputs an operating manual for decisions and energy — not a personality description.</div><div class="gloss"><b>What is the Incarnation Cross?</b> Your life theme, made of the four Sun/Earth gates. No rush — live your strategy and authority and it unfolds by itself (see the "Advanced" fold on the chart page).</div><div class="gloss"><b>What next?</b> Suggested path: <a href="#cat:type">Type</a> → <a href="#cat:authority">Authority</a> → <a href="#cat:profile">Profile</a> → <a href="#cat:center">Centers</a> → <a href="#cat:channel">Channels</a> & <a href="#cat:gate">Gates</a>.</div></div>`;
+    return `<h2>新手 FAQ</h2><div class="gloss"><b>准不准？</b>人类图无法被科学证明。把它当「镜子」而不是「判决」：只采纳你亲自实验后觉得有用的部分。</div><div class="gloss"><b>和星座有什么区别？</b>都用出生时间，但人类图叠加了易经、脉轮等多套系统，输出的不是性格描述，而是一份「怎么做决定、怎么用能量」的操作说明。</div><div class="gloss"><b>轮回交叉是什么？</b>由个性/设计的太阳与地球四个闸门组成的「人生主题」。不用急着研究——按策略和权威生活，它会自己展开（在排盘页「进阶」折叠区可见）。</div><div class="gloss"><b>接下来学什么？</b>推荐路线：<a href="#cat:type">类型</a> → <a href="#cat:authority">内在权威</a> → <a href="#cat:profile">人生角色</a> → <a href="#cat:center">九大中心</a> → <a href="#cat:channel">通道</a>与<a href="#cat:gate">闸门</a>。</div>`;
+  }
+  return '';
+}
 function detailHTML(cat,key){
+  if(cat==='start') return startHTML(key);
   if(cat==='type'){const v=TYPES[key];const e=EN_KB.types[key]||{};
-    if(ENM) return `<h2 data-noi18n>${esc(key)}</h2><div data-noi18n>${e.keynote?`<div class="gloss">${esc(e.keynote)}</div>`:''}${EN_TEXT.types[key]?`<div class="gloss">${esc(EN_TEXT.types[key])}</div>`:''}<div class="gloss"><b>Strategy:</b> ${esc(e.strategy||'')}<br><b>Signature:</b> ${esc(e.signature||'')}　<b>Not-Self:</b> ${esc(e.notSelf||'')}</div></div>`;
-    return `<h2>${v.zh} <span class="sub">${key}</span></h2>${tag(v.pct)}${tag('光环：'+v.aura)}<div class="gloss">${v.desc}</div><div><b>策略</b>：${v.strategy}　<b>签名</b>：${v.signature}　<b>非自己</b>：${v.notSelf}</div><div class="gloss">💡 ${v.tip}</div>`;}
+    if(ENM) return `<h2 data-noi18n>${esc(key)}</h2><div data-noi18n>${e.keynote?`<div class="gloss">${esc(e.keynote)}</div>`:''}${EN_TEXT.types[key]?`<div class="gloss">${esc(EN_TEXT.types[key])}</div>`:''}<div class="gloss"><b>Strategy:</b> ${esc(e.strategy||'')}<br><b>Signature:</b> ${esc(e.signature||'')}　<b>Not-Self:</b> ${esc(e.notSelf||'')}</div><div class="muted">See also: <a href="#start:strategy">Strategy cheat sheet</a> · <a href="#start:signature">Signature &amp; Not-Self</a></div></div>`;
+    return `<h2>${v.zh} <span class="sub">${key}</span></h2>${tag(v.pct)}${tag('光环：'+v.aura)}<div class="gloss">${v.desc}</div><div><b>策略</b>：${v.strategy}　<b>签名</b>：${v.signature}　<b>非自己</b>：${v.notSelf}</div><div class="gloss">💡 ${v.tip}</div><div class="muted" style="margin-top:8px">延伸阅读：<a href="#start:strategy">策略速查表</a> · <a href="#start:signature">签名与非自己</a></div>`;}
   if(cat==='authority'){const v=AUTHORITIES[key];const e=EN_KB.authorities[key]||{};
     if(ENM) return `<h2 data-noi18n>${esc(key)} Authority</h2><div data-noi18n>${e.keynote?`<div class="gloss">${esc(e.keynote)}</div>`:''}<div class="gloss">${esc(EN_TEXT.authorities[key]||e.name||'Inner authority — decision-making by design.')}</div></div>`;
     return `<h2>${v.zh}</h2><div class="gloss">${v.desc}</div><div class="gloss">💡 ${v.tip}</div>`;}
   if(cat==='profile'){const v=PROFILES[key];const e=EN_KB.profiles[key];const [a,b]=key.split('/');
-    if(ENM) return `<h2 data-noi18n>Profile ${esc(key)}</h2><div data-noi18n>${tag(ANGLE_EN[v.angle]||'')}<div class="gloss">${esc(EN_TEXT.profiles[key]||(typeof e==='string'?e:(e&&(e.keynote||e.name))||''))}</div><div class="lines"><div><b>Line ${a} · ${LINE_EN[a][0]}</b>: ${esc(LINE_EN[a][1])}</div><div><b>Line ${b} · ${LINE_EN[b][0]}</b>: ${esc(LINE_EN[b][1])}</div></div></div>`;
-    return `<h2>人生角色 ${key}</h2>${tag(v.angle+'交叉')}<div class="gloss">${v.desc}</div><div class="lines"><div><b>第${a}爻 ${LINES[a].name}</b>：${LINES[a].desc}</div><div><b>第${b}爻 ${LINES[b].name}</b>：${LINES[b].desc}</div></div>`;}
+    if(ENM) return `<h2 data-noi18n>Profile ${esc(key)}</h2><div data-noi18n>${tag(ANGLE_EN[v.angle]||'')}<div class="gloss">${esc(EN_TEXT.profiles[key]||(typeof e==='string'?e:(e&&(e.keynote||e.name))||''))}</div><div class="lines"><div><b><a href="#line:${a}">Line ${a} · ${LINE_EN[a][0]}</a></b>: ${esc(LINE_EN[a][1])}</div><div><b><a href="#line:${b}">Line ${b} · ${LINE_EN[b][0]}</a></b>: ${esc(LINE_EN[b][1])}</div></div></div>`;
+    return `<h2>人生角色 ${key}</h2>${tag(v.angle+'交叉')}<div class="gloss">${v.desc}</div><div class="lines"><div><b><a href="#line:${a}">第${a}爻 ${LINES[a].name}</a></b>：${LINES[a].desc}</div><div><b><a href="#line:${b}">第${b}爻 ${LINES[b].name}</a></b>：${LINES[b].desc}</div></div>`;}
   if(cat==='line'){const v=LINES[key];
     if(ENM) return `<h2 data-noi18n>Line ${esc(key)} · ${LINE_EN[key][0]}</h2><div class="gloss" data-noi18n>${esc(LINE_EN[key][1])}</div>`;
     return `<h2>第${key}爻 · ${v.name}</h2><div class="gloss">${v.desc}</div>`;}
@@ -97,12 +151,13 @@ function detailHTML(cat,key){
     return `<h2>${v.zh}</h2><div class="gloss">${v.desc}</div>`;}
   if(cat==='channel'){const v=CHANNELS_KB[key];
     const dch=CHANNEL_DETAIL[key];
-    if(ENM) return `<h2 data-noi18n>${v.key} · ${esc(v.en)}</h2><div data-noi18n>${tag(v.centers.map(c=>CENTER_EN[c]||c).join(' – '))}${v.circuit?tag(cEN(v.circuit)):''}${v.keynote?`<div class="gloss">${esc(v.keynote)}</div>`:''}${dch?`<div class="gloss">${esc(dch.en)}</div>`:''}<div class="muted">Gates ${v.gates[0]} &amp; ${v.gates[1]}</div></div>`;
-    return `<h2>${v.key} ${v.zh.endsWith('通道')?v.zh:v.zh+'通道'} <span class="sub">${v.en}</span></h2>${tag(v.centers.join(' – '))}${v.circuit?tag('回路：'+v.circuit):''}${v.keyline?tag('关键句：'+v.keyline):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}<div class="muted">连接闸门 ${v.gates[0]} 与 ${v.gates[1]}</div>`;}
+    if(ENM) return `<h2 data-noi18n>${v.key} · ${esc(v.en)}</h2><div data-noi18n>${tag(v.centers.map(c=>CENTER_EN[c]||c).join(' – '))}${v.circuit?tag(cEN(v.circuit)):''}${v.keynote?`<div class="gloss">${esc(v.keynote)}</div>`:''}${dch?`<div class="gloss">${esc(dch.en)}</div>`:''}<div class="muted">Gates <a href="#gate:${v.gates[0]}">${v.gates[0]}</a> &amp; <a href="#gate:${v.gates[1]}">${v.gates[1]}</a></div></div>`;
+    return `<h2>${v.key} ${v.zh.endsWith('通道')?v.zh:v.zh+'通道'} <span class="sub">${v.en}</span></h2>${tag(v.centers.join(' – '))}${v.circuit?tag('回路：'+v.circuit):''}${v.keyline?tag('关键句：'+v.keyline):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}<div class="muted">连接闸门 <a href="#gate:${v.gates[0]}">${v.gates[0]}</a> 与 <a href="#gate:${v.gates[1]}">${v.gates[1]}</a></div>`;}
   if(cat==='gate'){const v=GATES_KB[key];
     const dg=GATE_DETAIL[key], glines=dg&&dg.lines?`<div class="gloss"><b>Lines</b><br>${[1,2,3,4,5,6].map(i=>dg.lines[i]?`${i} — ${esc(dg.lines[i])}`:'').filter(Boolean).join('<br>')}</div>`:'';
-    if(ENM) return `<h2 data-noi18n><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>Gate ${v.gate}${v.nameEn?` · ${esc(v.nameEn)}`:''}</h2><div data-noi18n>${tag(CENTER_EN[v.center]||v.center)}${tag('Hexagram '+v.gate+' · '+esc(v.iching))}${v.circuit?tag(cEN(v.circuit)):''}${v.keynote?`<div class="gloss">${esc(v.keynote)}</div>`:''}${dg?`<div class="gloss">${esc(dg.en)}</div>`:''}${glines}</div>`;
-    return `<h2><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>${v.gate} 号闸门${v.name?` · ${v.name}`:''} <span class="sub">${v.hex}卦 · ${v.nameEn||v.iching}</span></h2>${tag('所在：'+v.centerZh)}${tag(v.hex+'卦 '+v.iching)}${v.circuit?tag('回路：'+v.circuit):''}${v.alias?tag('别名：'+v.alias):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}${glines?`<div data-noi18n>${glines}</div>`:''}`;}
+    const inCh=Object.values(CHANNELS_KB).filter(c=>c.gates&&c.gates.some(g=>String(g)===String(key))).map(c=>`<a href="#channel:${c.key}">${c.key}</a>`).join(' · ');
+    if(ENM) return `<h2 data-noi18n><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>Gate ${v.gate}${v.nameEn?` · ${esc(v.nameEn)}`:''}</h2><div data-noi18n><a class="tag" href="#center:${v.center}">${CENTER_EN[v.center]||v.center}</a>${tag('Hexagram '+v.gate+' · '+esc(v.iching))}${v.circuit?tag(cEN(v.circuit)):''}${v.keynote?`<div class="gloss">${esc(v.keynote)}</div>`:''}${dg?`<div class="gloss">${esc(dg.en)}</div>`:''}${glines}${inCh?`<div class="muted" style="margin-top:6px">Channels: ${inCh}</div>`:''}</div>`;
+    return `<h2><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>${v.gate} 号闸门${v.name?` · ${v.name}`:''} <span class="sub">${v.hex}卦 · ${v.nameEn||v.iching}</span></h2><a class="tag" href="#center:${v.center}">所在：${esc(v.centerZh)}</a>${tag(v.hex+'卦 '+v.iching)}${v.circuit?tag('回路：'+v.circuit):''}${v.alias?tag('别名：'+v.alias):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}${glines?`<div data-noi18n>${glines}</div>`:''}${inCh?`<div class="muted" style="margin-top:6px">所在通道：${inCh}</div>`:''}`;}
   if(cat==='phs'){const v=PHS_KB[key];const tones=PHS_TONES_KB[v.tones];
     if(ENM){const qEN=q=>q?String(q).split(/[一-鿿（]/)[0].trim():'';
       let h=`<h2 data-noi18n>${esc(v.title.split(' ')[0])}</h2><div data-noi18n>`;
@@ -123,15 +178,20 @@ function detailHTML(cat,key){
 function openDetail(cat,key){
   const html=detailHTML(cat,key);
   $('#detail').innerHTML = html ? `<div class="kb-detail">${html}</div>` : '';
-  if(html) $('#detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+  if(html){
+    const h=cat+':'+encodeURIComponent(key);
+    if(location.hash.slice(1)!==h) location.hash=h;   // 写入 URL：词条可分享/可后退/刷新保位
+    $('#detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
 }
 
-// 深链：#type:Generator / #gate:41 / #profile:1/3 / #channel:30-41 ...
+// 深链：#type:Generator / #gate:41 / #profile:1/3 / #channel:30-41；#cat:type 直达分类
 function fromHash(){
   const m=location.hash.slice(1);
   if(!m)return false;
   const i=m.indexOf(':');if(i<0)return false;
   const cat=m.slice(0,i), key=decodeURIComponent(m.slice(i+1));
+  if(cat==='cat'&&CATS.some(c=>c[0]===key)){ curCat=key; curTerm=''; $('#q').value=''; $('#detail').innerHTML=''; renderGrid(); return true; }
   if(ALL.some(x=>x.cat===cat&&String(x.key)===key)){ curCat=cat; renderGrid(); openDetail(cat,key); return true; }
   return false;
 }

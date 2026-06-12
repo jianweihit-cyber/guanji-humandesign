@@ -113,3 +113,18 @@ svg.bodygraph{width:100%;height:auto;display:block}
 .seg button{font-size:14px;padding:8px 16px;border:none;background:none;cursor:pointer;color:#8A7A5E}
 .seg button+button{border-left:1px solid #EDE4D4}
 .seg button.on{background:var(--li);color:#fff}
+
+/* —— 小白体验包：深链可见 / 流日横幅 / 进阶折叠 / 速查表 —— */
+a.kbl{color:inherit;text-decoration:underline dashed;text-decoration-color:var(--gold);text-decoration-thickness:1px;text-underline-offset:3px}
+a.kbl:hover{color:var(--li);text-decoration-color:var(--li)}
+.nowbanner{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:10px 14px;background:#FFF7E6;border:1px solid var(--gold);border-radius:12px;font-size:13.5px;line-height:1.75}
+.nowbanner button{margin-left:auto;flex:none;border:0;background:none;font-size:15px;line-height:1;cursor:pointer;color:var(--sub);padding:2px}
+.advsec{margin-top:20px}
+.advsec summary{cursor:pointer;font-size:14px;color:var(--li);letter-spacing:.03em;font-weight:600;user-select:none}
+.advsec summary:hover{opacity:.75}
+.advsec>.sec{margin-top:14px}
+.kb-table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+.kb-table th,.kb-table td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top}
+.kb-table th{background:#F3ECE0;color:var(--sub);font-weight:600;white-space:nowrap}
+a.tag{text-decoration:none}
+a.tag:hover{color:var(--li)}

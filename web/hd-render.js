@@ -110,6 +110,7 @@
 
   const TEMPLATE = `
     <div class="summary"></div>
+    <div class="interp"></div>
     <div class="stage">
       <div class="graph">
         <svg class="bodygraph" viewBox="0 0 460 665" aria-label="bodygraph"></svg>
@@ -125,9 +126,12 @@
         <div class="pcol per"><h4>个性 ⊙</h4></div>
       </div>
     </div>
-    <div class="sec"><h3>Variables · PHS</h3><div class="vtable"></div></div>
     <div class="sec"><h3>已定义通道</h3><div class="chips channels"></div></div>
-    <div class="sec"><h3>Incarnation Cross</h3><div class="muted cross"></div></div>`;
+    <details class="advsec">
+      <summary>进阶 · Variables PHS / 轮回交叉</summary>
+      <div class="sec"><h3>Variables · PHS</h3><div class="vtable"></div></div>
+      <div class="sec"><h3>Incarnation Cross</h3><div class="muted cross"></div></div>
+    </details>`;
 
   // 把完整结果渲染进 root；linkKB=true 时类型/权威等可点进知识库
   function fill(root, c, opts){
@@ -135,17 +139,19 @@
     root.innerHTML = TEMPLATE;
     const q = s=>root.querySelector(s);
     const S=q('.summary');
-    const link=(cat,key,txt)=> opts.linkKB ? `<a href="learn.html#${cat}:${key}" style="text-decoration:none;color:inherit">${txt}</a>` : txt;
+    const link=(cat,key,txt)=> opts.linkKB ? `<a class="kbl" href="learn.html#${cat}:${encodeURIComponent(key)}">${txt}</a>` : txt;
     const cards=[
       // EN 模式：主=英文术语、副=中文(豁免翻译)；中文模式：主=中文、副=英文
+      // 六张卡全部深链知识库：策略/签名指到所属类型词条，权威/定义有独立词条
       ['类型', link('type',c.type, isEN()?c.type:c.typeZh), isEN()?'':c.type],
-      ['策略',c.strategy,''],
-      ['内在权威',c.authorityZh.split('（')[0],''],
+      ['策略',link('type',c.type,c.strategy),''],
+      ['内在权威',link('authority',c.authority,c.authorityZh.split('（')[0]),''],
       ['人生角色',link('profile',c.profile.str,c.profile.str),c.profile.zh],
-      ['定义',c.definitionZh,''],
-      ['签名/非己',c.signature+' / '+c.notSelf,''],
+      ['定义',link('definition',c.definition,c.definitionZh),''],
+      ['签名/非己',link('type',c.type,c.signature+' / '+c.notSelf),''],
     ];
     S.innerHTML = cards.map(([k,v,vs])=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div>${vs?`<div class="vs">${vs}</div>`:''}</div>`).join('');
+    if(opts.advOpen) q('.advsec').open=true;   // 分享卡等场景：进阶区直接展开
     bodygraph(q('svg.bodygraph'), c);
     // 行星行可点击展开：完整 Rave 记法 Gate.Line.Color.Tone.Base（引擎逐层细分黄经计算，
     // 已经 Mumbai 案例 PHS 五项与商业工具交叉验证）；四大变量行附 PHS 语义

@@ -67,8 +67,11 @@
     </div>
   </div>
 
+  <div id="nowbanner" class="nowbanner" hidden>
+    <span>⚡ 这是「此刻」的流日盘（当下天象快照），不是你的本命盘——在上方填入出生日期、时间与出生地，点「生成人类图」查看属于你的图。</span>
+    <button id="nbclose" type="button" aria-label="关闭">✕</button>
+  </div>
   <div id="result" hidden></div>
-  <div id="interpret" hidden></div>
 </div>
 
 <script type="importmap">
@@ -145,7 +148,7 @@ if(ENM){ sexBox.children[0].textContent='Female'; sexBox.children[1].textContent
 sexBox.onclick=e=>{ const b=e.target.closest('button'); if(b) setSex(b.dataset.v); };
 
 function interpret(c){
-  const box=$('interpret'); box.hidden=false;
+  const box=document.querySelector('#result .interp'); if(!box) return;
   if(ENM){ // EN 模式：英文独占解读（来自 Ra/Jovian 标准提炼）
     const e=EN_KB.types[c.type]||{}, ea=EN_KB.authorities[c.authority]||{}, ep=EN_KB.profiles[c.profile.str];
     const defList=c.definedCenters.map(k=>CENTER_EN[k]||k).join(', ')||'—';
@@ -172,10 +175,11 @@ function interpret(c){
     <div class="muted" style="margin-top:8px">ⓘ 解读为初稿，可在「学习·知识库」查看每一项的完整词条。</div>
   </div></div>`;
 }
-function show(c,statusText){ $('result').hidden=false; HDRender.fill($('result'),c,{linkKB:true}); interpret(c); $('status').textContent=statusText; }
+// auto=true（首访自动流日盘）：不渲染个人化解读、不出保存栏、顶部亮流日横幅
+function show(c,statusText,auto){ $('result').hidden=false; HDRender.fill($('result'),c,{linkKB:true}); if(!auto) interpret(c); $('status').textContent=statusText; }
 
 let busy=false, lastRun=null;
-async function run(tag){
+async function run(tag,auto){
   if(busy)return; busy=true;
   const st=$('status'); st.className='status'; st.textContent='⏳ Calculating…';
   try{
@@ -183,8 +187,9 @@ async function run(tag){
     const input={year:+$('y').value,month:+$('mo').value,day:+$('d').value,hour:+$('h').value,minute:+$('mi').value,tz,ephemerisMode:$('mode').value,nodeType:$('node').value};
     const c=await generateChart(input);
     const label=`${input.year}-${String(input.month).padStart(2,'0')}-${String(input.day).padStart(2,'0')} ${input.hour}:${String(input.minute).padStart(2,'0')} ${tz}`;
-    show(c, `${tag?tag+' · ':''}✓ ${label} · ${c.config.mode}/${c.config.node} · design −${c.designDaysBefore.toFixed(1)}d`);
-    lastRun={input,chart:c}; $('savebar').hidden=false; $('savemsg').textContent='';
+    show(c, `${tag?tag+' · ':''}✓ ${label} · ${c.config.mode}/${c.config.node} · design −${c.designDaysBefore.toFixed(1)}d`, auto);
+    lastRun={input,chart:c}; $('savebar').hidden=!!auto; if(!auto)$('savemsg').textContent='';
+    $('nowbanner').hidden=!auto;
   }catch(e){ st.className='status err'; st.textContent='Error: '+(e.message||e); console.error(e); }
   busy=false;
 }
@@ -228,7 +233,8 @@ async function openRegion(){
 
 const data=window.SAMPLE_CHARTS||{}; const pick=$('pick');
 for(const [k,v] of Object.entries(data)){const o=document.createElement('option');o.value=k;o.textContent=ENM?v.label.replace('样例','Sample').replace('上海','Shanghai').replace('檀香山','Honolulu').replace('奥巴马','Obama'):v.label;pick.appendChild(o);}
-pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, 'Sample · '+d.label); $('savebar').hidden=true; } };
+pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, 'Sample · '+d.label); $('savebar').hidden=true; $('nowbanner').hidden=true; } };
+$('nbclose').onclick=()=>{ $('nowbanner').hidden=true; };
 
 // 保存此盘 → 本地记录（hd-store）
 $('saveBtn').onclick=()=>{
@@ -261,7 +267,7 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
   let tz='Asia/Shanghai';
   try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||tz; }catch(e){}
   fillForm({year:now.getFullYear(),month:now.getMonth()+1,day:now.getDate(),hour:now.getHours(),minute:now.getMinutes(),tz});
-  run('Now');
+  run('Now', true);   // 自动流日盘：亮横幅、藏保存栏，防止小白把它当本命盘
 })();
 </script>
 </body>

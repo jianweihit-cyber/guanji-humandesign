@@ -4,9 +4,11 @@
 (function () {
   const LS = 'hd_lang';
   const LANGS = [['zh-Hans', '简'], ['zh-Hant', '繁'], ['en', 'EN']];
-  // 优先级：URL ?lang=（出图/分享指定语言）> localStorage > 默认 en
+  // 优先级：URL ?lang=（出图/分享指定语言）> localStorage > 浏览器语言（中文用户首访不再整页英文）> en
   const qlang = new URLSearchParams(location.search).get('lang');
-  const lang = (['zh-Hans', 'zh-Hant', 'en'].includes(qlang) ? qlang : null) || localStorage.getItem(LS) || 'en';
+  const nav = String(navigator.language || '').toLowerCase();
+  const navLang = nav.startsWith('zh') ? (/^zh-(tw|hk|mo|hant)/.test(nav) ? 'zh-Hant' : 'zh-Hans') : 'en';
+  const lang = (['zh-Hans', 'zh-Hant', 'en'].includes(qlang) ? qlang : null) || localStorage.getItem(LS) || navLang;
   document.documentElement.lang = lang === 'en' ? 'en' : lang === 'zh-Hant' ? 'zh-TW' : 'zh-CN';
 
   // ── 简→繁 字表（按全站实际用字生成；咸/只/台/周/谷/系 等易错字有意不转）──
@@ -49,6 +51,8 @@
     '真交点': 'True Node', '平交点': 'Mean Node', '上海/北京/广州(中国)': 'Shanghai/Beijing (China)', '🇨🇳 中国 · 选省市区': '🇨🇳 China · region picker', '选择出生时间': 'Birth date & time', '选择出生地（中国）': 'Birth place (China)', '起始年': 'From year', '结束年': 'To year',
     '香港': 'Hong Kong', '台北': 'Taipei', '东京': 'Tokyo', '新加坡': 'Singapore', '曼谷': 'Bangkok', '伦敦': 'London',
     '巴黎': 'Paris', '纽约': 'New York', '洛杉矶': 'Los Angeles', '檀香山': 'Honolulu', '悉尼': 'Sydney', '— 自定义 IANA —': '— Custom IANA —',
+    '⚡ 这是「此刻」的流日盘（当下天象快照），不是你的本命盘——在上方填入出生日期、时间与出生地，点「生成人类图」查看属于你的图。': '⚡ This is the chart of right now (a transit snapshot), not YOUR chart — enter your birth date, time & place above and press "Generate Chart" to see your own design.',
+    '进阶 · Variables PHS / 轮回交叉': 'Advanced · Variables (PHS) & Incarnation Cross',
     '类型': 'Type', '策略': 'Strategy', '内在权威': 'Inner Authority', '人生角色': 'Profile', '定义': 'Definition',
     '签名/非己': 'Signature / Not-Self', '已定义通道': 'Defined Channels', '设计 ⊙': 'Design ⊙', '个性 ⊙': 'Personality ⊙',
     '设计 ☉': 'Design ☉', '个性 ☉': 'Personality ☉', '设计 ☊': 'Design ☊', '个性 ☊': 'Personality ☊',
