@@ -153,10 +153,11 @@
       const T=c.phs&&c.phs.types, P=c.phs;
       if(T&&P){
         const zh=t=>isEN()?'':' '+t.zh;
-        if(layer==='des'&&a.planet==='Sun') s+=`<br>Determination: <b>${T.determination.en}${zh(T.determination)}</b> · Cognition: ${P.cognition}`;
-        if(layer==='per'&&a.planet==='Sun') s+=`<br>Motivation: <b>${T.motivation.en}${zh(T.motivation)}</b>`;
-        if(layer==='des'&&a.planet==='NorthNode') s+=`<br>Environment: <b>${T.environment.en}${zh(T.environment)}</b>`;
-        if(layer==='per'&&a.planet==='NorthNode') s+=`<br>View: <b>${T.view.en}${zh(T.view)}</b>`;
+        const bz=t=>t.baseZh&&!isEN()?' '+t.baseZh:'';
+        if(layer==='des'&&a.planet==='Sun') s+=`<br>Determination: ${P.determination}${bz(T.determination)} → <b>${T.determination.en}${zh(T.determination)}</b> · Cognition: ${P.cognition}`;
+        if(layer==='per'&&a.planet==='Sun') s+=`<br>Motivation: ${P.motivation}${bz(T.motivation)} → <b>${T.motivation.en}${zh(T.motivation)}</b>`;
+        if(layer==='des'&&a.planet==='NorthNode') s+=`<br>Environment: ${P.environment}${bz(T.environment)} → <b>${T.environment.en}${zh(T.environment)}</b>`;
+        if(layer==='per'&&a.planet==='NorthNode') s+=`<br>View: ${P.view}${bz(T.view)} → <b>${T.view.en}${zh(T.view)}</b>`;
       }
       return s;
     };
