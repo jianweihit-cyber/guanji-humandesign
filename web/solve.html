@@ -67,13 +67,14 @@
 import { solveBirth, jdToLocal } from '/src/hd-solve.js';
 import { PLANETS, GATE_ORDER } from '/src/hd-data.js';
 const $=id=>document.getElementById(id);
+const ENM = window.HDI18N && window.HDI18N.lang==='en';
 
-// 13 行星输入行
+// 13 行星输入行（中间行星名随语言切换：EN 模式纯英文）
 $('rows').innerHTML = PLANETS.map(p=>`
   <tr data-k="${p.key}">
     <td class="dz"><input class="dg" type="number" min="1" max="64" /></td>
     <td class="dz"><select class="dl"><option value="">—</option>${[1,2,3,4,5,6].map(i=>`<option>${i}</option>`).join('')}</select></td>
-    <td class="p">${p.glyph} ${p.zh}</td>
+    <td class="p" ${ENM?'data-noi18n':''}>${p.glyph} ${ENM?p.en:p.zh}</td>
     <td class="pz"><input class="pg" type="number" min="1" max="64" /></td>
     <td class="pz"><select class="pl"><option value="">—</option>${[1,2,3,4,5,6].map(i=>`<option>${i}</option>`).join('')}</select></td>
   </tr>`).join('');

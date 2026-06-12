@@ -54,7 +54,7 @@ for(const [k,v] of Object.entries(LINES)) ALL.push({cat:'line',key:k,name:ENM?`L
 for(const [k,v] of Object.entries(CENTERS_KB)) ALL.push({cat:'center',key:k,name:ENM?CENTER_EN[k]:v.zh,sub:ENM?'':v.type,s:`${k}${v.zh}${v.theme}中心`});
 for(const [k,v] of Object.entries(DEFINITION_KB)) ALL.push({cat:'definition',key:k,name:ENM?k:v.zh,sub:ENM?'Definition':'定义',s:`${k}${v.zh}定义`});
 for(const [k,v] of Object.entries(CHANNELS_KB)) ALL.push({cat:'channel',key:k,name:`${k} ${ENM?(v.en||v.zh):v.zh}`,sub:ENM?(v.keynote||v.centers.join('–')):v.centers.join('–'),s:`${k}${v.zh}${v.en}${v.theme}${v.circuit}通道`});
-for(const [k,v] of Object.entries(GATES_KB)) ALL.push({cat:'gate',key:k,name:`${v.glyph} ${k}·${ENM&&v.nameEn?v.nameEn:(v.name||v.hex)}`,sub:ENM?(v.keynote||v.theme):v.theme,s:`${k}${v.hex}${v.iching}${v.name}${v.alias}${v.nameEn}${v.circuit}${v.theme}${v.centerZh}闸门门`});
+for(const [k,v] of Object.entries(GATES_KB)) ALL.push({cat:'gate',key:k,name:`${v.glyph} ${k}·${ENM&&v.nameEn?v.nameEn:(v.name||v.hex)}`,sub:ENM?`${v.iching}${v.keynote?' · '+v.keynote:''}`:`${v.hex}卦 · ${v.theme}`,s:`${k}${v.hex}${v.iching}${v.name}${v.alias}${v.nameEn}${v.circuit}${v.theme}${v.centerZh}闸门门`});
 for(const [k,v] of Object.entries(PHS_KB)) ALL.push({cat:'phs',key:k,name:v.title,sub:v.zh,s:`phs变量箭头variable${k}${v.title}${v.zh}${v.colors.map(c=>c.base.join('')+c.l.join('')+c.r.join('')).join('')}`});
 
 ALL.push({cat:'about',key:'origin',name:ENM?'Origin of Human Design':'人类图的起源',sub:ENM?'Ra Uru Hu · 1987 · Ibiza':'拉·乌卢·胡 1987',s:'about关于origin起源源起历史history ra uru hu拉乌卢胡伊维萨ibiza'});
@@ -102,7 +102,7 @@ function detailHTML(cat,key){
   if(cat==='gate'){const v=GATES_KB[key];
     const dg=GATE_DETAIL[key], glines=dg&&dg.lines?`<div class="gloss"><b>Lines</b><br>${[1,2,3,4,5,6].map(i=>dg.lines[i]?`${i} — ${esc(dg.lines[i])}`:'').filter(Boolean).join('<br>')}</div>`:'';
     if(ENM) return `<h2 data-noi18n><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>Gate ${v.gate}${v.nameEn?` · ${esc(v.nameEn)}`:''}</h2><div data-noi18n>${tag(CENTER_EN[v.center]||v.center)}${tag('Hexagram '+v.gate+' · '+esc(v.iching))}${v.circuit?tag(cEN(v.circuit)):''}${v.keynote?`<div class="gloss">${esc(v.keynote)}</div>`:''}${dg?`<div class="gloss">${esc(dg.en)}</div>`:''}${glines}</div>`;
-    return `<h2><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>${v.gate} 号闸门${v.name?` · ${v.name}`:''} <span class="sub">${v.nameEn||v.iching}</span></h2>${tag('所在：'+v.centerZh)}${tag(v.hex+'卦')}${v.circuit?tag('回路：'+v.circuit):''}${v.alias?tag('别名：'+v.alias):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}${glines?`<div data-noi18n>${glines}</div>`:''}`;}
+    return `<h2><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>${v.gate} 号闸门${v.name?` · ${v.name}`:''} <span class="sub">${v.hex}卦 · ${v.nameEn||v.iching}</span></h2>${tag('所在：'+v.centerZh)}${tag(v.hex+'卦 '+v.iching)}${v.circuit?tag('回路：'+v.circuit):''}${v.alias?tag('别名：'+v.alias):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}${glines?`<div data-noi18n>${glines}</div>`:''}`;}
   if(cat==='phs'){const v=PHS_KB[key];const tones=PHS_TONES_KB[v.tones];
     if(ENM){const qEN=q=>q?String(q).split(/[一-鿿（]/)[0].trim():'';
       let h=`<h2 data-noi18n>${esc(v.title.split(' ')[0])}</h2><div data-noi18n>`;

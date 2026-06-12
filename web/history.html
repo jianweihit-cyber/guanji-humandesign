@@ -67,7 +67,7 @@ function render(){
     <div class="rec" data-id="${r.id}">
       <button class="star ${r.fav?'on':''}" title="收藏">${r.fav?'★':'☆'}</button>
       <div class="meta">
-        <div class="n">${esc(r.name)||'—'}</div>
+        <div class="n">${esc(r.name)||'—'}${r.gender?` <span style="font-weight:400;color:${r.gender==='M'?'#4A7BA6':'#C26A8A'}">${r.gender==='M'?'♂':'♀'}</span>`:''}</div>
         <div class="d">${fmtIn(r.input)}</div>
       </div>
       <div class="chips">

@@ -28,7 +28,8 @@
       <div class="field in"><label>日</label><input id="d" type="number" min="1" max="31" value="5" /></div>
       <div class="field in"><label>时</label><input id="h" type="number" min="0" max="23" value="13" /></div>
       <div class="field in"><label>分</label><input id="mi" type="number" min="0" max="59" value="30" /></div>
-      <div class="field" style="flex:1;min-width:150px"><label>出生地（决定时区）</label><select id="loc"></select></div>
+      <div class="field locbox" style="flex:1;min-width:180px"><label>出生地（决定时区）</label><input id="locq" autocomplete="off" placeholder="城市，如 上海 / Shanghai" /><div id="locdrop" class="locdrop" hidden></div></div>
+      <div class="field"><label>性别</label><div class="seg" id="sex"><button type="button" data-v="F" class="on">女</button><button type="button" data-v="M">男</button></div></div>
       <button class="btn" id="go">生成人类图</button>
       <span id="placeTag" class="muted" style="font-size:12px;align-self:flex-end;padding-bottom:10px"></span>
     </div>
@@ -65,6 +66,7 @@
 <script src="hd-store.js"></script>
 <script src="i18n.js"></script>
 <script src="wheel.js"></script>
+<script src="places.js"></script>
 <script type="module">
 import { generateChart } from '/src/chart.js';
 import { TYPES, AUTHORITIES, PROFILES, CENTERS_KB } from '/src/hd-knowledge.js';
@@ -73,9 +75,61 @@ const $ = id => document.getElementById(id);
 const ENM = window.HDI18N && window.HDI18N.lang==='en';
 const CENTER_EN={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
 
-const LOCS=[['🇨🇳 中国 · 选省市区','🇨🇳 China · region picker','__cn__'],['上海/北京/广州(中国)','Shanghai/Beijing (China)','Asia/Shanghai'],['香港','Hong Kong','Asia/Hong_Kong'],['台北','Taipei','Asia/Taipei'],['东京','Tokyo','Asia/Tokyo'],['新加坡','Singapore','Asia/Singapore'],['曼谷','Bangkok','Asia/Bangkok'],['伦敦','London','Europe/London'],['巴黎','Paris','Europe/Paris'],['纽约','New York','America/New_York'],['洛杉矶','Los Angeles','America/Los_Angeles'],['檀香山','Honolulu','Pacific/Honolulu'],['悉尼','Sydney','Australia/Sydney'],['— 自定义 IANA —','— Custom IANA —','__custom__']];
-const loc=$('loc');for(const [zh,en,tz] of LOCS){const o=document.createElement('option');o.value=tz;o.textContent=ENM?en:zh;loc.appendChild(o);}
-loc.onchange=()=>{$('tzCustom').hidden=loc.value!=='__custom__';};
+// ── 出生地：搜索联想（精选全球城市 places.js + 中国省市区 cn-pca + IANA 直填）──
+let selTz='Asia/Shanghai', placeLabel='', sexVal='F';
+const locq=$('locq'), drop=$('locdrop');
+const PL=window.HD_PLACES||[];
+const pLab=p=>ENM?`${p[0]}, ${p[2]}`:`${p[3]} · ${p[1]}`;
+const IT_CN={act:'cn',label:ENM?'🇨🇳 China · province / city / district':'🇨🇳 中国 · 选省市区（区县级）'};
+const IT_CUSTOM={act:'custom',label:ENM?'⌨ Custom IANA timezone':'⌨ 自定义 IANA 时区'};
+let items=[];
+function renderDrop(){
+  drop.innerHTML=items.map((it,i)=>`<div class="it" data-i="${i}">${it.label}${it.tz?`<span class="tzs">${it.tz}</span>`:''}</div>`).join('');
+  drop.hidden=!items.length;
+}
+async function suggest(){
+  const raw=locq.value.trim(), q=raw.toLowerCase();
+  if(!raw){ items=[IT_CN,...PL.slice(0,12).map(p=>({label:pLab(p),tz:p[4]})),IT_CUSTOM]; renderDrop(); return; }
+  const out=[];
+  for(const p of PL){ if(p[0].toLowerCase().includes(q)||p[2].toLowerCase().includes(q)||p[1].includes(raw)||p[3].includes(raw)){ out.push({label:pLab(p),tz:p[4]}); if(out.length>=9)break; } }
+  if(/[一-鿿]/.test(raw)){ // 中文 → 在省市区三级里联想（区县级，统一 Asia/Shanghai）
+    try{ const data=await cnData();
+      outer: for(const prov of data){
+        if(prov.name.includes(raw)) out.push({label:'🇨🇳 '+prov.name,tz:'Asia/Shanghai',place:prov.name});
+        for(const c of (prov.children||[])){
+          const pc=[prov.name,c.name].filter(x=>x!=='市辖区').join(' · ');
+          if(c.name!=='市辖区'&&c.name.includes(raw)) out.push({label:'🇨🇳 '+pc,tz:'Asia/Shanghai',place:pc});
+          for(const d of (c.children||[])) if(d.name.includes(raw)){ const pl=[prov.name,c.name,d.name].filter(x=>x!=='市辖区').join(' · '); out.push({label:'🇨🇳 '+pl,tz:'Asia/Shanghai',place:pl}); }
+          if(out.length>=18) break outer;
+        }
+      }
+    }catch(e){}
+  }
+  if(raw.includes('/')) out.push({label:(ENM?'Use timezone ':'使用时区 ')+raw,tz:raw,isTz:1});
+  out.push(IT_CN,IT_CUSTOM);
+  items=out; renderDrop();
+}
+function applyItem(it){
+  drop.hidden=true;
+  if(it.act==='cn'){ openRegion(); return; }
+  if(it.act==='custom'){ selTz='__custom__'; $('tzCustom').hidden=false; locq.value=it.label.replace('⌨ ',''); $('placeTag').textContent=''; return; }
+  selTz=it.tz; $('tzCustom').hidden=true;
+  placeLabel=it.isTz?'':(it.place||it.label.replace('🇨🇳 ',''));
+  locq.value=it.isTz?it.tz:it.label.replace('🇨🇳 ','');
+  $('placeTag').textContent='🕐 '+it.tz;
+  run();
+}
+locq.addEventListener('focus',()=>{locq.select();suggest();});
+locq.addEventListener('input',suggest);
+locq.addEventListener('keydown',e=>{ if(e.key==='Enter'&&items.length&&!drop.hidden){e.preventDefault();applyItem(items[0]);} if(e.key==='Escape')drop.hidden=true; });
+drop.addEventListener('mousedown',e=>{ const c=e.target.closest('.it'); if(!c)return; e.preventDefault(); applyItem(items[+c.dataset.i]); });
+document.addEventListener('click',e=>{ if(!e.target.closest('.locbox')) drop.hidden=true; });
+
+// 性别（随记录保存；默认女——未选择时按「女」保存）
+const sexBox=$('sex');
+const setSex=v=>{ sexVal=v; for(const b of sexBox.children) b.classList.toggle('on',b.dataset.v===v); };
+if(ENM){ sexBox.children[0].textContent='Female'; sexBox.children[1].textContent='Male'; }
+sexBox.onclick=e=>{ const b=e.target.closest('button'); if(b) setSex(b.dataset.v); };
 
 function interpret(c){
   const box=$('interpret'); box.hidden=false;
@@ -112,7 +166,7 @@ async function run(tag){
   if(busy)return; busy=true;
   const st=$('status'); st.className='status'; st.textContent='⏳ Calculating…';
   try{
-    const tz=loc.value==='__custom__'?($('tzText').value.trim()||'Asia/Shanghai'):loc.value;
+    const tz=selTz==='__custom__'?($('tzText').value.trim()||'Asia/Shanghai'):selTz;
     const input={year:+$('y').value,month:+$('mo').value,day:+$('d').value,hour:+$('h').value,minute:+$('mi').value,tz,ephemerisMode:$('mode').value,nodeType:$('node').value};
     const c=await generateChart(input);
     const label=`${input.year}-${String(input.month).padStart(2,'0')}-${String(input.day).padStart(2,'0')} ${input.hour}:${String(input.minute).padStart(2,'0')} ${tz}`;
@@ -141,7 +195,7 @@ const dtOpen=()=>{ if(!window.HDWheel) return;
 for(const id of ['y','mo','d','h','mi']){ const el=$(id); el.readOnly=true; el.style.cursor='pointer'; el.addEventListener('click',dtOpen); }
 
 // 中国省市区三级滚轮（计算仍走时区 Asia/Shanghai，地名随记录保存）
-let CN=null, placeLabel='';
+let CN=null;
 const cnData=async()=>{ if(!CN){ const r=await fetch('cn-pca.json'); CN=await r.json(); } return CN; };
 async function openRegion(){
   const data=await cnData();
@@ -155,9 +209,8 @@ async function openRegion(){
       if(ci===0){ set(1,prov.children.map(c=>c.name)); const c0=prov.children[0]; set(2,(c0.children||[]).map(d=>d.name)); }
       else if(ci===1){ const city=prov.children.find(c=>c.name===v[1])||prov.children[0]; set(2,(city.children||[]).map(d=>d.name)); } },
     onDone:(v)=>{ placeLabel=[v[0],v[1],v[2]].filter(x=>x&&x!=='市辖区').join(' · ');
-      setTz('Asia/Shanghai'); $('placeTag').textContent='📍 '+placeLabel; } });
+      selTz='Asia/Shanghai'; locq.value=placeLabel; $('placeTag').textContent='🕐 Asia/Shanghai'; run(); } });
 }
-loc.addEventListener('change',()=>{ if(loc.value==='__cn__'){ loc.value='Asia/Shanghai'; openRegion(); } });
 
 
 const data=window.SAMPLE_CHARTS||{}; const pick=$('pick');
@@ -168,11 +221,11 @@ pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, 'Sam
 $('saveBtn').onclick=()=>{
   if(!lastRun) return;
   const name=$('sname').value.trim()||'—';
-  HDStore.add({ name, input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
+  HDStore.add({ name, gender:sexVal||'F', input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
   $('savemsg').textContent='✓ 已保存';
 };
 
-const setTz=tz=>{ if(![...loc.options].some(o=>o.value===tz)){ const o=document.createElement('option'); o.value=tz; o.textContent=tz; loc.insertBefore(o,loc.firstChild); } loc.value=tz; };
+const setTz=tz=>{ selTz=tz; $('tzCustom').hidden=true; locq.value=tz; $('placeTag').textContent=''; };
 const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.day; $('h').value=i.hour; $('mi').value=i.minute; setTz(i.tz); syncSlider(); };
 
 // 启动：?load=记录 → 重排该盘；否则即时盘（当前系统时间+所在时区，取不到回退上海）
@@ -180,7 +233,10 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
   const sp=new URLSearchParams(location.search);
   const pid=sp.get('load');
   const rec=pid&&window.HDStore?HDStore.get(pid):null;
-  if(rec){ fillForm(rec.input); $('sname').value=rec.name==='—'?'':rec.name; run(rec.name); return; }
+  if(rec){ fillForm(rec.input);
+    if(rec.input.place){ placeLabel=rec.input.place; locq.value=placeLabel; $('placeTag').textContent='🕐 '+rec.input.tz; }
+    if(rec.gender) setSex(rec.gender);
+    $('sname').value=rec.name==='—'?'':rec.name; run(rec.name); return; }
   if(sp.get('y')&&sp.get('mo')){ // 反推页等外部带参直开：?y&mo&d&h&mi&tz&name
     fillForm({year:+sp.get('y'),month:+sp.get('mo'),day:+sp.get('d')||1,hour:+sp.get('h')||12,minute:+sp.get('mi')||0,tz:sp.get('tz')||'Asia/Shanghai'});
     $('sname').value=sp.get('name')||'';

@@ -91,19 +91,19 @@ export const GATE_CENTER = (() => {
 
 // ── 13 天体（每层）显示信息 ───────────────────────────────
 export const PLANETS = [
-  { key: 'Sun',       glyph: '☉', zh: '太阳' },
-  { key: 'Earth',     glyph: '⨁', zh: '地球' },
-  { key: 'Moon',      glyph: '☽', zh: '月亮' },
-  { key: 'NorthNode', glyph: '☊', zh: '北交点' },
-  { key: 'SouthNode', glyph: '☋', zh: '南交点' },
-  { key: 'Mercury',   glyph: '☿', zh: '水星' },
-  { key: 'Venus',     glyph: '♀', zh: '金星' },
-  { key: 'Mars',      glyph: '♂', zh: '火星' },
-  { key: 'Jupiter',   glyph: '♃', zh: '木星' },
-  { key: 'Saturn',    glyph: '♄', zh: '土星' },
-  { key: 'Uranus',    glyph: '♅', zh: '天王星' },
-  { key: 'Neptune',   glyph: '♆', zh: '海王星' },
-  { key: 'Pluto',     glyph: '♇', zh: '冥王星' },
+  { key: 'Sun',       glyph: '☉', zh: '太阳',   en: 'Sun' },
+  { key: 'Earth',     glyph: '⨁', zh: '地球',   en: 'Earth' },
+  { key: 'Moon',      glyph: '☽', zh: '月亮',   en: 'Moon' },
+  { key: 'NorthNode', glyph: '☊', zh: '北交点', en: 'North Node' },
+  { key: 'SouthNode', glyph: '☋', zh: '南交点', en: 'South Node' },
+  { key: 'Mercury',   glyph: '☿', zh: '水星',   en: 'Mercury' },
+  { key: 'Venus',     glyph: '♀', zh: '金星',   en: 'Venus' },
+  { key: 'Mars',      glyph: '♂', zh: '火星',   en: 'Mars' },
+  { key: 'Jupiter',   glyph: '♃', zh: '木星',   en: 'Jupiter' },
+  { key: 'Saturn',    glyph: '♄', zh: '土星',   en: 'Saturn' },
+  { key: 'Uranus',    glyph: '♅', zh: '天王星', en: 'Uranus' },
+  { key: 'Neptune',   glyph: '♆', zh: '海王星', en: 'Neptune' },
+  { key: 'Pluto',     glyph: '♇', zh: '冥王星', en: 'Pluto' },
 ];
 
 // ── 类型 / 策略 / 签名 / 非自己主题 ───────────────────────

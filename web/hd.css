@@ -93,3 +93,23 @@ svg.bodygraph{width:100%;height:auto;display:block}
 .brandlogo{width:24px;height:24px;vertical-align:-5px;margin-right:7px}
 .prow-sub{font-size:11px;color:var(--sub);padding:2px 8px 7px 30px;font-variant-numeric:tabular-nums;line-height:1.7;border-bottom:1px dashed #F0E8D8}
 .prow:hover{background:#FAF5EA}
+
+/* C/T/B 一键展开按钮（行星两列上方整行） */
+.cols{flex-wrap:wrap}
+.ctbbar{flex-basis:100%;text-align:center;margin-bottom:2px}
+.ctb-all{font-size:11px;padding:3px 12px;border:1px solid #D8CFC0;border-radius:999px;background:#fff;color:#8A7A5E;cursor:pointer}
+.ctb-all.on{background:var(--li);color:#fff;border-color:transparent}
+
+/* 出生地搜索下拉 */
+.locbox{position:relative}
+.locdrop{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #DDD2BE;border-radius:12px;box-shadow:0 8px 24px rgba(60,38,8,.12);max-height:280px;overflow:auto;z-index:60}
+.locdrop .it{padding:9px 12px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px}
+.locdrop .it:hover,.locdrop .it.on{background:#FAF3E3}
+.locdrop .it .tzs{margin-left:auto;font-size:11px;color:var(--sub);white-space:nowrap}
+.locdrop .hd{padding:6px 12px 2px;font-size:11px;color:var(--sub)}
+
+/* 性别分段选择 */
+.seg{display:inline-flex;border:1px solid #DDD2BE;border-radius:10px;overflow:hidden;background:#fff}
+.seg button{font-size:14px;padding:8px 16px;border:none;background:none;cursor:pointer;color:#8A7A5E}
+.seg button+button{border-left:1px solid #EDE4D4}
+.seg button.on{background:var(--li);color:#fff}

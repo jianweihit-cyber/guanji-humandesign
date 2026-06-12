@@ -120,6 +120,7 @@
         </div>
       </div>
       <div class="cols">
+        <div class="ctbbar"><button type="button" class="ctb-all"></button></div>
         <div class="pcol des"><h4>设计 ⊙</h4></div>
         <div class="pcol per"><h4>个性 ⊙</h4></div>
       </div>
@@ -168,6 +169,11 @@
       const r=e.target.closest('.prow'); if(!r)return;
       const s=r.nextElementSibling; if(s&&s.classList.contains('prow-sub')) s.hidden=!s.hidden;
     });
+    // 一键展开/收起所有行的 Color/Tone/Base（逐行点击仍可用）
+    const allBtn=q('.ctb-all');
+    const setAllLabel=open=>{allBtn.textContent=open?(isEN()?'▴ Hide all Color/Tone/Base':'▴ 收起全部 Color/Tone/Base'):(isEN()?'▾ Show all Color/Tone/Base':'▾ 展开全部 Color/Tone/Base');};
+    setAllLabel(false);
+    allBtn.onclick=()=>{const subs=[...root.querySelectorAll('.prow-sub')];const open=subs.some(s=>s.hidden);subs.forEach(s=>s.hidden=!open);allBtn.classList.toggle('on',open);setAllLabel(open);};
     // 实心箭头（与盘面同形，镜像统一）
     const ar = o => {const s=o==='Left'?-1:1,x=11,y=6;
       return `<svg width="22" height="12" viewBox="0 0 22 12" style="vertical-align:middle"><path d="M${x-s*9} ${y-2} L${x+s*1} ${y-2} L${x+s*1} ${y-5.5} L${x+s*9} ${y} L${x+s*1} ${y+5.5} L${x+s*1} ${y+2} L${x-s*9} ${y+2} Z" fill="currentColor"/></svg>`;};
