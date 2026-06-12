@@ -6,6 +6,19 @@
 <title>人类图排盘 · 观己</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="stylesheet" href="hd.css" />
+<!-- 模块图预加载：消掉 五跳串行 import 瀑布；两个大件与 HTML 解析同时起跑 -->
+<link rel="modulepreload" href="/src/chart.js" />
+<link rel="modulepreload" href="/src/ephemeris.js" />
+<link rel="modulepreload" href="/src/hd-core.js" />
+<link rel="modulepreload" href="/src/hd-data.js" />
+<link rel="modulepreload" href="/src/hd-book-data.js" />
+<link rel="modulepreload" href="/src/hd-knowledge.js" />
+<link rel="modulepreload" href="/src/hd-crosses.js" />
+<link rel="modulepreload" href="/src/hd-crosses-zh.js" />
+<link rel="modulepreload" href="/node_modules/swisseph-wasm/src/swisseph.js" />
+<link rel="modulepreload" href="/node_modules/swisseph-wasm/wasm/swisseph.js" />
+<link rel="preload" as="fetch" href="/node_modules/swisseph-wasm/wasm/swisseph.wasm" />
+<link rel="preload" as="fetch" href="/node_modules/swisseph-wasm/wasm/swisseph-lite.data" />
 </head>
 <body>
 <div class="wrap">
