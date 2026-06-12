@@ -91,3 +91,5 @@ svg.bodygraph{width:100%;height:auto;display:block}
 .report .foot .li{color:var(--li);font-weight:700}
 
 .brandlogo{width:24px;height:24px;vertical-align:-5px;margin-right:7px}
+.prow-sub{font-size:11px;color:var(--sub);padding:2px 8px 7px 30px;font-variant-numeric:tabular-nums;line-height:1.7;border-bottom:1px dashed #F0E8D8}
+.prow:hover{background:#FAF5EA}

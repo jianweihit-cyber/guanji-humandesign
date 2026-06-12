@@ -146,9 +146,27 @@
     ];
     S.innerHTML = cards.map(([k,v,vs])=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div>${vs?`<div class="vs">${vs}</div>`:''}</div>`).join('');
     bodygraph(q('svg.bodygraph'), c);
-    const rows=arr=>arr.map(a=>`<div class="prow ${arr===c.design?'dz':'pz'}"><span class="g">${a.glyph}</span><span class="gl">${a.gate}.${a.line}</span><span class="deg">${deg(a.lon)}</span></div>`).join('');
-    q('.pcol.des').insertAdjacentHTML('beforeend', rows(c.design));
-    q('.pcol.per').insertAdjacentHTML('beforeend', rows(c.personality));
+    // 行星行可点击展开：完整 Rave 记法 Gate.Line.Color.Tone.Base（引擎逐层细分黄经计算，
+    // 已经 Mumbai 案例 PHS 五项与商业工具交叉验证）；四大变量行附 PHS 语义
+    const subLine=(a,layer)=>{
+      let s=`${a.gate}.${a.line}.${a.color}.${a.tone}.${a.base} — Color ${a.color} · Tone ${a.tone} · Base ${a.base}`;
+      const T=c.phs&&c.phs.types, P=c.phs;
+      if(T&&P){
+        const zh=t=>isEN()?'':' '+t.zh;
+        if(layer==='des'&&a.planet==='Sun') s+=`<br>Determination: <b>${T.determination.en}${zh(T.determination)}</b> · Cognition: ${P.cognition}`;
+        if(layer==='per'&&a.planet==='Sun') s+=`<br>Motivation: <b>${T.motivation.en}${zh(T.motivation)}</b>`;
+        if(layer==='des'&&a.planet==='NorthNode') s+=`<br>Environment: <b>${T.environment.en}${zh(T.environment)}</b>`;
+        if(layer==='per'&&a.planet==='NorthNode') s+=`<br>View: <b>${T.view.en}${zh(T.view)}</b>`;
+      }
+      return s;
+    };
+    const rows=(arr,layer)=>arr.map(a=>`<div class="prow ${layer==='des'?'dz':'pz'}" style="cursor:pointer" title="Color/Tone/Base"><span class="g">${a.glyph}</span><span class="gl">${a.gate}.${a.line}</span><span class="deg">${deg(a.lon)}</span></div><div class="prow-sub" hidden data-noi18n>${subLine(a,layer)}</div>`).join('');
+    q('.pcol.des').insertAdjacentHTML('beforeend', rows(c.design,'des'));
+    q('.pcol.per').insertAdjacentHTML('beforeend', rows(c.personality,'per'));
+    for(const col of [q('.pcol.des'),q('.pcol.per')]) col.addEventListener('click',e=>{
+      const r=e.target.closest('.prow'); if(!r)return;
+      const s=r.nextElementSibling; if(s&&s.classList.contains('prow-sub')) s.hidden=!s.hidden;
+    });
     // 实心箭头（与盘面同形，镜像统一）
     const ar = o => {const s=o==='Left'?-1:1,x=11,y=6;
       return `<svg width="22" height="12" viewBox="0 0 22 12" style="vertical-align:middle"><path d="M${x-s*9} ${y-2} L${x+s*1} ${y-2} L${x+s*1} ${y-5.5} L${x+s*9} ${y} L${x+s*1} ${y+5.5} L${x+s*1} ${y+2} L${x-s*9} ${y+2} Z" fill="currentColor"/></svg>`;};
