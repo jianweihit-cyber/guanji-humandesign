@@ -233,10 +233,12 @@ pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, 'Sam
 // 保存此盘 → 本地记录（hd-store）
 $('saveBtn').onclick=()=>{
   if(!lastRun) return;
+  const btn=$('saveBtn'); if(btn.disabled) return; btn.disabled=true; setTimeout(()=>btn.disabled=false,800); // 防连点重复
   const name=$('sname').value.trim()||'—';
-  HDStore.add({ name, gender:sexVal||'F', input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
-  $('savemsg').textContent='✓ 已保存';
+  const id=HDStore.add({ name, gender:sexVal||'F', input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
+  $('savemsg').textContent = id ? '✓ 已保存' : '✕ 保存失败：浏览器存储不可用或已满';
 };
+if(window.HDStore&&HDStore.requestPersist) HDStore.requestPersist(); // 申请持久化保护，降低被清风险
 
 const setTz=tz=>{ selTz=tz; $('tzCustom').hidden=true; locq.value=tz; $('placeTag').textContent=''; };
 const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.day; $('h').value=i.hour; $('mi').value=i.minute; setTz(i.tz); syncSlider(); };

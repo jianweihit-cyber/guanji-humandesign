@@ -37,7 +37,12 @@
   <div class="tabs" id="filter">
     <span class="tab on" data-f="all">全部</span>
     <span class="tab" data-f="fav">★ 收藏</span>
+    <span style="flex:1"></span>
+    <button class="btn-sm" id="exportBtn" title="导出备份">⤓ 导出备份</button>
+    <button class="btn-sm" id="importBtn" title="导入恢复">⤒ 导入恢复</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden />
   </div>
+  <p class="muted" id="safetynote" style="margin:8px 2px 0;font-size:12px;line-height:1.6"></p>
   <div class="cnt" id="cnt"></div>
   <div id="list"></div>
 </div>
@@ -81,6 +86,35 @@ function render(){
 }
 $('#q').oninput=()=>{q=$('#q').value.trim();render();};
 $('#filter').onclick=e=>{const t=e.target.closest('[data-f]');if(!t)return;f=t.dataset.f;for(const x of $('#filter').children)x.classList.toggle('on',x===t);render();};
+
+// ── 备份/恢复（防丢失安全网；也是换设备/换浏览器/换域名的迁移手段）──
+const I=window.HDI18N, EN=I&&I.lang==='en';
+const tr=zh=>EN?(I.EN[zh]||zh):I&&I.lang==='zh-Hant'?I.s2t(zh):zh;
+$('#exportBtn').onclick=()=>{
+  const blob=new Blob([HDStore.exportJSON()],{type:'application/json'});
+  const a=document.createElement('a');
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  a.href=URL.createObjectURL(blob);
+  a.download=`guanji-charts-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+};
+$('#importBtn').onclick=()=>$('#importFile').click();
+$('#importFile').onchange=async e=>{
+  const file=e.target.files[0]; if(!file)return;
+  try{
+    const r=HDStore.importJSON(await file.text());
+    alert(tr('已恢复')+`：+${r.added} ${tr('新增')} / ${r.updated} ${tr('更新')}（${tr('共')} ${r.total}）`);
+    render();
+  }catch(err){ alert(tr('导入失败：文件格式不正确')); }
+  e.target.value='';
+};
+// 申请持久化存储 + 风险提示（未授予时告知用户做备份）
+(async()=>{
+  const ok=await HDStore.requestPersist();
+  $('#safetynote').textContent = ok
+    ? tr('ⓘ 记录保存在本机浏览器，已申请持久化保护。建议定期「导出备份」以防换设备/清缓存丢失。')
+    : tr('⚠ 记录仅保存在本机浏览器，换设备、清缓存或长期不访问可能丢失。请定期「导出备份」，换机后用「导入恢复」。');
+})();
 $('#list').onclick=e=>{
   const row=e.target.closest('.rec'); if(!row)return; const id=row.dataset.id;
   if(e.target.closest('.star')){ HDStore.toggleFav(id); render(); }
