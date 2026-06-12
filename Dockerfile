@@ -2,6 +2,9 @@
 # 注意：swisseph.data 须先经 tools/repack-swisseph-data.mjs 瘦身（12MB→2MB）再构建
 FROM nginx:1.27-alpine
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+# 构建期断言：域名收口 server 块必须在场（防上下文/缓存配错时静默发布旧配置）
+RUN grep -q "server_name guanji-humandesign.fly.dev" /etc/nginx/conf.d/default.conf \
+ && nginx -t -c /etc/nginx/nginx.conf
 COPY web /usr/share/nginx/html/web
 COPY src /usr/share/nginx/html/src
 COPY node_modules/swisseph-wasm /usr/share/nginx/html/node_modules/swisseph-wasm

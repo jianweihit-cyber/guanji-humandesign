@@ -4,3 +4,7 @@ test
 *.md
 99_RefBooks
 *.orig
+node_modules/swisseph-wasm/wasm/swisseph.data
+node_modules/swisseph-wasm/examples
+docs
+tools
