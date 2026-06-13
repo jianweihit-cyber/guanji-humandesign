@@ -34,7 +34,7 @@
     '闸门': 'Gate', '爻': 'Line', '起始年': 'From', '结束年': 'To', '显示时区 (IANA)': 'Display timezone (IANA)',
     '开始反推': 'Solve', '用中点出盘': 'Open chart', '至少填写：个性太阳的闸门': 'Required: Personality Sun gate',
     '无匹配：检查输入或放宽年份范围（爻线不确定就先留空）': 'No match — check inputs or widen the year range (leave uncertain lines blank)',
-    '合盘': 'Composite', '合盘 · Penta · 观己': 'Connection & Penta · GuanJi', '· 合盘 · Penta': '· Connection & Penta',
+    '合盘': 'Connection', '合盘 · Penta · 观己': 'Connection & Penta · GuanJi', '· 合盘 · Penta': '· Connection & Penta', '合盘 · Penta': 'Connection · Penta',
     '合盘（2人）': 'Connection (2)', 'Penta（3-5人）': 'Penta (3–5)', '人 A（墨）': 'Person A (black)', '人 B（朱）': 'Person B (red)',
     '生成合盘': 'Build Connection', '生成 Penta': 'Build Penta', '请选择两个不同的人': 'Pick two different people', '请选择 3-5 人': 'Pick 3–5 people',
     '需要至少 2 条记录——先去「排盘」页生成并保存。': 'Need at least 2 saved records — generate & save charts first.',

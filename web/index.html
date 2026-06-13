@@ -309,8 +309,9 @@ async function openRegion(){
 
 
 const data=window.SAMPLE_CHARTS||{}; const pick=$('pick');
-for(const [k,v] of Object.entries(data)){const o=document.createElement('option');o.value=k;o.textContent=ENM?v.label.replace('样例','Sample').replace('上海','Shanghai').replace('檀香山','Honolulu').replace('奥巴马','Obama'):v.label;pick.appendChild(o);}
-pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, 'Sample · '+d.label); $('savebar').hidden=true; $('nowbanner').hidden=true; } };
+const enLabel=s=>s.replace('样例','Sample').replace('上海','Shanghai').replace('檀香山','Honolulu').replace('奥巴马','Obama');
+for(const [k,v] of Object.entries(data)){const o=document.createElement('option');o.value=k;o.textContent=ENM?enLabel(v.label):v.label;pick.appendChild(o);}
+pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, (ENM?'Sample · '+enLabel(d.label):'示例 · '+d.label)); $('savebar').hidden=true; $('nowbanner').hidden=true; } };
 $('nbclose').onclick=()=>{ $('nowbanner').hidden=true; };
 
 // 保存此盘 → 本地记录（hd-store）

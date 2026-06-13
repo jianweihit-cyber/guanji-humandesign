@@ -199,7 +199,7 @@
     }
     q('.chips.channels').innerHTML = c.definedChannels.length
       ? c.definedChannels.map(x=>`<span class="chip"><b>${x.key}</b> ${isEN()?(x.en||x.zh):x.zh}</span>`).join('')
-      : '<span class="muted">无（反映者 / 全开放）</span>';
+      : `<span class="muted">${isEN()?'None (Reflector / fully open)':'无（反映者 / 全开放）'}</span>`;
     q('.cross').innerHTML = `<b>${c.incarnationCross.name || c.incarnationCross.notation}</b>${c.incarnationCross.zhName && !isEN() ? `<span data-noi18n> · ${c.incarnationCross.zhName}</span>` : ''}<br>${c.incarnationCross.gates[0]}/${c.incarnationCross.gates[1]} | ${c.incarnationCross.gates[2]}/${c.incarnationCross.gates[3]} · ${isEN()?(c.incarnationCross.angle||''):c.incarnationCross.angleZh}`;
   }
 

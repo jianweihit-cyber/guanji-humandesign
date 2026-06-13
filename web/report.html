@@ -15,14 +15,17 @@
     <div class="s" id="rsub"></div>
   </div>
   <div id="rbody"></div>
-  <div class="foot">观<span class="li">己</span> · 以东方之眼，照见自己 &nbsp;|&nbsp; 再遇行者</div>
+  <div class="foot" id="foot" data-noi18n>观<span class="li">己</span> · 以东方之眼，照见自己 &nbsp;|&nbsp; 再遇行者</div>
 </div>
 <script src="hd-render.js"></script>
 <script src="report-data.js"></script>
 <script src="i18n.js"></script>
 <script>
   const d = window.HD_CHART;
+  const ENM = window.HDI18N && window.HDI18N.lang==='en';
   document.getElementById('rsub').textContent = d.label;
+  // 分享卡是给别人看的门面：EN 模式页脚走英文标语（中文模式保留品牌中文）
+  if(ENM) document.getElementById('foot').innerHTML='GuanJi · see yourself through an Eastern lens';
   HDRender.fill(document.getElementById('rbody'), d.chart, { linkKB:false });
 </script>
 </body>

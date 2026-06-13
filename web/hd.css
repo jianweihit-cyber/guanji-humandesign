@@ -135,3 +135,27 @@ a.tag:hover{color:var(--li)}
 .locdrop .it .lb{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .locdrop .it.on{background:#F3E7CE;box-shadow:inset 3px 0 0 var(--li)}
 .locdrop .it .pyh{font-size:11px;color:var(--gold-d);margin-left:2px;font-variant:small-caps}
+
+/* —— 移动端适配包(#25)：防 iOS 缩放 / 触控目标 / 列宽 / 页头换行 —— */
+@media (max-width:640px){
+  .wrap{padding:14px 12px 64px}
+  header{flex-wrap:wrap;gap:8px}
+  .brand{font-size:15px}
+  /* 16px 起步：iOS Safari 聚焦 <16px 输入框会自动放大整页，统一抬到 16px 杜绝 */
+  .field input,.field select,.kb-search,input[type="text"],input[type="number"]{font-size:16px}
+  .field.in input{width:60px}.field.yr input{width:74px}
+  /* 触控目标 ≥40px */
+  .tab{padding:9px 15px}
+  .seg button{padding:10px 18px}
+  .btn{padding:12px 22px}
+  .langsw button{padding:6px 12px!important}
+  /* 行星两列：撑满整行、均分 */
+  .stage{gap:12px}
+  .cols{width:100%;justify-content:space-around}
+  .pcol{flex:1}
+  /* 反推 5 列表格横向可滚（窄屏不挤爆，可滑动查看） */
+  .solv-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .solv-wrap table.solv{min-width:340px}
+  /* 合盘双列堆叠 */
+  .duo{gap:12px}
+}

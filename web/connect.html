@@ -52,7 +52,7 @@
   </div>
 
   <div class="form" id="pentaForm" hidden>
-    <p class="muted" style="margin:6px 2px 0;font-size:13px">勾选 3-5 人（来自「记录」）。Penta 只看 喉咙-G-荐骨 纵列的 6 条通道 / 12 个闸门：小组场域的角色与缺口。</p>
+    <p class="muted" id="pentaHint" data-noi18n style="margin:6px 2px 0;font-size:13px">勾选 3-5 人（来自「记录」）。Penta 只看 喉咙-G-荐骨 纵列的 6 条通道 / 12 个闸门：小组场域的角色与缺口。</p>
     <div class="plist" id="plist"></div>
     <div class="pickrow"><button class="btn" id="goPenta">生成 Penta</button><span class="status" id="pentaSt"></span></div>
   </div>
@@ -70,14 +70,21 @@
 import { generateChart } from '/src/chart.js';
 import { connection, penta, unionGates, PENTA_CHANNELS, PENTA_GATES } from '/src/hd-connect.js';
 const $=id=>document.getElementById(id);
+const ENM = window.HDI18N && window.HDI18N.lang==='en';
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const recs=HDStore.all();
+const homeLink = ENM?'<a href="index.html">the Chart page</a>':'<a href="index.html">「排盘」页</a>';
 
-// 选人控件
+// 选人控件（空状态不销毁 #goConn/#goPenta，避免后续绑定抛错使整个脚本中断 → Penta 按钮失灵）
 const opt=r=>`<option value="${r.id}">${esc(r.name)} · ${esc(r.sum.type)} ${esc(r.sum.profile)}</option>`;
-if(recs.length<2){ $('connForm').innerHTML='<p class="muted" style="margin:10px 0">需要至少 2 条记录——先去「排盘」页生成并保存。</p>'; }
-else { $('selA').innerHTML=recs.map(opt).join(''); $('selB').innerHTML=recs.map(opt).join(''); if(recs[1]) $('selB').value=recs[1].id; }
-$('plist').innerHTML = recs.map(r=>`<label><input type="checkbox" value="${r.id}" /> <b>${esc(r.name)}</b> <span class="sub">${esc(r.sum.type)} ${esc(r.sum.profile)}</span></label>`).join('') || '<p class="muted">暂无记录</p>';
+if(recs.length<2){
+  $('connSt').innerHTML = ENM?`Need at least 2 saved charts — generate & save on ${homeLink} first.`
+                             :`需要至少 2 条记录——先去${homeLink}生成并保存。`;
+  $('goConn').disabled=true; $('goConn').style.opacity=.5;
+} else { $('selA').innerHTML=recs.map(opt).join(''); $('selB').innerHTML=recs.map(opt).join(''); if(recs[1]) $('selB').value=recs[1].id; }
+$('plist').innerHTML = recs.length
+  ? recs.map(r=>`<label><input type="checkbox" value="${r.id}" /> <b>${esc(r.name)}</b> <span class="sub">${esc(r.sum.type)} ${esc(r.sum.profile)}</span></label>`).join('')
+  : (ENM?`<p class="muted">No saved charts yet — generate on ${homeLink} first.</p>`:`<p class="muted">暂无记录——先去${homeLink}生成并保存。</p>`);
 
 $('mode').onclick=e=>{const t=e.target.closest('[data-m]');if(!t)return;
   for(const x of $('mode').children)x.classList.toggle('on',x===t);
@@ -86,43 +93,46 @@ $('mode').onclick=e=>{const t=e.target.closest('[data-m]');if(!t)return;
 const charts={}; // id → chart 缓存
 async function chartOf(id){ if(charts[id])return charts[id]; const r=HDStore.get(id); const c=await generateChart(r.input); charts[id]=c; return c; }
 
-// ── 合盘 ──
-const CATS=[['companionship','友谊 · 双方完整','彼此都有整条通道：舒适、共鸣，也容易彼此放大'],
-  ['dominance','主导 · 一方完整','一方完整、另一方全开放：单向示范与学习，注意尊重差异'],
-  ['compromise','妥协 · 一方挂单门','一方完整、另一方只有一门：单门方容易感到被带跑，需要觉察'],
-  ['electromagnetic','电磁 · 你一门我一门','两人各出一门合成通道：吸引与摩擦并存，是关系的火花']];
+// ── 合盘 ── CATS: [key, zh标题, zh说明, en标题, en说明]
+const CATS=[['companionship','友谊 · 双方完整','彼此都有整条通道：舒适、共鸣，也容易彼此放大','Companionship · both complete','Both carry the whole channel — comfort and resonance, easily amplified'],
+  ['dominance','主导 · 一方完整','一方完整、另一方全开放：单向示范与学习，注意尊重差异','Dominance · one complete','One complete, the other fully open — one-way modeling; respect the difference'],
+  ['compromise','妥协 · 一方挂单门','一方完整、另一方只有一门：单门方容易感到被带跑，需要觉察','Compromise · one hanging gate','One complete, the other holds a single gate — that side can feel pulled along'],
+  ['electromagnetic','电磁 · 你一门我一门','两人各出一门合成通道：吸引与摩擦并存，是关系的火花','Electromagnetic · one gate each','Each brings one gate to complete the channel — attraction and friction, the spark']];
 $('goConn').onclick=async()=>{
   const a=$('selA').value,b=$('selB').value;
-  if(!a||!b||a===b){ $('connSt').textContent='请选择两个不同的人'; return; }
+  if(!a||!b||a===b){ $('connSt').textContent=ENM?'Pick two different people':'请选择两个不同的人'; return; }
   $('connSt').textContent='⏳';
-  const rA=HDStore.get(a), rB=HDStore.get(b);
-  const cA=await chartOf(a), cB=await chartOf(b);
-  const cx=connection(cA,cB);
-  $('connSt').textContent='';
-  const fake={ personality:[...cx.gatesA].map(g=>({gate:g})), design:[...cx.gatesB].map(g=>({gate:g})), definedCenters:cx.definedCenters, phs:null };
-  const catHtml=CATS.map(([k,t,d])=>{
-    const list=cx.channels.filter(c=>c.cat===k||c.cat===k+'A'||c.cat===k+'B');
-    if(!list.length)return '';
-    const chip=c=>{ let who='';
-      if(c.cat==='dominanceA')who=` ←${esc(rA.name)}`; if(c.cat==='dominanceB')who=` ←${esc(rB.name)}`;
-      if(c.cat==='compromiseA')who=` ·${esc(rA.name)}妥协`; if(c.cat==='compromiseB')who=` ·${esc(rB.name)}妥协`;
-      return `<span class="chip"><b>${c.key}</b> ${esc(c.zh)}${who}</span>`; };
-    return `<div class="cat"><h4>${t}<span class="hint">${d}</span></h4><div class="chips">${list.map(chip).join('')}</div></div>`;
-  }).join('');
-  $('out').innerHTML=`<div class="duo">
-    <div class="graph"><svg class="bodygraph" viewBox="0 0 460 665"></svg>
-      <div class="legend"><span><span class="dot" style="background:var(--inkline)"></span>${esc(rA.name)}</span>
-      <span><span class="dot" style="background:var(--cinnabar)"></span>${esc(rB.name)}</span>
-      <span><span class="dot" style="background:repeating-linear-gradient(90deg,var(--inkline) 0 3px,var(--cinnabar) 3px 6px)"></span>双方皆有</span></div></div>
-    <div class="side">
-      <div class="summary" style="grid-template-columns:1fr 1fr">
-        <div class="card"><div class="k">合体定义中心</div><div class="v">${cx.definedCenters.length} / 9</div></div>
-        <div class="card"><div class="k">合体分裂数</div><div class="v">${cx.splits||0}</div></div>
-      </div>
-      ${catHtml || '<p class="muted">两人之间没有形成任何通道连接。</p>'}
-      <p class="muted" style="margin-top:10px;font-size:12px">ⓘ 合盘解读文案为初稿；分类规则：友谊/主导/妥协/电磁。</p>
-    </div></div>`;
-  HDRender.bodygraph(document.querySelector('#out svg.bodygraph'), fake);
+  try{
+    const rA=HDStore.get(a), rB=HDStore.get(b);
+    const cA=await chartOf(a), cB=await chartOf(b);
+    const cx=connection(cA,cB);
+    $('connSt').textContent='';
+    const fake={ personality:[...cx.gatesA].map(g=>({gate:g})), design:[...cx.gatesB].map(g=>({gate:g})), definedCenters:cx.definedCenters, phs:null };
+    const catHtml=CATS.map(([k,zt,zd,et,ed])=>{
+      const list=cx.channels.filter(c=>c.cat===k||c.cat===k+'A'||c.cat===k+'B');
+      if(!list.length)return '';
+      const chip=c=>{ let who='';
+        if(c.cat==='dominanceA')who=` ←${esc(rA.name)}`; if(c.cat==='dominanceB')who=` ←${esc(rB.name)}`;
+        if(c.cat==='compromiseA')who=ENM?` · ${esc(rA.name)} compromises`:` ·${esc(rA.name)}妥协`;
+        if(c.cat==='compromiseB')who=ENM?` · ${esc(rB.name)} compromises`:` ·${esc(rB.name)}妥协`;
+        return `<span class="chip"><b>${c.key}</b> ${esc(ENM?(c.en||c.zh):c.zh)}${who}</span>`; };
+      return `<div class="cat"><h4>${ENM?et:zt}<span class="hint">${ENM?ed:zd}</span></h4><div class="chips">${list.map(chip).join('')}</div></div>`;
+    }).join('');
+    $('out').innerHTML=`<div class="duo">
+      <div class="graph"><svg class="bodygraph" viewBox="0 0 460 665"></svg>
+        <div class="legend"><span><span class="dot" style="background:var(--inkline)"></span>${esc(rA.name)}</span>
+        <span><span class="dot" style="background:var(--cinnabar)"></span>${esc(rB.name)}</span>
+        <span><span class="dot" style="background:repeating-linear-gradient(90deg,var(--inkline) 0 3px,var(--cinnabar) 3px 6px)"></span>${ENM?'Both':'双方皆有'}</span></div></div>
+      <div class="side">
+        <div class="summary" style="grid-template-columns:1fr 1fr">
+          <div class="card"><div class="k">${ENM?'Defined together':'合体定义中心'}</div><div class="v">${cx.definedCenters.length} / 9</div></div>
+          <div class="card"><div class="k">${ENM?'Splits together':'合体分裂数'}</div><div class="v">${cx.splits||0}</div></div>
+        </div>
+        ${catHtml || (ENM?'<p class="muted">No channels form between these two.</p>':'<p class="muted">两人之间没有形成任何通道连接。</p>')}
+        <p class="muted" style="margin-top:10px;font-size:12px">${ENM?'ⓘ Connection reading is a first draft; categories: Companionship / Dominance / Compromise / Electromagnetic.':'ⓘ 合盘解读文案为初稿；分类规则：友谊/主导/妥协/电磁。'}</p>
+      </div></div>`;
+    HDRender.bodygraph(document.querySelector('#out svg.bodygraph'), fake);
+  }catch(e){ $('connSt').textContent=(ENM?'Failed: ':'生成失败：')+(e.message||e); console.error(e); }
 };
 
 // ── Penta ──
@@ -130,8 +140,9 @@ const PXY={31:[130,76],8:[150,76],33:[170,76],7:[130,146],1:[150,122],13:[170,14
 const PCH=[[31,7],[8,1],[33,13],[15,5],[2,14],[46,29]];
 $('goPenta').onclick=async()=>{
   const ids=[...document.querySelectorAll('#plist input:checked')].map(i=>i.value);
-  if(ids.length<3||ids.length>5){ $('pentaSt').textContent='请选择 3-5 人'; return; }
+  if(ids.length<3||ids.length>5){ $('pentaSt').textContent=ENM?'Pick 3–5 people':'请选择 3-5 人'; return; }
   $('pentaSt').textContent='⏳';
+  try{
   const members=[]; for(const id of ids){ const r=HDStore.get(id); members.push({name:r.name, chart:await chartOf(id)}); }
   const px=penta(members);
   $('pentaSt').textContent='';
@@ -157,19 +168,25 @@ $('goPenta').onclick=async()=>{
     svg+=`<text x="${x}" y="${y+0.5}" text-anchor="middle" dominant-baseline="middle" font-size="8" font-weight="700" fill="${on?'#fff':'#B3433A'}">${g}</text>`; }
   svg+='</svg>';
   const rows=PENTA_CHANNELS.flatMap(ch=>ch.gates.map(g=>({g, ch, who:px.carriers[g]})));
+  const sep=ENM?', ':'、', gapWord=ENM?'Gap':'缺口';
   $('out').innerHTML=`<div class="duo"><div class="graph">${svg}
-      <p class="muted" style="font-size:12px">金=通道完整 · 墨=半边 · 红字=缺口</p></div>
+      <p class="muted" style="font-size:12px">${ENM?'Gold = complete · Ink = half · Red = gap':'金=通道完整 · 墨=半边 · 红字=缺口'}</p></div>
     <div class="side">
       <div class="summary" style="grid-template-columns:1fr 1fr">
-        <div class="card"><div class="k">成员</div><div class="v">${px.size} 人</div></div>
-        <div class="card"><div class="k">缺口</div><div class="v">${px.gaps.length?px.gaps.join(', '):'无 ✓'}</div></div>
+        <div class="card"><div class="k">${ENM?'Members':'成员'}</div><div class="v">${px.size}${ENM?'':' 人'}</div></div>
+        <div class="card"><div class="k">${gapWord}</div><div class="v">${px.gaps.length?px.gaps.join(', '):(ENM?'None ✓':'无 ✓')}</div></div>
       </div>
-      <table class="pg"><tr><th>闸门</th><th>角色</th><th>承载成员</th></tr>
-      ${rows.map(r=>`<tr><td${r.who.length?'':' class="gap"'}>${r.g}</td><td>${esc(r.ch.roles[r.g])}<span class="hint" style="color:var(--sub)"> · ${r.ch.key} ${esc(r.ch.zh)}</span></td><td>${r.who.length?r.who.map(esc).join('、'):'<span style="color:#B3433A">缺口</span>'}</td></tr>`).join('')}
+      <table class="pg"><tr><th>${ENM?'Gate':'闸门'}</th><th>${ENM?'Role':'角色'}</th><th>${ENM?'Carried by':'承载成员'}</th></tr>
+      ${rows.map(r=>`<tr><td${r.who.length?'':' class="gap"'}>${r.g}</td><td>${esc(ENM?(r.ch.rolesEn?r.ch.rolesEn[r.g]:r.ch.roles[r.g]):r.ch.roles[r.g])}<span class="hint" style="color:var(--sub)"> · ${r.ch.key} ${esc(ENM?(r.ch.en||r.ch.zh):r.ch.zh)}</span></td><td>${r.who.length?r.who.map(esc).join(sep):`<span style="color:#B3433A">${gapWord}</span>`}</td></tr>`).join('')}
       </table>
-      <p class="muted" style="margin-top:10px;font-size:12px">ⓘ Penta 为 3-5 人场域；2 人是伴侣连结、6 人以上进入更大场域。角色文案为观己白话初稿。</p>
+      <p class="muted" style="margin-top:10px;font-size:12px">${ENM?'ⓘ Penta is a 3–5 person field; 2 is a partnership, 6+ enters a larger field. Role text is a GuanJi first draft.':'ⓘ Penta 为 3-5 人场域；2 人是伴侣连结、6 人以上进入更大场域。角色文案为观己白话初稿。'}</p>
     </div></div>`;
+  }catch(e){ $('pentaSt').textContent=(ENM?'Failed: ':'生成失败：')+(e.message||e); console.error(e); }
 };
+// Penta 说明段按语言（静态 HTML 已 data-noi18n 豁免，避免 EN 模式漏中文）
+$('pentaHint').textContent = ENM
+  ? 'Pick 3–5 people (from Records). Penta looks only at the Throat–G–Sacral column: 6 channels / 12 gates — the roles and gaps of a group field.'
+  : '勾选 3-5 人（来自「记录」）。Penta 只看 喉咙-G-荐骨 纵列的 6 条通道 / 12 个闸门：小组场域的角色与缺口。';
 </script>
 </body>
 </html>
