@@ -83,7 +83,7 @@
     // ② 中心盖在通道之上（参考图画法：线被中心形状裁住，从边缘穿出）
     for(const [key,ct] of Object.entries(CENTERS)){
       const on=defined.has(key);
-      const attr={fill:on?CFILL[key]:'#fff',stroke:on?'rgba(60,38,8,.25)':'#D8CFC0','stroke-width':1.4};
+      const attr={fill:on?CFILL[key]:'#fff',stroke:on?'rgba(60,38,8,.25)':'#D8CFC0','stroke-width':1.4,class:'center-hit','data-center':key};
       svg.appendChild(ct.shape==='rect'?el('rect',{...attr,x:ct.x,y:ct.y,width:ct.w,height:ct.h,rx:6}):el('polygon',{...attr,points:ct.pts}));
     }
     // ③ 闸门编号：激活的画圆盘（墨=个性 / 朱=设计 / 墨盘朱环=两者），未激活仅编号
@@ -102,11 +102,12 @@
     }
     // ④ PHS 四箭头（顶行=个性：心智/视角；底行=设计：消化/环境）——实心箭头，左右同形镜像
     if(c.phs){
-      const arr=(x,y,o)=>{const s=o==='Left'?-1:1;
+      const arr=(x,y,o,key)=>{const s=o==='Left'?-1:1;
         const d=`M${x-s*9} ${y-2} L${x+s*1} ${y-2} L${x+s*1} ${y-5.5} L${x+s*9} ${y} L${x+s*1} ${y+5.5} L${x+s*1} ${y+2} L${x-s*9} ${y+2} Z`;
-        svg.appendChild(el('path',{d,fill:'var(--li)'}));};
-      arr(202,18,c.phs.arrows.awareness); arr(258,18,c.phs.arrows.perspective);
-      arr(202,34,c.phs.arrows.digestion); arr(258,34,c.phs.arrows.environment);
+        svg.appendChild(el('path',{d,fill:'var(--li)'}));
+        svg.appendChild(el('rect',{x:x-13,y:y-9,width:26,height:18,fill:'transparent',class:'phs-hit','data-phs':key}));};  // 透明命中区，点击弹 PHS 解释
+      arr(202,18,c.phs.arrows.awareness,'awareness'); arr(258,18,c.phs.arrows.perspective,'perspective');
+      arr(202,34,c.phs.arrows.digestion,'digestion'); arr(258,34,c.phs.arrows.environment,'environment');
     }
   }
 

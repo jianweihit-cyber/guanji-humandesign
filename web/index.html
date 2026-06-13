@@ -211,48 +211,104 @@ locq.addEventListener('keydown',e=>{
 drop.addEventListener('mousedown',e=>{ const c=e.target.closest('.it'); if(!c)return; e.preventDefault(); applyItem(items[+c.dataset.i]); });
 document.addEventListener('click',e=>{ if(!e.target.closest('.locbox')) drop.hidden=true; });
 
-// ── 通用底部弹窗：点空白 / 下滑 / Esc 关闭，无需确认按钮 ──
-let gjMask=null;
+// ── 图内知识弹窗：闸门 / 中心 / 通道 / PHS 在同一个框里互跳（带返回），不离开盘面 ──
+let gjMask=null, navStack=[], curChart=null;
+const CENTER_EN2={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
 function escClose(e){ if(e.key==='Escape') closeSheet(); }
-function closeSheet(){ if(gjMask){ gjMask.remove(); gjMask=null; document.removeEventListener('keydown',escClose); } }
-function openSheet(html){
-  closeSheet();
+function closeSheet(){ if(gjMask){ gjMask.remove(); gjMask=null; navStack=[]; document.removeEventListener('keydown',escClose); } }
+function ensureSheet(){
+  if(gjMask) return gjMask;
   const mask=document.createElement('div'); mask.className='gj-mask';
-  const sheet=document.createElement('div'); sheet.className='gj-sheet';
-  sheet.innerHTML=`<button class="gj-x" type="button" aria-label="${ENM?'Close':'关闭'}">✕</button>${html}`;
-  mask.appendChild(sheet); document.body.appendChild(mask); gjMask=mask;
+  mask.innerHTML=`<div class="gj-sheet"><div class="gj-top"><button class="gj-back" type="button" hidden>‹ ${ENM?'Back':'返回'}</button><button class="gj-x" type="button" aria-label="${ENM?'Close':'关闭'}">✕</button></div><div class="gj-body"></div></div>`;
+  document.body.appendChild(mask); gjMask=mask;
+  const sheet=mask.querySelector('.gj-sheet');
   mask.addEventListener('mousedown',e=>{ if(e.target===mask) closeSheet(); });
   sheet.querySelector('.gj-x').onclick=closeSheet;
+  sheet.querySelector('.gj-back').onclick=()=>{ navStack.pop(); render(); };
+  sheet.querySelector('.gj-body').addEventListener('click',e=>{ const a=e.target.closest('[data-nav]'); if(!a)return; e.preventDefault(); navStack.push(a.getAttribute('data-nav')); render(); });
   let sy=0,dy=0,drag=false;
   sheet.addEventListener('touchstart',e=>{ if(sheet.scrollTop>0)return; sy=e.touches[0].clientY; drag=true; dy=0; },{passive:true});
   sheet.addEventListener('touchmove',e=>{ if(!drag)return; dy=e.touches[0].clientY-sy; if(dy>0) sheet.style.transform=`translateY(${dy}px)`; },{passive:true});
   sheet.addEventListener('touchend',()=>{ if(dy>70) closeSheet(); else sheet.style.transform=''; drag=false; });
   document.addEventListener('keydown',escClose);
-  return sheet;
+  return mask;
 }
+function openNav(view){ navStack=[view]; ensureSheet(); render(); }
+function render(){
+  ensureSheet();
+  const sheet=gjMask.querySelector('.gj-sheet'), body=sheet.querySelector('.gj-body');
+  gjMask.querySelector('.gj-back').hidden = navStack.length<=1;
+  body.innerHTML=renderView(navStack[navStack.length-1]);
+  sheet.scrollTop=0; sheet.style.transform='';
+}
+function renderView(v){ const i=v.indexOf(':'),t=v.slice(0,i),k=v.slice(i+1);
+  if(t==='gate')return viewGate(k); if(t==='center')return viewCenter(k); if(t==='channel')return viewChannel(k); if(t==='phs')return viewPhs(k); return ''; }
+const navA=(view,label,cls)=>`<a class="${cls||'gj-ch'}" data-nav="${view}" href="#">${label}</a>`;
+const extLink=(hash,label)=>`<a class="kbl" href="learn.html#${hash}" target="_blank" rel="noopener">${label}</a>`;
 
-// ── 闸门点击 → 闸门 / 所在中心 / 所在通道 解释（内容取自知识库）──
-const CENTER_EN2={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
-function openGatePopup(g){
-  const v=GATES_KB[g]; if(!v) return;
+function viewGate(g){
+  const v=GATES_KB[g]; if(!v) return '';
   const ck=v.center, cen=CENTERS_KB[ck]||{};
   const chs=Object.values(CHANNELS_KB).filter(c=>c.gates&&c.gates.some(x=>String(x)===String(g)));
-  const nm=ENM?(v.nameEn||v.name||''):(v.name||'');
+  const nm=ENM?(v.nameEn||v.name||''):(v.name||''), sub=ENM?escq(v.iching||''):(v.hex?escq(v.hex)+'卦 · ':'')+escq(v.iching||'');
   const cenName=ENM?(CENTER_EN2[ck]||ck):(v.centerZh||cen.zh||ck);
-  const sub=ENM?escq(v.iching||''):(v.hex?escq(v.hex)+'卦 · ':'')+escq(v.iching||'');
-  const chHtml=chs.length
-    ? chs.map(c=>`<a class="gj-ch" href="learn.html#channel:${c.key}"><b>${c.key}</b> ${escq(ENM?(c.en||c.zh):c.zh)}</a>`).join('')
-    : `<span class="muted">${ENM?'This gate alone forms no channel':'仅此闸门，未连成通道'}</span>`;
-  openSheet(`
-    <h3 class="gj-h"><span class="gj-glyph">${v.glyph||''}</span>${ENM?'Gate':'闸门'} ${g} · ${escq(nm)}<div class="gj-sub">${sub}</div></h3>
-    <div class="gj-row"><span class="gj-k">${ENM?'Center':'所在中心'}</span><a class="kbl" href="learn.html#center:${ck}">${escq(cenName)}</a>${!ENM&&cen.type?`<span class="muted"> · ${escq(cen.type)}</span>`:''}</div>
+  const chHtml=chs.length? chs.map(c=>navA('channel:'+c.key,`<b>${c.key}</b> ${escq(ENM?(c.en||c.zh):c.zh)}`)).join('') : `<span class="muted">${ENM?'This gate alone forms no channel':'仅此闸门，未连成通道'}</span>`;
+  return `<h3 class="gj-h"><span class="gj-glyph">${v.glyph||''}</span>${ENM?'Gate':'闸门'} ${g} · ${escq(nm)}<div class="gj-sub">${sub}</div></h3>
+    <div class="gj-row"><span class="gj-k">${ENM?'Center':'所在中心'}</span>${navA('center:'+ck,escq(cenName),'gj-inline')}${!ENM&&cen.type?`<span class="muted"> · ${escq(cen.type)}</span>`:''}</div>
     <p class="gj-theme">${escq(ENM?(v.keynote||''):(v.theme||v.keynote||''))}</p>
-    <div class="gj-row"><span class="gj-k">${ENM?'Channels':'所在通道'}</span></div>
-    <div class="gj-chs">${chHtml}</div>
-    <div class="gj-foot"><a class="kbl" href="learn.html#gate:${g}">${ENM?'Full entry ›':'查看完整词条 ›'}</a></div>
-  `);
+    <div class="gj-row"><span class="gj-k">${ENM?'Channels':'所在通道'}</span></div><div class="gj-chs">${chHtml}</div>
+    <div class="gj-foot">${extLink('gate:'+g,ENM?'Full entry ↗':'完整词条 ↗')}</div>`;
 }
-$('result').addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('[data-gate]'); if(t) openGatePopup(+t.getAttribute('data-gate')); });
+function viewCenter(ck){
+  const v=CENTERS_KB[ck]; if(!v) return '';
+  const e=(EN_KB.centers&&EN_KB.centers[ck])||{};
+  const name=ENM?((CENTER_EN2[ck]||ck)+' Center'):((v.zh||ck).endsWith('中心')?v.zh:(v.zh||ck)+'中心');
+  const gates=Object.entries(GATES_KB).filter(([g,gg])=>gg.center===ck).map(([g])=>+g).sort((a,b)=>a-b);
+  const chs=Object.values(CHANNELS_KB).filter(c=>c.centers&&c.centers.includes(ck));
+  const defined = curChart&&curChart.definedCenters ? curChart.definedCenters.includes(ck) : null;
+  const desc = ENM ? (e.keynote||e.name||'') : (defined? v.defined : (defined===false? v.open : (v.defined||'')));
+  return `<h3 class="gj-h">${escq(name)}<div class="gj-sub">${escq(ENM?'':(v.type||''))}${!ENM&&v.theme?' · '+escq(v.theme):''}</div></h3>
+    ${defined!=null?`<div class="gj-row"><span class="gj-tag ${defined?'on':''}">${defined?(ENM?'Defined':'已定义'):(ENM?'Open':'开放')}</span></div>`:''}
+    ${desc?`<p class="gj-theme">${escq(desc)}</p>`:''}
+    <div class="gj-row"><span class="gj-k">${ENM?'Gates':'闸门'}</span></div><div class="gj-pills">${gates.map(g=>navA('gate:'+g,String(g),'gj-pill')).join('')}</div>
+    <div class="gj-row"><span class="gj-k">${ENM?'Channels':'通道'}</span></div><div class="gj-chs">${chs.length?chs.map(c=>navA('channel:'+c.key,`<b>${c.key}</b> ${escq(ENM?(c.en||c.zh):c.zh)}`)).join(''):'<span class="muted">—</span>'}</div>
+    <div class="gj-foot">${extLink('center:'+ck,ENM?'Full entry ↗':'完整词条 ↗')}</div>`;
+}
+function viewChannel(key){
+  const c=CHANNELS_KB[key]; if(!c) return '';
+  const name=ENM?(c.en||c.zh):(c.zh.endsWith('通道')?c.zh:c.zh+'通道');
+  const cents=(c.centers||[]).map(ck=>navA('center:'+ck,escq(ENM?(CENTER_EN2[ck]||ck):(CENTERS_KB[ck]?CENTERS_KB[ck].zh:ck)),'gj-inline')).join(' <span class="muted">↔</span> ');
+  return `<h3 class="gj-h">${escq(c.key)} · ${escq(name)}<div class="gj-sub">${escq(c.en||'')}${!ENM&&c.circuit?' · '+escq(c.circuit):''}</div></h3>
+    <p class="gj-theme">${escq(ENM?(c.keynote||c.theme||''):(c.theme||c.keynote||''))}</p>
+    <div class="gj-row"><span class="gj-k">${ENM?'Connects':'连接中心'}</span>${cents}</div>
+    <div class="gj-row"><span class="gj-k">${ENM?'Gates':'闸门'}</span></div><div class="gj-pills">${(c.gates||[]).map(g=>navA('gate:'+g,String(g),'gj-pill')).join('')}</div>
+    <div class="gj-foot">${extLink('channel:'+key,ENM?'Full entry ↗':'完整词条 ↗')}</div>`;
+}
+const PHS_ARROW={
+  digestion:['饮食 · 消化','Digestion','你的身体最适合「怎么吃」——食物种类、节奏与方式，影响消化与健康。','How your body best takes in food — type, rhythm and way of eating.','determination'],
+  awareness:['动机','Motivation','驱动你觉知与沟通的底层动机；活在正确动机里，表达才真实。','The underlying motivation that colors your awareness and expression.','motivation'],
+  environment:['环境','Environment','你最能蓬勃生长的物理环境氛围。','The physical environment where you best thrive.','environment'],
+  perspective:['视角','View','你最适合用来看待人生的视角与关注焦点。','The perspective through which you best see life.','view'],
+};
+function viewPhs(arrowKey){
+  const L=PHS_ARROW[arrowKey]; if(!L) return '';
+  const vk=L[4];
+  const t=curChart&&curChart.phs&&curChart.phs.types?curChart.phs.types[vk]:null;
+  const ori=curChart&&curChart.phs&&curChart.phs.arrows?curChart.phs.arrows[arrowKey]:null;
+  const oriLabel=ori?(ori==='Left'?(ENM?'◀ Left':'◀ 左'):(ENM?'Right ▶':'右 ▶')):'';
+  const yourType=t?(ENM?(t.en||''):`${t.en||''} ${t.zh||''}${t.baseZh?'（'+t.baseZh+'）':''}`.trim()):'';
+  return `<h3 class="gj-h">PHS · ${escq(ENM?L[1]:L[0])}<div class="gj-sub">${ENM?'':escq(L[1])}${!ENM&&oriLabel?' · ':''}${oriLabel}</div></h3>
+    <p class="gj-theme">${escq(ENM?L[3]:L[2])}</p>
+    ${yourType?`<div class="gj-row"><span class="gj-k">${ENM?'Your type':'你的类型'}</span><b>${escq(yourType)}</b></div>`:''}
+    <p class="muted">${ENM?'PHS (the four arrows) is the most advanced layer — experiment gently, no need to force it.':'PHS（消化/环境/动机/视角 四箭头）是最进阶的一层，温和实验即可，不必强求。'}</p>
+    <div class="gj-foot">${extLink('phs:'+vk,ENM?'Full entry ↗':'完整词条 ↗')}</div>`;
+}
+$('result').addEventListener('click',e=>{
+  const cl=s=>e.target.closest&&e.target.closest(s);
+  const g=cl('[data-gate]'); if(g){ openNav('gate:'+g.getAttribute('data-gate')); return; }
+  const c=cl('[data-center]'); if(c){ openNav('center:'+c.getAttribute('data-center')); return; }
+  const p=cl('[data-phs]'); if(p){ openNav('phs:'+p.getAttribute('data-phs')); return; }
+});
 
 // 姓名长度提示（maxlength=50 已硬限制，计数到上限变红提示）
 const sname=$('sname'), namecount=$('namecount');
@@ -295,7 +351,7 @@ function interpret(c,auto){
   </div></div>`;
 }
 // auto=true（首访自动流日盘）：解读照常显示但带流日注释、不出保存栏、顶部亮流日横幅
-function show(c,statusText,auto){ $('result').hidden=false; HDRender.fill($('result'),c,{linkKB:true}); interpret(c,auto); $('status').textContent=statusText; }
+function show(c,statusText,auto){ curChart=c; $('result').hidden=false; HDRender.fill($('result'),c,{linkKB:true}); interpret(c,auto); $('status').textContent=statusText; }
 
 // 输入校验：年份范围 + 时区合法（自定义 IANA 防手滑打错导致排盘报错）
 function validInput(input){
