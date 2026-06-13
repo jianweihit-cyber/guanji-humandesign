@@ -5,7 +5,7 @@ COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 # 构建期断言：域名收口 + 最新配置标记必须在场（防上下文/层缓存配错时静默发布旧配置）
 # 注意：每次给 nginx.conf 加关键规则，这里同步加一条 grep——断言变更本身也会击穿缓存链
 RUN grep -q "server_name guanji-humandesign.fly.dev" /etc/nginx/conf.d/default.conf \
- && grep -q "world-cities" /etc/nginx/conf.d/default.conf \
+ && grep -q "world-cities|cn-cities" /etc/nginx/conf.d/default.conf \
  && nginx -t -c /etc/nginx/nginx.conf
 COPY web /usr/share/nginx/html/web
 COPY src /usr/share/nginx/html/src
