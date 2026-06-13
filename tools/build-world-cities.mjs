@@ -37,16 +37,21 @@ for (const ln of fs.readFileSync(CACHE + 'cities15000.txt', 'utf8').split('\n'))
   // 0 id, 1 name, 2 ascii, 8 country, 10 admin1, 14 pop, 17 tz
   const name = c[1], cc = c[8], a1 = admin1[cc + '.' + c[10]] || '', tz = c[17], pop = +c[14] || 0;
   if (!name || !cc || !tz) continue;
-  rows.push([name, a1 === name ? '' : a1, country[cc] || cc, tz, pop]);
+  rows.push([name, a1 === name ? '' : a1, country[cc] || cc, tz, pop, c[0]]); // 末位 geonameid（仅内部用）
 }
 rows.sort((x, y) => y[4] - x[4]);
 // 同名同区同国去重（保留人口大的）
 const seen = new Set(); const out = [];
 for (const r of rows) { const k = r[0] + '|' + r[1] + '|' + r[2]; if (seen.has(k)) continue; seen.add(k); out.push(r); }
 
-fs.writeFileSync(OUT, JSON.stringify(out));
+// v1 产物：剥掉 geonameid，保持 5 列结构与历史完全一致（immutable 缓存不破）
+fs.writeFileSync(OUT, JSON.stringify(out.map(r => r.slice(0, 5))));
+// geonameid 顺序缓存（构建期内部用，喂给 build-world-zh.mjs 对齐 sidecar；.gitignore，不入产物）
+const GID = fileURLToPath(new URL('./.cache/world-geonameids.json', import.meta.url));
+fs.writeFileSync(GID, JSON.stringify(out.map(r => +r[5])));
 const kb = (fs.statSync(OUT).size / 1024).toFixed(0);
 console.log(`world-cities-v1.json: ${out.length} cities, ${kb} KB`);
-console.log('sample:', JSON.stringify(out.slice(0, 3)));
+console.log(`world-geonameids.json: ${out.length} ids (内部对齐用)`);
+console.log('sample:', JSON.stringify(out.slice(0, 3).map(r => r.slice(0, 5))));
 const bj = out.find(r => r[0] === 'Beijing');
-console.log('Beijing check:', JSON.stringify(bj));
+console.log('Beijing check:', JSON.stringify(bj.slice(0, 5)), 'gid', bj[5]);

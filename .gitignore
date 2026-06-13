@@ -6,3 +6,5 @@ node_modules/
 # 参考书籍（版权材料，绝不入公开仓/不部署）
 99_RefBooks/
 tools/.cache/
+tools/.cache/alternateNamesV2.zip
+tools/.cache/alternateNames*.txt

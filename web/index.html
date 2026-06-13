@@ -93,76 +93,120 @@ const $ = id => document.getElementById(id);
 const ENM = window.HDI18N && window.HDI18N.lang==='en';
 const CENTER_EN={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
 
-// ── 出生地：搜索联想（精选城市 places.js + GeoNames 全球 3.3 万城 + 中国省市区 cn-pca + IANA 直填）──
+// ── 出生地：统一搜索（中文 / 英文 / 拼音 / 拼音首字母，一个框搞定）──
+// 数据：places.js 精选城(双语) + cn-cities(中国省市区+拼音+首字母) + world-cities(3.3万海外城) + 中文名 sidecar
 let selTz='Asia/Shanghai', placeLabel='', sexVal='F', chartSource='';   // chartSource: ''=正常排盘 / 'solve'=反推页带入
 const locq=$('locq'), drop=$('locdrop');
 const PL=window.HD_PLACES||[];
-// GeoNames 海外城市库（与 humdes.com 同源数据，CC-BY © GeoNames.org）：首次输入拉丁字母时懒加载
-let WORLD=null, worldP=null;
-const worldData=()=>worldP||(worldP=fetch('world-cities-v1.json').then(r=>r.json()).then(d=>(WORLD=d)).catch(()=>{worldP=null;}));
-const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+let WORLD=null, WORLDZH=null, CNC=null, geoP=null;   // 懒加载：首次输入时拉三份数据
+function loadGeo(){
+  if(geoP) return geoP;
+  geoP=Promise.all([
+    fetch('world-cities-v1.json').then(r=>r.json()),
+    fetch('world-cities-zh-v1.json').then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch('cn-cities-v1.json').then(r=>r.json()),
+  ]).then(([w,wz,c])=>{ WORLD=w; WORLDZH=wz||[]; CNC=c; }).catch(()=>{ geoP=null; });
+  return geoP;
+}
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');   // 去变音：são→sao
 const escq=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+// 高亮 q（去变音不区分大小写）在 name 中的命中片段
+const hl=(name,q)=>{ if(!q) return escq(name); const i=norm(name).indexOf(q); if(i<0) return escq(name);
+  return escq(name.slice(0,i))+'<b>'+escq(name.slice(i,i+q.length))+'</b>'+escq(name.slice(i+q.length)); };
+const hlcjk=(name,raw)=>{ const i=cz(name).indexOf(cz(raw)); if(i<0) return escq(name);  // cz 为 1:1 字符映射，下标与原串对齐
+  return escq(name.slice(0,i))+'<b>'+escq(name.slice(i,i+raw.length))+'</b>'+escq(name.slice(i+raw.length)); };
 const pLab=p=>ENM?`${p[0]}, ${p[2]}`:`${p[3]} · ${p[1]}`;
-const IT_CN={act:'cn',label:ENM?'🇨🇳 China · province / city / district':'🇨🇳 中国 · 选省市区（区县级）'};
+const VIP=new Set(['北京市','上海市','天津市','重庆市','广东省 · 广州市','广东省 · 深圳市','四川省 · 成都市','浙江省 · 杭州市','湖北省 · 武汉市','陕西省 · 西安市','江苏省 · 南京市','湖南省 · 长沙市','江苏省 · 苏州市','福建省 · 厦门市']);
+const IT_CN={act:'cn',label:ENM?'🇨🇳 Browse China (wheel)':'🇨🇳 浏览：中国省市区（滚轮）'};
 const IT_CUSTOM={act:'custom',label:ENM?'⌨ Custom IANA timezone':'⌨ 自定义 IANA 时区'};
-let items=[];
+let items=[], active=-1;
 function renderDrop(){
-  drop.innerHTML=items.map((it,i)=>`<div class="it" data-i="${i}"><span class="lb">${it.label}</span>${it.tz?`<span class="tzs">${it.tz}</span>`:''}</div>`).join('');
+  drop.innerHTML=items.map((it,i)=>`<div class="it${i===active?' on':''}" data-i="${i}"><span class="lb">${it.label}</span>${it.tz?`<span class="tzs">${escq(it.tz)}</span>`:''}</div>`).join('');
   drop.hidden=!items.length;
 }
-async function suggest(){
-  const raw=locq.value.trim(), q=raw.toLowerCase();
-  if(!raw){ items=[IT_CN,...PL.slice(0,12).map(p=>({label:pLab(p),tz:p[4]})),IT_CUSTOM]; renderDrop(); return; }
-  const out=[];
-  for(const p of PL){ if(p[0].toLowerCase().includes(q)||p[2].toLowerCase().includes(q)||p[1].includes(raw)||p[3].includes(raw)){ out.push({label:pLab(p),tz:p[4],en:norm(p[0])+'|'+norm(p[2])}); if(out.length>=9)break; } }
-  // 海外联想：GeoNames 3.3 万城（前缀优先、人口排序、命中高亮，自动带 IANA 时区）
-  if(!/[一-鿿]/.test(raw)&&raw.length>=2){
-    if(!WORLD){ worldData().then(()=>{ if(locq.value.trim()===raw) suggest(); }); }
-    else{
-      const nq=norm(raw), seenW=new Set(out.map(o=>o.en).filter(Boolean));
-      const starts=[],incl=[];
-      for(const c of WORLD){ const n=norm(c[0]);
-        if(n.startsWith(nq)){ if(starts.length<8) starts.push(c); }
-        else if(incl.length<8&&n.includes(nq)) incl.push(c);
-        if(starts.length>=8) break; }
-      for(const c of [...starts,...incl].slice(0,8)){
-        const k=norm(c[0])+'|'+norm(c[2]); if(seenW.has(k)) continue; seenW.add(k);
-        const i=c[0].toLowerCase().indexOf(q);
-        const city=i<0?escq(c[0]):escq(c[0].slice(0,i))+'<b>'+escq(c[0].slice(i,i+raw.length))+'</b>'+escq(c[0].slice(i+raw.length));
-        out.push({label:`${city}, ${c[1]?escq(c[1])+', ':''}${escq(c[2])}`,tz:c[3],place:`${c[0]}, ${c[2]}`});
-      }
-    }
+function suggest(){
+  const raw=locq.value.trim();
+  active=-1;
+  if(!raw){ items=[IT_CN,...PL.slice(0,10).map(p=>({label:pLab(p),tz:p[4],place:pLab(p)})),IT_CUSTOM]; renderDrop(); return; }
+  build(raw);                                  // 已加载数据先即时出
+  loadGeo().then(()=>{ if(locq.value.trim()===raw) build(raw); });   // 数据到位后重建
+}
+// 简繁归一：把查询与候选都折叠到繁体字形再比，化解简体用户打「纽约」匹配不到数据里繁体「紐約」
+const cz=s=>(window.HDI18N&&HDI18N.s2t)?HDI18N.s2t(s):s;
+function build(raw){
+  const cjk=/[一-鿿]/.test(raw), q=norm(raw).replace(/\s+/g,''), rz=cz(raw);
+  const pre=[], inc=[];                         // 命中桶：前缀优先 / 包含其次
+  const claimed=new Set();                      // 跨源去重：城市签名（英文/拼音小写）
+  const sig=s=>norm(s).replace(/[^a-z]/g,'');
+  // 1) 精选城（双语，最高优先；其英文签名登记，避免后续重复出现）
+  for(const p of PL){
+    const en=norm(p[0]), enc=norm(p[2]), o={tz:p[4],place:pLab(p),w:1e9};   // 精选城权重最高
+    if(cjk){ const z=cz(p[1]);
+      if(z.includes(rz)||cz(p[3]).includes(rz)){ claimed.add(sig(p[0]));
+        o.label=ENM?`${escq(p[0])}, ${escq(p[2])}`:`${escq(p[3])} · ${hlcjk(p[1],raw)}`;
+        (z.startsWith(rz)?pre:inc).push(o); } }
+    else { o.label=ENM?`${hl(p[0],q)}, ${escq(p[2])}`:`${escq(p[3])} · ${escq(p[1])}`;
+      if(en.startsWith(q)||enc.startsWith(q)){ claimed.add(sig(p[0])); pre.push(o); }
+      else if(q.length>=2&&en.includes(q)){ claimed.add(sig(p[0])); inc.push(o); } }
   }
-  if(/[一-鿿]/.test(raw)){ // 中文 → 在省市区三级里联想（区县级，统一 Asia/Shanghai）
-    try{ const data=await cnData();
-      outer: for(const prov of data){
-        if(prov.name.includes(raw)) out.push({label:'🇨🇳 '+prov.name,tz:'Asia/Shanghai',place:prov.name});
-        for(const c of (prov.children||[])){
-          const pc=[prov.name,c.name].filter(x=>x!=='市辖区').join(' · ');
-          if(c.name!=='市辖区'&&c.name.includes(raw)) out.push({label:'🇨🇳 '+pc,tz:'Asia/Shanghai',place:pc});
-          for(const d of (c.children||[])) if(d.name.includes(raw)){ const pl=[prov.name,c.name,d.name].filter(x=>x!=='市辖区').join(' · '); out.push({label:'🇨🇳 '+pl,tz:'Asia/Shanghai',place:pl}); }
-          if(out.length>=18) break outer;
-        }
-      }
-    }catch(e){}
+  // 2) 中国省市区（中文名 / 全拼 / 首字母；权重=VIP+行政级别）
+  if(CNC) for(const r of CNC){
+    const label=r[0], full=r[1], ini=r[2], lvl=r[3];
+    if(lvl<=2&&claimed.has(full)) continue;     // 省/市级已被精选城覆盖（上海/北京…），不重复
+    const w=(VIP.has(label)?1e7:0)+(lvl===2?3e5:lvl===1?2e5:1e5);
+    if(cjk){ if(cz(label).includes(rz)){ const leaf=label.split(' · ').pop();
+        (cz(leaf).startsWith(rz)?pre:inc).push({label:'🇨🇳 '+hlcjk(label,raw),tz:'Asia/Shanghai',place:label,w}); } }
+    else if(full.startsWith(q)){ if(lvl<=2)claimed.add(full); pre.push({label:`🇨🇳 ${escq(label)} <span class="pyh">${hl(full,q)}</span>`,tz:'Asia/Shanghai',place:label,w:w+5e4}); }
+    else if(ini===q){ inc.push({label:`🇨🇳 ${escq(label)} <span class="pyh">${escq(ini)}</span>`,tz:'Asia/Shanghai',place:label,w}); }
+    else if(q.length>=3&&full.includes(q)){ inc.push({label:`🇨🇳 ${escq(label)} <span class="pyh">${hl(full,q)}</span>`,tz:'Asia/Shanghai',place:label,w}); }
   }
-  if(raw.includes('/')) out.push({label:(ENM?'Use timezone ':'使用时区 ')+raw,tz:raw,isTz:1});
+  // 3) 海外 3.3 万城（英文名前缀 + 中文名 sidecar）；data 已按人口降序，命中即近最优
+  if(WORLD) for(let i=0;i<WORLD.length;i++){
+    const c=WORLD[i], en=c[0], zh=(WORLDZH&&WORLDZH[i])||'';
+    if(claimed.has(sig(en))) continue;           // 已被精选/中国库覆盖，去重
+    const tail=(c[1]?', '+escq(c[1]):'')+', '+escq(c[2]);
+    if(cjk){ if(zh&&cz(zh).includes(rz)){ (cz(zh).startsWith(rz)?pre:inc).push({label:`${hlcjk(zh,raw)} <span class="pyh">${escq(en)}</span>${tail}`,tz:c[3],place:`${en}, ${c[2]}`,w:c[4]}); } }
+    else { const n=norm(en);
+      if(n.startsWith(q)) pre.push({label:`${hl(en,q)}${tail}`,tz:c[3],place:`${en}, ${c[2]}`,w:c[4]});
+      else if(q.length>=3&&n.includes(q)) inc.push({label:`${hl(en,q)}${tail}`,tz:c[3],place:`${en}, ${c[2]}`,w:c[4]}); }
+    if(pre.length>60) break;                      // 常见前缀够用即止（已按人口序，前列即最大城）
+  }
+  const byW=(a,b)=>b.w-a.w;
+  pre.sort(byW); inc.sort(byW);
+  const out=[...pre,...inc].slice(0,12);
+  if(raw.includes('/')&&!cjk) out.unshift({label:(ENM?'Use timezone ':'使用时区 ')+escq(raw),tz:raw,isTz:1});
+  if(!out.length) out.push({label:ENM?'No match — try English, pinyin or 中文':'没找到——试试英文 / 拼音 / 中文',noop:1});
   out.push(IT_CN,IT_CUSTOM);
   items=out; renderDrop();
 }
 function applyItem(it){
+  if(!it||it.noop) return;
   drop.hidden=true;
   if(it.act==='cn'){ openRegion(); return; }
-  if(it.act==='custom'){ selTz='__custom__'; $('tzCustom').hidden=false; locq.value=it.label.replace('⌨ ',''); $('placeTag').textContent=''; return; }
+  if(it.act==='custom'){ selTz='__custom__'; $('tzCustom').hidden=false; locq.value=''; locq.focus(); $('placeTag').textContent=''; return; }
   selTz=it.tz; $('tzCustom').hidden=true;
-  placeLabel=it.isTz?'':(it.place||it.label.replace('🇨🇳 ',''));
-  locq.value=it.isTz?it.tz:(it.place||it.label.replace('🇨🇳 ',''));   // place=纯文本（label 可能含高亮 <b>）
+  placeLabel=it.isTz?'':(it.place||'');
+  locq.value=it.isTz?it.tz:(it.place||'');       // place=纯文本（label 含高亮 <b>，不能直接用）
   $('placeTag').textContent='🕐 '+it.tz;
   run();
 }
+function moveActive(d){
+  const sel=items.map((it,i)=>it.noop?-1:i).filter(i=>i>=0);
+  if(!sel.length) return;
+  const cur=sel.indexOf(active);
+  active=sel[(cur+d+sel.length)%sel.length];
+  renderDrop();
+  const el=drop.querySelector('.it.on'); if(el) el.scrollIntoView({block:'nearest'});
+}
 locq.addEventListener('focus',()=>{locq.select();suggest();});
 locq.addEventListener('input',suggest);
-locq.addEventListener('keydown',e=>{ if(e.key==='Enter'&&items.length&&!drop.hidden){e.preventDefault();applyItem(items[0]);} if(e.key==='Escape')drop.hidden=true; });
+locq.addEventListener('keydown',e=>{
+  if(drop.hidden||!items.length) return;
+  if(e.key==='ArrowDown'){ e.preventDefault(); moveActive(1); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); moveActive(-1); }
+  else if(e.key==='Enter'){ e.preventDefault(); applyItem(items[active>=0?active:items.findIndex(it=>!it.noop)]); }
+  else if(e.key==='Escape'){ drop.hidden=true; }
+});
 drop.addEventListener('mousedown',e=>{ const c=e.target.closest('.it'); if(!c)return; e.preventDefault(); applyItem(items[+c.dataset.i]); });
 document.addEventListener('click',e=>{ if(!e.target.closest('.locbox')) drop.hidden=true; });
 
