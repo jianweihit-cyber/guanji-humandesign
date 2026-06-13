@@ -41,6 +41,9 @@
 
   <div class="form">
     <div class="frow">
+      <div class="field" style="flex:1;min-width:200px;max-width:360px"><label>盘主名字</label><input id="sname" placeholder="如：张三 / Alex" /></div>
+    </div>
+    <div class="frow" style="margin-top:10px">
       <div class="field yr"><label>年</label><input id="y" type="number" value="1990" /></div>
       <div class="field in"><label>月</label><input id="mo" type="number" min="1" max="12" value="3" /></div>
       <div class="field in"><label>日</label><input id="d" type="number" min="1" max="31" value="5" /></div>
@@ -69,10 +72,9 @@
       <select id="node"><option value="TRUE">真交点</option><option value="MEAN">平交点</option></select>
     </div>
     <div class="status" id="status"></div>
-    <div class="frow" id="savebar" hidden style="margin-top:10px;align-items:flex-end">
-      <div class="field" style="flex:1;min-width:160px"><label>盘主名字</label><input id="sname" placeholder="如：张三 / Alex" /></div>
+    <div class="frow" id="savebar" hidden style="margin-top:10px;align-items:center;gap:10px">
       <button class="btn" id="saveBtn">保存此盘</button>
-      <span class="status" id="savemsg" style="margin:0 0 8px 4px"></span>
+      <span class="status" id="savemsg" style="margin:0"></span>
     </div>
   </div>
 
