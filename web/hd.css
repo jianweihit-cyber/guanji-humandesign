@@ -165,3 +165,9 @@ a.tag:hover{color:var(--li)}
 .daterow{gap:8px}
 .daterow .field.yr input{width:72px}
 .daterow .field.in input{width:54px}
+
+/* 时间微调滑块作为日期行最右一个字段，底部与数字框对齐 */
+.tunefield{flex:1 1 180px;min-width:160px}
+.tunefield label{white-space:nowrap}
+.tunefield label #tlabel{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+.tunefield input[type=range]{width:100%;margin:0;height:36px;padding:0}

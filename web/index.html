@@ -45,23 +45,21 @@
       <div class="field"><label>性别</label><div class="seg" id="sex"><button type="button" data-v="F" class="on">女</button><button type="button" data-v="M">男</button></div></div>
     </div>
     <div class="datecap">📅 出生日期 · 时间（公历 / 阳历，非农历）</div>
-    <div class="frow daterow" style="margin-top:4px">
+    <div class="frow daterow" style="margin-top:4px;align-items:flex-end">
       <div class="field yr"><label>年</label><input id="y" type="number" value="1990" /></div>
       <div class="field in"><label>月</label><input id="mo" type="number" min="1" max="12" value="3" /></div>
       <div class="field in"><label>日</label><input id="d" type="number" min="1" max="31" value="5" /></div>
       <div class="field in"><label>时</label><input id="h" type="number" min="0" max="23" value="13" /></div>
       <div class="field in"><label>分</label><input id="mi" type="number" min="0" max="59" value="30" /></div>
-    </div>
-    <div class="frow" style="margin-top:8px;align-items:center;gap:10px">
-      <label style="font-size:12px;color:var(--sub);white-space:nowrap">时间微调 Time</label>
-      <input type="range" id="tslider" min="0" max="1439" value="810" style="flex:1;min-width:140px" />
-      <span id="tlabel" style="font-variant-numeric:tabular-nums;font-size:13px;min-width:44px;text-align:right">13:30</span>
+      <div class="field tunefield"><label>时间微调 Time · <span id="tlabel">13:30</span></label><input type="range" id="tslider" min="0" max="1439" value="810" /></div>
     </div>
     <div class="frow" style="margin-top:10px">
       <div class="field locbox" style="flex:1 1 100%"><label>出生地（决定时区）</label><input id="locq" autocomplete="off" placeholder="城市，如 上海 / Shanghai / 拼音 shanghai" /><div id="locdrop" class="locdrop" hidden></div></div>
     </div>
     <div class="frow" style="margin-top:10px;align-items:center;gap:10px">
       <button class="btn" id="go">生成人类图</button>
+      <button class="btn ghost" id="saveBtn" hidden>保存此盘</button>
+      <span class="status" id="savemsg" style="margin:0"></span>
       <span id="placeTag" class="muted" style="font-size:12px"></span>
     </div>
     <div class="frow" id="tzCustom" hidden style="margin-top:8px">
@@ -73,10 +71,6 @@
       <select id="node"><option value="TRUE">真交点</option><option value="MEAN">平交点</option></select>
     </div>
     <div class="status" id="status"></div>
-    <div class="frow" id="savebar" hidden style="margin-top:10px;align-items:center;gap:10px">
-      <button class="btn" id="saveBtn">保存此盘</button>
-      <span class="status" id="savemsg" style="margin:0"></span>
-    </div>
   </div>
 
   <div id="nowbanner" class="nowbanner" hidden>
@@ -266,7 +260,7 @@ async function run(tag,auto){
     const c=await generateChart(input);
     const label=`${input.year}-${String(input.month).padStart(2,'0')}-${String(input.day).padStart(2,'0')} ${input.hour}:${String(input.minute).padStart(2,'0')} ${tz}`;
     show(c, `${tag?tag+' · ':''}✓ ${label} · ${c.config.mode}/${c.config.node} · design −${c.designDaysBefore.toFixed(1)}d`, auto);
-    lastRun={input,chart:c}; $('savebar').hidden=!!auto; if(!auto)$('savemsg').textContent='';
+    lastRun={input,chart:c}; $('saveBtn').hidden=!!auto; if(!auto)$('savemsg').textContent='';
     $('nowbanner').hidden=!auto;
   }catch(e){ st.className='status err'; st.textContent='Error: '+(e.message||e); console.error(e); }
   busy=false;
@@ -312,7 +306,7 @@ async function openRegion(){
 const data=window.SAMPLE_CHARTS||{}; const pick=$('pick');
 const enLabel=s=>s.replace('样例','Sample').replace('上海','Shanghai').replace('檀香山','Honolulu').replace('奥巴马','Obama');
 for(const [k,v] of Object.entries(data)){const o=document.createElement('option');o.value=k;o.textContent=ENM?enLabel(v.label):v.label;pick.appendChild(o);}
-pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, (ENM?'Sample · '+enLabel(d.label):'示例 · '+d.label)); $('savebar').hidden=true; $('nowbanner').hidden=true; } };
+pick.onchange=()=>{ if(pick.value){ const d=data[pick.value]; show(d.chart, (ENM?'Sample · '+enLabel(d.label):'示例 · '+d.label)); $('saveBtn').hidden=true; $('savemsg').textContent=''; $('nowbanner').hidden=true; } };
 $('nbclose').onclick=()=>{ $('nowbanner').hidden=true; };
 
 // 保存此盘 → 本地记录（hd-store）
