@@ -427,7 +427,10 @@ $('nbclose').onclick=()=>{ $('nowbanner').hidden=true; };
 
 // 保存此盘 → 本地记录（hd-store）
 // 空名自动「案主N / Subject N」；重名提示「覆盖 / 另存为副本」；点空白取消
-const autoName=()=>{ const base=ENM?'Subject ':'案主'; const names=new Set(HDStore.all().map(r=>r.name)); let n=1; while(names.has(base+n)) n++; return base+n; };
+// 空名默认：案主-年月日时分秒 / Name-YYYYMMDDHHMMSS（保存当下时间戳，一眼可辨、天然不重名）
+const autoName=()=>{ const d=new Date(), p=n=>String(n).padStart(2,'0');
+  const ts=`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  return (ENM?'Name-':'案主-')+ts; };
 const uniqueName=nm=>{ const names=new Set(HDStore.all().map(r=>r.name)); if(!names.has(nm))return nm; let n=2; while(names.has(`${nm} (${n})`)) n++; return `${nm} (${n})`; };
 function doSave(name, overwriteId){
   if(overwriteId) HDStore.remove(overwriteId);
@@ -471,10 +474,11 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
     if(rec.gender) setSex(rec.gender);
     chartSource=rec.source||'';                       // 重开反推记录再保存仍保留标识
     $('sname').value=rec.name==='—'?'':rec.name; run(rec.name); return; }
-  if(sp.get('y')&&sp.get('mo')){ // 反推页等外部带参直开：?y&mo&d&h&mi&tz&name&src
+  if(sp.get('y')&&sp.get('mo')){ // 反推页等外部带参直开：?y&mo&d&h&mi&tz&name&sex&src
     if(sp.get('src')==='solve') chartSource='solve';
     fillForm({year:+sp.get('y'),month:+sp.get('mo'),day:+sp.get('d')||1,hour:+sp.get('h')||12,minute:+sp.get('mi')||0,tz:sp.get('tz')||'Asia/Shanghai'});
     $('sname').value=sp.get('name')||'';
+    if(sp.get('sex')) setSex(sp.get('sex'));
     run(sp.get('name')||''); return;
   }
   const now=new Date();
