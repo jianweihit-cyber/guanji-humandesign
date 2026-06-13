@@ -41,15 +41,21 @@
 
   <div class="form">
     <div class="frow">
-      <div class="field" style="flex:1;min-width:200px;max-width:360px"><label>盘主名字</label><input id="sname" placeholder="如：张三 / Alex" /></div>
+      <div class="field" style="flex:1;min-width:150px;max-width:280px"><label>盘主名字</label><input id="sname" placeholder="如：张三 / Alex" /></div>
+      <div class="field"><label>性别</label><div class="seg" id="sex"><button type="button" data-v="F" class="on">女</button><button type="button" data-v="M">男</button></div></div>
     </div>
-    <div class="frow" style="margin-top:10px">
+    <div class="datecap">📅 出生日期 · 时间（公历 / 阳历，非农历）</div>
+    <div class="frow daterow" style="margin-top:4px">
       <div class="field yr"><label>年</label><input id="y" type="number" value="1990" /></div>
       <div class="field in"><label>月</label><input id="mo" type="number" min="1" max="12" value="3" /></div>
       <div class="field in"><label>日</label><input id="d" type="number" min="1" max="31" value="5" /></div>
       <div class="field in"><label>时</label><input id="h" type="number" min="0" max="23" value="13" /></div>
       <div class="field in"><label>分</label><input id="mi" type="number" min="0" max="59" value="30" /></div>
-      <div class="field"><label>性别</label><div class="seg" id="sex"><button type="button" data-v="F" class="on">女</button><button type="button" data-v="M">男</button></div></div>
+    </div>
+    <div class="frow" style="margin-top:8px;align-items:center;gap:10px">
+      <label style="font-size:12px;color:var(--sub);white-space:nowrap">时间微调 Time</label>
+      <input type="range" id="tslider" min="0" max="1439" value="810" style="flex:1;min-width:140px" />
+      <span id="tlabel" style="font-variant-numeric:tabular-nums;font-size:13px;min-width:44px;text-align:right">13:30</span>
     </div>
     <div class="frow" style="margin-top:10px">
       <div class="field locbox" style="flex:1 1 100%"><label>出生地（决定时区）</label><input id="locq" autocomplete="off" placeholder="城市，如 上海 / Shanghai / 拼音 shanghai" /><div id="locdrop" class="locdrop" hidden></div></div>
@@ -60,11 +66,6 @@
     </div>
     <div class="frow" id="tzCustom" hidden style="margin-top:8px">
       <div class="field" style="flex:1"><label>自定义 IANA 时区（如 Asia/Shanghai）</label><input id="tzText" placeholder="Asia/Shanghai" /></div>
-    </div>
-    <div class="frow" style="margin-top:10px;align-items:center;gap:10px">
-      <label style="font-size:12px;color:var(--sub);white-space:nowrap">时间微调 Time</label>
-      <input type="range" id="tslider" min="0" max="1439" value="810" style="flex:1;min-width:140px" />
-      <span id="tlabel" style="font-variant-numeric:tabular-nums;font-size:13px;min-width:44px;text-align:right">13:30</span>
     </div>
     <div class="adv">
       <span>高级：</span>

@@ -159,3 +159,9 @@ a.tag:hover{color:var(--li)}
   /* 合盘双列堆叠 */
   .duo{gap:12px}
 }
+
+/* 出生日期提示 + 紧凑日期行 */
+.datecap{font-size:11.5px;color:var(--sub);margin:12px 2px 0}
+.daterow{gap:8px}
+.daterow .field.yr input{width:72px}
+.daterow .field.in input{width:54px}
