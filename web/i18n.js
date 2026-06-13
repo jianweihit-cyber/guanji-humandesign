@@ -44,7 +44,7 @@
     '排盘': 'Chart', '学习 · 知识库': 'Learn · Library', '知识库': 'Library', '— 示例盘 —': '— Samples —',
     '年': 'Year', '月': 'Month', '日': 'Day', '时': 'Hr', '分': 'Min',
     '出生地（决定时区）': 'Birth place (sets timezone)', '生成人类图': 'Generate Chart',
-    '性别': 'Gender', '城市，如 上海 / Shanghai': 'City — e.g. Shanghai',
+    '性别': 'Gender', '城市，如 上海 / Shanghai / 拼音 shanghai': 'City — type English, pinyin or 中文',
     '设计 Design（红）': 'Design (red)', '个性 Personality（黑）': 'Personality (black)',
     '自定义 IANA 时区（如 Asia/Shanghai）': 'Custom IANA timezone (e.g. Asia/Shanghai)',
     '时间微调 Time': 'Time', '高级：': 'Advanced:', 'Moshier(离线)': 'Moshier (offline)', 'JPL(高精)': 'JPL (precise)',

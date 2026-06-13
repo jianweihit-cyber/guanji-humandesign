@@ -46,10 +46,14 @@
       <div class="field in"><label>日</label><input id="d" type="number" min="1" max="31" value="5" /></div>
       <div class="field in"><label>时</label><input id="h" type="number" min="0" max="23" value="13" /></div>
       <div class="field in"><label>分</label><input id="mi" type="number" min="0" max="59" value="30" /></div>
-      <div class="field locbox" style="flex:1;min-width:180px"><label>出生地（决定时区）</label><input id="locq" autocomplete="off" placeholder="城市，如 上海 / Shanghai" /><div id="locdrop" class="locdrop" hidden></div></div>
       <div class="field"><label>性别</label><div class="seg" id="sex"><button type="button" data-v="F" class="on">女</button><button type="button" data-v="M">男</button></div></div>
+    </div>
+    <div class="frow" style="margin-top:10px">
+      <div class="field locbox" style="flex:1 1 100%"><label>出生地（决定时区）</label><input id="locq" autocomplete="off" placeholder="城市，如 上海 / Shanghai / 拼音 shanghai" /><div id="locdrop" class="locdrop" hidden></div></div>
+    </div>
+    <div class="frow" style="margin-top:10px;align-items:center;gap:10px">
       <button class="btn" id="go">生成人类图</button>
-      <span id="placeTag" class="muted" style="font-size:12px;align-self:flex-end;padding-bottom:10px"></span>
+      <span id="placeTag" class="muted" style="font-size:12px"></span>
     </div>
     <div class="frow" id="tzCustom" hidden style="margin-top:8px">
       <div class="field" style="flex:1"><label>自定义 IANA 时区（如 Asia/Shanghai）</label><input id="tzText" placeholder="Asia/Shanghai" /></div>
