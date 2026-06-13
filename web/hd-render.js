@@ -97,6 +97,8 @@
         const fillc = on ? (CDARK[ck]?'#7A5A1E':'rgba(255,255,255,.92)') : '#A89C86';
         const t=el('text',{x,y:y+0.5,'text-anchor':'middle','dominant-baseline':'middle','font-size':7.8,fill:fillc,'font-weight':600});t.textContent=g;svg.appendChild(t);
       }
+      // 透明命中区（盖在最上层，触控友好）：消费方监听 svg 委托点击 [data-gate] 弹解释
+      svg.appendChild(el('circle',{cx:x,cy:y,r:11,fill:'transparent',class:'gate-hit','data-gate':g}));
     }
     // ④ PHS 四箭头（顶行=个性：心智/视角；底行=设计：消化/环境）——实心箭头，左右同形镜像
     if(c.phs){
