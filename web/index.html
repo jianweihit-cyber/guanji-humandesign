@@ -26,6 +26,19 @@
 <link rel="preload" as="fetch" href="/node_modules/swisseph-wasm/wasm/swisseph-lite.data" />
 </head>
 <body>
+<!-- 开屏页：每会话首次进入展示，自动淡出/点击跳过；为未来 App 套壳预留品牌开屏 -->
+<div id="splash" aria-hidden="true">
+  <div class="sp-in"><img src="logo.svg" alt="" /><div class="sp-t">观<span>己</span> · 人类图</div><div class="sp-s">HUMAN DESIGN</div></div>
+  <div class="sp-tip" data-noi18n>· 再遇行者 ·</div>
+</div>
+<script>
+(function(){var s=document.getElementById('splash');if(!s)return;
+  if(sessionStorage.getItem('hd_splash')){s.parentNode.removeChild(s);return;}
+  sessionStorage.setItem('hd_splash','1');
+  var hide=function(){s.classList.add('gone');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s);},600);};
+  setTimeout(hide,1400); s.addEventListener('click',hide);
+})();
+</script>
 <div class="wrap">
   <header>
     <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub">Bodygraph</span></div>
@@ -33,6 +46,7 @@
   </header>
   <div class="tabs">
     <a class="tab on" href="index.html">排盘</a>
+    <a class="tab" href="mandala.html">流日</a>
     <a class="tab" href="history.html">记录</a>
     <a class="tab" href="solve.html">反推</a>
     <a class="tab" href="connect.html">合盘</a>

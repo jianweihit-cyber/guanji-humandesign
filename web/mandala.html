@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>流日曼陀罗 · 观己</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg" />
+<link rel="stylesheet" href="hd.css" />
+<style>
+  .mandala-wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:8px}
+  .mandala-svg{flex:1 1 360px;min-width:300px;max-width:560px}
+  .mandala-svg svg{width:100%;height:auto;display:block}
+  .daily{flex:1 1 300px;min-width:260px}
+  .daily .big{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+  .daily .big .glyph{font-size:30px;color:var(--li);vertical-align:-4px;margin-right:6px}
+  .daily .big .gname{font-size:18px;font-weight:700}
+  .daily .big .sub{font-size:12.5px;color:var(--sub);margin-top:2px}
+  .daily .big .kw{margin-top:8px;line-height:1.7}
+  .ptable{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:13px}
+  .ptable th,.ptable td{padding:5px 8px;border-bottom:1px solid #F3ECDF;text-align:left}
+  .ptable th{background:#FAF5EA;color:var(--sub);font-weight:600}
+  .ptable td a{color:var(--li);text-decoration:none}
+  .ptable .pl{color:var(--cinnabar);font-weight:650;font-variant-numeric:tabular-nums}
+  .daterow{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub">流日曼陀罗</span></div>
+  </header>
+  <div class="tabs">
+    <a class="tab" href="index.html">排盘</a>
+    <a class="tab on" href="mandala.html">流日</a>
+    <a class="tab" href="history.html">记录</a>
+    <a class="tab" href="solve.html">反推</a>
+    <a class="tab" href="connect.html">合盘</a>
+    <a class="tab" href="learn.html">学习 · 知识库</a>
+  </div>
+
+  <p class="muted" style="margin:10px 2px 0;font-size:13px">流日＝此刻天空中各行星落在 64 闸门的位置（曼陀罗轮）。本页用本机星历实时计算，无需联网取数。点轮盘外圈闸门或下方行星可查词条。</p>
+  <div class="daterow">
+    <div class="field"><label>日期时间（公历，留空=此刻）</label><input id="dt" type="datetime-local" /></div>
+    <button class="btn ghost" id="now">回到此刻</button>
+    <span class="status" id="status" style="align-self:center"></span>
+  </div>
+
+  <div class="mandala-wrap">
+    <div class="mandala-svg"><svg id="wheel" viewBox="0 0 500 500" aria-label="mandala"></svg></div>
+    <div class="daily" id="daily"></div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }
+</script>
+<script src="i18n.js"></script>
+<script type="module">
+import { generateChart } from '/src/chart.js';
+import { WHEEL_START, GATE_ARC, GATE_ORDER, PLANETS } from '/src/hd-data.js';
+import { GATES_KB } from '/src/hd-knowledge.js';
+import { GATE_DETAIL } from '/src/hd-deep-kb.js';
+const $=id=>document.getElementById(id);
+const ENM = window.HDI18N && window.HDI18N.lang==='en';
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const NS='http://www.w3.org/2000/svg';
+const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const SIGNS=['白羊','金牛','双子','巨蟹','狮子','处女','天秤','天蝎','射手','摩羯','水瓶','双鱼'];
+const SIGNS_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const SIGN_GLYPH=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+
+const cx=250, cy=250;
+const pt=(lon,r)=>{ const a=lon*Math.PI/180; return [cx+r*Math.cos(a), cy-r*Math.sin(a)]; };  // 黄经→坐标(0°右,逆时针,与黄道一致)
+// 闸门起始黄经：GATE_ORDER[i] 占 [WHEEL_START + i*GATE_ARC, +GATE_ARC)
+const gateStartLon=g=>{ const i=GATE_ORDER.indexOf(g); return WHEEL_START + i*GATE_ARC; };
+
+function drawWheel(c){
+  const svg=$('wheel'); svg.innerHTML='';
+  const R_signO=242, R_signI=212, R_gateO=210, R_gateI=168, R_num=190;
+  // 本命行星落入的闸门集合（高亮）
+  const activeG=new Set(c.personality.map(p=>p.gate));
+  // 底圈
+  svg.appendChild(el('circle',{cx,cy,r:R_signO,fill:'#fff',stroke:'var(--border)','stroke-width':1}));
+  svg.appendChild(el('circle',{cx,cy,r:R_gateO,fill:'#FBF6EE',stroke:'var(--border)','stroke-width':1}));
+  svg.appendChild(el('circle',{cx,cy,r:R_gateI,fill:'#fff',stroke:'var(--border)','stroke-width':1}));
+  // 64 闸门扇区 + 编号
+  for(let i=0;i<64;i++){
+    const g=GATE_ORDER[i], L0=WHEEL_START+i*GATE_ARC, Lm=L0+GATE_ARC/2;
+    // 扇区分隔线
+    const [x1,y1]=pt(L0,R_gateI), [x2,y2]=pt(L0,R_gateO);
+    svg.appendChild(el('line',{x1,y1,x2,y2,stroke:'#E7DECF','stroke-width':0.6}));
+    // 高亮有行星的闸门：填一段淡色扇环
+    if(activeG.has(g)){
+      const [ax,ay]=pt(L0,R_gateI),[bx,by]=pt(L0,R_gateO),[dx,dy]=pt(L0+GATE_ARC,R_gateO),[ex,ey]=pt(L0+GATE_ARC,R_gateI);
+      const lg=GATE_ARC>180?1:0;
+      const d=`M${ax} ${ay} L${bx} ${by} A${R_gateO} ${R_gateO} 0 ${lg} 0 ${dx} ${dy} L${ex} ${ey} A${R_gateI} ${R_gateI} 0 ${lg} 1 ${ax} ${ay} Z`;
+      svg.appendChild(el('path',{d,fill:'rgba(224,169,59,.22)'}));
+    }
+    const [nx,ny]=pt(Lm,R_num);
+    const t=el('text',{x:nx,y:ny+3,'text-anchor':'middle','font-size':9.5,fill:activeG.has(g)?'var(--li)':'#A89C86','font-weight':activeG.has(g)?700:500,style:'cursor:pointer'});
+    t.textContent=g; t.setAttribute('data-gate',g); svg.appendChild(t);
+  }
+  // 12 星座圈
+  for(let s=0;s<12;s++){
+    const L0=s*30, Lm=L0+15;
+    const [x1,y1]=pt(L0,R_signI),[x2,y2]=pt(L0,R_signO);
+    svg.appendChild(el('line',{x1,y1,x2,y2,stroke:'#E7DECF','stroke-width':0.8}));
+    const [gx,gy]=pt(Lm,(R_signO+R_signI)/2);
+    const t=el('text',{x:gx,y:gy+5,'text-anchor':'middle','font-size':14,fill:'#B9A989'});t.textContent=SIGN_GLYPH[s];svg.appendChild(t);
+  }
+  // 行星（此刻天象=personality 层）。同经度堆叠时内缩半径避让
+  const placed=[];
+  for(const p of c.personality){
+    let r=150; for(const q of placed){ if(Math.abs(((p.lon-q)+540)%360-180)<5) r-=15; } placed.push(p.lon);
+    const [px,py]=pt(p.lon,r);
+    svg.appendChild(el('circle',{cx:px,cy:py,r:9,fill:'#fff',stroke:'var(--li)','stroke-width':1.2}));
+    const t=el('text',{x:px,y:py+4,'text-anchor':'middle','font-size':11,fill:'var(--inkline)'});t.textContent=p.glyph;svg.appendChild(t);
+    // 细引线到所在闸门
+    const [lx,ly]=pt(p.lon,R_gateI-2);
+    svg.appendChild(el('line',{x1:px,y1:py,x2:lx,y2:ly,stroke:'rgba(168,50,31,.25)','stroke-width':0.7}));
+  }
+  // 中心：日期 + 太阳闸门
+  const sun=c.personality[0];
+  const c1=el('text',{x:cx,y:cy-8,'text-anchor':'middle','font-size':13,fill:'var(--sub)'});c1.textContent=(ENM?'Sun':'太阳')+' ☉';svg.appendChild(c1);
+  const c2=el('text',{x:cx,y:cy+16,'text-anchor':'middle','font-size':26,fill:'var(--li)','font-weight':700});c2.textContent=sun.gate+'.'+sun.line;svg.appendChild(c2);
+}
+
+function lineKW(g,line){ const dg=GATE_DETAIL[g]; return dg&&dg.lines&&dg.lines[line]?dg.lines[line]:''; }
+function drawDaily(c, label){
+  const sun=c.personality[0], v=GATES_KB[sun.gate]||{};
+  const nm=ENM?(v.nameEn||v.name||''):(v.name||'');
+  const lk=lineKW(sun.gate,sun.line);
+  const rows=c.personality.map(p=>{ const gv=GATES_KB[p.gate]||{};
+    return `<tr><td>${p.glyph} ${esc(ENM?(p.en||p.planet):p.zh)}</td><td><a href="learn.html#gate:${p.gate}" target="_blank" rel="noopener">${p.gate}</a> <span class="pl">.${p.line}</span></td><td>${esc(ENM?(gv.nameEn||''):(gv.name||''))}</td></tr>`;
+  }).join('');
+  $('daily').innerHTML=`
+    <div class="big">
+      <div class="sub">${esc(label)}</div>
+      <div style="margin-top:4px"><span class="glyph">${v.glyph||'☉'}</span><span class="gname">${ENM?'Gate':'闸门'} ${sun.gate}.${sun.line} · ${esc(nm)}</span></div>
+      <div class="sub">${esc(ENM?(v.iching||''):((v.hex?v.hex+'卦 · ':'')+(v.iching||'')))}${lk?' · '+esc(lk):''}</div>
+      <div class="kw">${esc(ENM?(v.keynote||''):(v.theme||v.keynote||''))}</div>
+      <div class="muted" style="margin-top:8px">${ENM?'☉ Sun gate sets the day’s collective theme. Other planets color the field.':'☉ 太阳所在闸门是今日的集体主题，其余行星为今日能量场染色。'}</div>
+    </div>
+    <table class="ptable"><tr><th>${ENM?'Planet':'行星'}</th><th>${ENM?'Gate.Line':'闸门.爻'}</th><th>${ENM?'Gate name':'闸门名'}</th></tr>${rows}</table>
+    <p class="muted" style="margin-top:8px;font-size:12px">${ENM?'ⓘ Transit (daily) reading — a first-draft GuanJi summary.':'ⓘ 流日解读为观己白话初稿，结合权威资料持续完善。'}</p>`;
+}
+
+let busy=false;
+async function run(dt){
+  if(busy)return; busy=true;
+  $('status').textContent=ENM?'⏳ Calculating…':'⏳ 计算中…';
+  try{
+    const d=dt||new Date();
+    let tz='Asia/Shanghai'; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||tz; }catch(e){}
+    const input={year:d.getFullYear(),month:d.getMonth()+1,day:d.getDate(),hour:d.getHours(),minute:d.getMinutes(),tz};
+    const c=await generateChart(input);
+    const label=`${input.year}-${String(input.month).padStart(2,'0')}-${String(input.day).padStart(2,'0')} ${String(input.hour).padStart(2,'0')}:${String(input.minute).padStart(2,'0')} · ${tz}`;
+    drawWheel(c); drawDaily(c, label);
+    $('status').textContent='';
+  }catch(e){ $('status').textContent=(ENM?'Error: ':'出错：')+(e.message||e); console.error(e); }
+  busy=false;
+}
+// 点轮盘闸门 → 知识库
+$('wheel').addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('[data-gate]'); if(t) window.open('learn.html#gate:'+t.getAttribute('data-gate'),'_blank','noopener'); });
+$('now').onclick=()=>{ $('dt').value=''; run(); };
+$('dt').onchange=()=>{ const v=$('dt').value; run(v?new Date(v):null); };
+run();
+</script>
+</body>
+</html>
