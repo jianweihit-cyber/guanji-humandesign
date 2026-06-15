@@ -34,6 +34,7 @@ import { TYPES, AUTHORITIES, LINES, PROFILES, DEFINITION_KB, CENTERS_KB, GATES_K
 import { EN_KB } from '/src/hd-book-data.js';
 import { EN_TEXT, ORIGIN } from '/src/hd-web-kb.js';
 import { GATE_DETAIL, CHANNEL_DETAIL } from '/src/hd-deep-kb.js';
+import { GATE_LINES } from '/src/hd-lines.js';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 // EN 模式：英文独占（不露中文）；繁/简由 i18n 全站处理
@@ -129,6 +130,15 @@ function startHTML(key){
   }
   return '';
 }
+// 六爻 ▲▼：有 GATE_LINES 出富内容，否则回退 GATE_DETAIL 关键词
+function gateLinesHTML(key){
+  const gl=GATE_LINES[key];
+  if(!gl){ const dg=GATE_DETAIL[key]; return dg&&dg.lines?`<div class="gloss" data-noi18n><b>Lines</b><br>${[1,2,3,4,5,6].map(i=>dg.lines[i]?`${i} — ${esc(dg.lines[i])}`:'').filter(Boolean).join('<br>')}</div>`:''; }
+  const rows=[1,2,3,4,5,6].map(i=>{ const L=gl[i]; if(!L)return '';
+    const pol=(L.pol||[]).map(p=>{ const ex=p.t==='exalted'; return `<div class="pol ${ex?'ex':'de'}"><span class="pmark">${ex?'▲':'▼'}</span> <b>${esc(p.p)}</b> · ${esc(ENM?p.e:p.z)}</div>`; }).join('');
+    return `<div class="gline"><div class="glh"><span class="ln">${i}</span> <b>${esc(ENM?L.te:L.tz)}</b></div>${L.mz||L.me?`<div class="glm">${esc(ENM?L.me:L.mz)}</div>`:''}${pol}</div>`; }).join('');
+  return `<div class="glines"><div class="glhd">${ENM?'Six Lines · ▲ exalted / ▼ detriment':'六爻 · ▲扬升 / ▼落陷'}</div>${rows}</div>`;
+}
 function detailHTML(cat,key){
   if(cat==='start') return startHTML(key);
   if(cat==='type'){const v=TYPES[key];const e=EN_KB.types[key]||{};
@@ -155,10 +165,10 @@ function detailHTML(cat,key){
     if(ENM) return `<h2 data-noi18n>${v.key} · ${esc(v.en)}</h2><div data-noi18n>${tag(v.centers.map(c=>CENTER_EN[c]||c).join(' – '))}${v.circuit?tag(cEN(v.circuit)):''}${v.keynote?`<div class="gloss">${esc(v.keynote)}</div>`:''}${dch?`<div class="gloss">${esc(dch.en)}</div>`:''}<div class="muted">Gates <a href="#gate:${v.gates[0]}">${v.gates[0]}</a> &amp; <a href="#gate:${v.gates[1]}">${v.gates[1]}</a></div></div>`;
     return `<h2>${v.key} ${v.zh.endsWith('通道')?v.zh:v.zh+'通道'} <span class="sub">${v.en}</span></h2>${tag(v.centers.join(' – '))}${v.circuit?tag('回路：'+v.circuit):''}${v.keyline?tag('关键句：'+v.keyline):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}<div class="muted">连接闸门 <a href="#gate:${v.gates[0]}">${v.gates[0]}</a> 与 <a href="#gate:${v.gates[1]}">${v.gates[1]}</a></div>`;}
   if(cat==='gate'){const v=GATES_KB[key];
-    const dg=GATE_DETAIL[key], glines=dg&&dg.lines?`<div class="gloss"><b>Lines</b><br>${[1,2,3,4,5,6].map(i=>dg.lines[i]?`${i} — ${esc(dg.lines[i])}`:'').filter(Boolean).join('<br>')}</div>`:'';
+    const dg=GATE_DETAIL[key];
     const inCh=Object.values(CHANNELS_KB).filter(c=>c.gates&&c.gates.some(g=>String(g)===String(key))).map(c=>`<a href="#channel:${c.key}">${c.key}</a>`).join(' · ');
-    if(ENM) return `<h2 data-noi18n><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>Gate ${v.gate}${v.nameEn?` · ${esc(v.nameEn)}`:''}</h2><div data-noi18n><a class="tag" href="#center:${v.center}">${CENTER_EN[v.center]||v.center}</a>${tag('Hexagram '+v.gate+' · '+esc(v.iching))}${v.circuit?tag(cEN(v.circuit)):''}${v.keynote?`<div class="gloss">${esc(v.keynote)}</div>`:''}${dg?`<div class="gloss">${esc(dg.en)}</div>`:''}${glines}${inCh?`<div class="muted" style="margin-top:6px">Channels: ${inCh}</div>`:''}</div>`;
-    return `<h2><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>${v.gate} 号闸门${v.name?` · ${v.name}`:''} <span class="sub">${v.hex}卦 · ${v.nameEn||v.iching}</span></h2><a class="tag" href="#center:${v.center}">所在：${esc(v.centerZh)}</a>${tag(v.hex+'卦 '+v.iching)}${v.circuit?tag('回路：'+v.circuit):''}${v.alias?tag('别名：'+v.alias):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}${glines?`<div data-noi18n>${glines}</div>`:''}${inCh?`<div class="muted" style="margin-top:6px">所在通道：${inCh}</div>`:''}`;}
+    if(ENM) return `<h2 data-noi18n><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>Gate ${v.gate}${v.nameEn?` · ${esc(v.nameEn)}`:''}</h2><div data-noi18n><a class="tag" href="#center:${v.center}">${CENTER_EN[v.center]||v.center}</a>${tag('Hexagram '+v.gate+' · '+esc(v.iching))}${v.circuit?tag(cEN(v.circuit)):''}${v.keynote?`<div class="gloss">${esc(v.keynote)}</div>`:''}${dg?`<div class="gloss">${esc(dg.en)}</div>`:''}${inCh?`<div class="muted" style="margin-top:6px">Channels: ${inCh}</div>`:''}</div>${gateLinesHTML(key)}`;
+    return `<h2><span style="font-size:34px;vertical-align:-4px;margin-right:6px">${v.glyph}</span>${v.gate} 号闸门${v.name?` · ${v.name}`:''} <span class="sub">${v.hex}卦 · ${v.nameEn||v.iching}</span></h2><a class="tag" href="#center:${v.center}">所在：${esc(v.centerZh)}</a>${tag(v.hex+'卦 '+v.iching)}${v.circuit?tag('回路：'+v.circuit):''}${v.alias?tag('别名：'+v.alias):''}<div class="gloss">${v.theme}</div>${v.keynote?`<div class="muted">Keynote: ${v.keynote}</div>`:''}${inCh?`<div class="muted" style="margin-top:6px">所在通道：${inCh}</div>`:''}${gateLinesHTML(key)}`;}
   if(cat==='phs'){const v=PHS_KB[key];const tones=PHS_TONES_KB[v.tones];
     if(ENM){const qEN=q=>q?String(q).split(/[一-鿿（]/)[0].trim():'';
       let h=`<h2 data-noi18n>${esc(v.title.split(' ')[0])}</h2><div data-noi18n>`;

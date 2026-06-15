@@ -226,7 +226,15 @@ drop.addEventListener('mousedown',e=>{ const c=e.target.closest('.it'); if(!c)re
 document.addEventListener('click',e=>{ if(!e.target.closest('.locbox')) drop.hidden=true; });
 
 // ── 图内知识弹窗：闸门 / 中心 / 通道 / PHS 在同一个框里互跳（带返回），不离开盘面 ──
-let gjMask=null, navStack=[], curChart=null;
+let gjMask=null, navStack=[], curChart=null, GL=null;
+// 爻线数据按需动态加载（76KB gz，不拖累首屏；首次点闸门时拉）
+const ensureGL=async()=>{ if(GL===null){ try{ GL=(await import('/src/hd-lines.js')).GATE_LINES; }catch(e){ GL={}; } } };
+// 弹窗内六爻 ▲▼ 渲染
+function glLines(g){ const gl=GL&&GL[g]; if(!gl) return '';
+  const rows=[1,2,3,4,5,6].map(i=>{ const L=gl[i]; if(!L)return '';
+    const pol=(L.pol||[]).map(p=>{ const ex=p.t==='exalted'; return `<div class="pol ${ex?'ex':'de'}"><span class="pmark">${ex?'▲':'▼'}</span> <b>${escq(p.p)}</b> · ${escq(ENM?p.e:p.z)}</div>`; }).join('');
+    return `<div class="gline"><div class="glh"><span class="ln">${i}</span> <b>${escq(ENM?L.te:L.tz)}</b></div>${L.mz||L.me?`<div class="glm">${escq(ENM?L.me:L.mz)}</div>`:''}${pol}</div>`; }).join('');
+  return `<div class="glines"><div class="glhd">${ENM?'Six Lines · ▲ exalted / ▼ detriment':'六爻 · ▲扬升 / ▼落陷'}</div>${rows}</div>`; }
 const CENTER_EN2={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
 function escClose(e){ if(e.key==='Escape') closeSheet(); }
 function closeSheet(){ if(gjMask){ gjMask.remove(); gjMask=null; navStack=[]; document.removeEventListener('keydown',escClose); } }
@@ -239,7 +247,7 @@ function ensureSheet(){
   mask.addEventListener('mousedown',e=>{ if(e.target===mask) closeSheet(); });
   sheet.querySelector('.gj-x').onclick=closeSheet;
   sheet.querySelector('.gj-back').onclick=()=>{ navStack.pop(); render(); };
-  sheet.querySelector('.gj-body').addEventListener('click',e=>{ const a=e.target.closest('[data-nav]'); if(!a)return; e.preventDefault(); navStack.push(a.getAttribute('data-nav')); render(); });
+  sheet.querySelector('.gj-body').addEventListener('click',async e=>{ const a=e.target.closest('[data-nav]'); if(!a)return; e.preventDefault(); navStack.push(a.getAttribute('data-nav')); await ensureGL(); render(); });
   let sy=0,dy=0,drag=false;
   sheet.addEventListener('touchstart',e=>{ if(sheet.scrollTop>0)return; sy=e.touches[0].clientY; drag=true; dy=0; },{passive:true});
   sheet.addEventListener('touchmove',e=>{ if(!drag)return; dy=e.touches[0].clientY-sy; if(dy>0) sheet.style.transform=`translateY(${dy}px)`; },{passive:true});
@@ -247,7 +255,7 @@ function ensureSheet(){
   document.addEventListener('keydown',escClose);
   return mask;
 }
-function openNav(view){ navStack=[view]; ensureSheet(); render(); }
+async function openNav(view){ navStack=[view]; ensureSheet(); render(); if(view.startsWith('gate:')){ await ensureGL(); render(); } }
 function render(){
   ensureSheet();
   const sheet=gjMask.querySelector('.gj-sheet'), body=sheet.querySelector('.gj-body');
@@ -271,6 +279,7 @@ function viewGate(g){
     <div class="gj-row"><span class="gj-k">${ENM?'Center':'所在中心'}</span>${navA('center:'+ck,escq(cenName),'gj-inline')}${!ENM&&cen.type?`<span class="muted"> · ${escq(cen.type)}</span>`:''}</div>
     <p class="gj-theme">${escq(ENM?(v.keynote||''):(v.theme||v.keynote||''))}</p>
     <div class="gj-row"><span class="gj-k">${ENM?'Channels':'所在通道'}</span></div><div class="gj-chs">${chHtml}</div>
+    ${glLines(g)}
     <div class="gj-foot">${extLink('gate:'+g,ENM?'Full entry ↗':'完整词条 ↗')}</div>`;
 }
 function viewCenter(ck){

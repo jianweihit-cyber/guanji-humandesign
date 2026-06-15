@@ -8,3 +8,4 @@ node_modules/
 tools/.cache/
 tools/.cache/alternateNamesV2.zip
 tools/.cache/alternateNames*.txt
+tools/.cache/gate-lines-src.json
