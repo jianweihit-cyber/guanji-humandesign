@@ -204,14 +204,19 @@ a.tag:hover{color:var(--li)}
 .namecount{font-size:11px;color:var(--sub);font-weight:400}.namecount.warn{color:var(--cinnabar)}
 
 /* 开屏页（splash）：品牌展示，每会话一次，自动淡出/点击跳过 */
-#splash{position:fixed;inset:0;z-index:300;background:radial-gradient(ellipse at 50% 38%,#FFF8EC 0%,var(--paper) 70%);display:flex;align-items:center;justify-content:center;transition:opacity .5s ease}
+#splash{position:fixed;inset:0;z-index:300;background:radial-gradient(ellipse at 50% 34%,#FFF8EC 0%,var(--paper) 72%);display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:32px 20px 64px;transition:opacity .5s ease}
 #splash.gone{opacity:0;pointer-events:none}
-#splash .sp-in{text-align:center;animation:sppop .6s ease}
-#splash img{width:88px;height:88px;animation:spbreath 2.6s ease-in-out infinite}
-#splash .sp-t{font-size:25px;font-weight:700;letter-spacing:.08em;margin-top:16px;color:var(--ink)}
+#splash .sp-in{text-align:center;max-width:360px;width:100%;margin:auto;animation:sppop .6s ease}
+#splash img{width:64px;height:64px;animation:spbreath 2.6s ease-in-out infinite}
+#splash .sp-t{font-size:23px;font-weight:700;letter-spacing:.08em;margin-top:12px;color:var(--ink)}
 #splash .sp-t span{color:var(--li)}
-#splash .sp-s{font-size:12px;color:var(--sub);letter-spacing:.22em;margin-top:7px}
-#splash .sp-tip{position:absolute;bottom:38px;left:0;right:0;text-align:center;font-size:11.5px;color:var(--sub);opacity:.7}
+#splash .sp-s{font-size:11.5px;color:var(--sub);letter-spacing:.22em;margin-top:6px}
+#splash .sp-graph{width:130px;height:auto;display:block;margin:12px auto 4px;filter:drop-shadow(0 6px 16px rgba(60,38,8,.10))}
+#splash .sp-intro{font-size:12.5px;line-height:1.8;color:var(--sub);margin:8px auto 0;max-width:330px;text-align:justify}
+#splash .sp-cta{margin-top:18px;background:var(--li);color:#fff;border:none;border-radius:999px;padding:12px 30px;font-size:15.5px;font-weight:650;letter-spacing:.04em;cursor:pointer;box-shadow:0 8px 22px rgba(168,50,31,.28);transition:transform .15s,box-shadow .15s}
+#splash .sp-cta:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(168,50,31,.36)}
+#splash .sp-cta:active{transform:translateY(1px)}
+#splash .sp-tip{text-align:center;font-size:11.5px;color:var(--sub);opacity:.7;margin-top:16px}
 @keyframes sppop{from{opacity:0;transform:translateY(10px)}}
 @keyframes spbreath{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 

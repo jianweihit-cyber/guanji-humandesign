@@ -26,17 +26,25 @@
 <link rel="preload" as="fetch" href="/node_modules/swisseph-wasm/wasm/swisseph-lite.data" />
 </head>
 <body>
-<!-- 开屏页：每会话首次进入展示，自动淡出/点击跳过；为未来 App 套壳预留品牌开屏 -->
+<!-- 开屏页：每会话首次进入展示品牌+当下流日人类图+介绍+CTA；为未来 App 套壳预留品牌开屏 -->
 <div id="splash" aria-hidden="true">
-  <div class="sp-in"><img src="logo.svg" alt="" /><div class="sp-t">观<span>己</span> · 人类图</div><div class="sp-s">HUMAN DESIGN</div></div>
-  <div class="sp-tip" data-noi18n>· 再遇行者 ·</div>
+  <div class="sp-in">
+    <img src="logo.svg" alt="" />
+    <div class="sp-t">观<span>己</span> · 人类图</div>
+    <div class="sp-s">HUMAN DESIGN</div>
+    <svg id="spgraph" class="sp-graph" viewBox="0 0 460 665" aria-label="transit bodygraph" hidden></svg>
+    <p class="sp-intro">人类图融合易经、占星、脉轮与卡巴拉，用你出生的那一刻，绘成一张专属能量蓝图——照见你天生的决策方式与生命节奏。下面是此刻天空的「流日」人类图。</p>
+    <button class="sp-cta" id="spEnter" type="button">照见自己 ›</button>
+    <div class="sp-tip" data-noi18n>· 再遇行者 ·</div>
+  </div>
 </div>
 <script>
 (function(){var s=document.getElementById('splash');if(!s)return;
   if(sessionStorage.getItem('hd_splash')){s.parentNode.removeChild(s);return;}
   sessionStorage.setItem('hd_splash','1');
   var hide=function(){s.classList.add('gone');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s);},600);};
-  setTimeout(hide,1400); s.addEventListener('click',hide);
+  var b=document.getElementById('spEnter'); if(b) b.addEventListener('click',hide);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')hide();});
 })();
 </script>
 <div class="wrap">
@@ -508,7 +516,10 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
   let tz='Asia/Shanghai';
   try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||tz; }catch(e){}
   fillForm({year:now.getFullYear(),month:now.getMonth()+1,day:now.getDate(),hour:now.getHours(),minute:now.getMinutes(),tz});
-  run('Now', true);   // 自动流日盘：亮横幅、藏保存栏，防止小白把它当本命盘
+  run('Now', true).then(()=>{   // 自动流日盘：亮横幅、藏保存栏，防止小白把它当本命盘
+    const sg=$('spgraph');      // 开屏页缩略「流日人类图」：用此刻流日盘渲染
+    if(sg&&curChart){ try{ HDRender.bodygraph(sg,curChart); sg.removeAttribute('hidden'); }catch(e){} }  // SVG 须 removeAttribute(hidden 非 IDL 属性)
+  });
 })();
 </script>
 </body>

@@ -49,6 +49,8 @@
     '出生地（决定时区）': 'Birth place (sets timezone)', '生成人类图': 'Generate Chart',
     '性别': 'Gender', '城市，如 上海 / Shanghai / 拼音 shanghai': 'City — type English, pinyin or 中文',
     '📅 出生日期 · 时间（公历 / 阳历，非农历）': '📅 Birth date & time (Gregorian / solar — not lunar)',
+    '人类图融合易经、占星、脉轮与卡巴拉，用你出生的那一刻，绘成一张专属能量蓝图——照见你天生的决策方式与生命节奏。下面是此刻天空的「流日」人类图。': 'Human Design weaves together the I Ching, astrology, the chakras and the Kabbalah. From the exact moment of your birth it draws a personal energy blueprint — showing how you are wired to decide and to live. Below is the “transit” chart of the sky right now.',
+    '照见自己 ›': 'See Yourself ›',
     '设计 Design（红）': 'Design (red)', '个性 Personality（黑）': 'Personality (black)',
     '自定义 IANA 时区（如 Asia/Shanghai）': 'Custom IANA timezone (e.g. Asia/Shanghai)',
     '时间微调 Time': 'Time', '高级：': 'Advanced:', 'Moshier(离线)': 'Moshier (offline)', 'JPL(高精)': 'JPL (precise)',

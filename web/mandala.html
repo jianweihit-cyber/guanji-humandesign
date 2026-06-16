@@ -22,6 +22,13 @@
   .ptable td a{color:var(--li);text-decoration:none}
   .ptable .pl{color:var(--cinnabar);font-weight:650;font-variant-numeric:tabular-nums}
   .daterow{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:4px}
+  .mandala-svg [data-gate]{cursor:pointer}
+  .gtip{position:fixed;z-index:200;max-width:240px;background:#fff;border:1px solid var(--border);border-radius:10px;
+    box-shadow:0 8px 24px rgba(60,38,8,.16);padding:9px 12px;font-size:12.5px;line-height:1.55;pointer-events:none}
+  .gtip .gt-h{font-weight:700;font-size:14px}
+  .gtip .gt-gl{font-size:18px;color:var(--li);margin-right:5px;vertical-align:-2px}
+  .gtip .gt-sub{color:var(--sub);margin-top:2px}
+  .gtip .gt-here{color:var(--li);margin-top:4px;font-weight:600}
 </style>
 </head>
 <body>
@@ -149,7 +156,7 @@ function drawDaily(c, label){
     <p class="muted" style="margin-top:8px;font-size:12px">${ENM?'ⓘ Transit (daily) reading — a first-draft GuanJi summary.':'ⓘ 流日解读为观己白话初稿，结合权威资料持续完善。'}</p>`;
 }
 
-let busy=false;
+let busy=false, cur=null;
 async function run(dt){
   if(busy)return; busy=true;
   $('status').textContent=ENM?'⏳ Calculating…':'⏳ 计算中…';
@@ -157,13 +164,38 @@ async function run(dt){
     const d=dt||new Date();
     let tz='Asia/Shanghai'; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||tz; }catch(e){}
     const input={year:d.getFullYear(),month:d.getMonth()+1,day:d.getDate(),hour:d.getHours(),minute:d.getMinutes(),tz};
-    const c=await generateChart(input);
+    const c=await generateChart(input); cur=c;
     const label=`${input.year}-${String(input.month).padStart(2,'0')}-${String(input.day).padStart(2,'0')} ${String(input.hour).padStart(2,'0')}:${String(input.minute).padStart(2,'0')} · ${tz}`;
     drawWheel(c); drawDaily(c, label);
     $('status').textContent='';
   }catch(e){ $('status').textContent=(ENM?'Error: ':'出错：')+(e.message||e); console.error(e); }
   busy=false;
 }
+// 悬停闸门 → 浮窗显示 闸门/星座/当下落入行星（移出即隐藏，移到下一门即切换）
+const gtip=document.createElement('div'); gtip.className='gtip'; gtip.hidden=true; document.body.appendChild(gtip);
+function gateTipHTML(g){
+  const v=GATES_KB[g]||{}, i=GATE_ORDER.indexOf(+g);
+  const lon=((WHEEL_START+i*GATE_ARC)%360+360)%360, s=Math.floor(lon/30);
+  const nm=ENM?(v.nameEn||v.name||''):(v.name||'');
+  const sign=ENM?SIGNS_EN[s]:SIGNS[s];
+  const ps=cur?cur.personality.filter(p=>String(p.gate)===String(g)):[];
+  const here=ps.length?`<div class="gt-here">${ENM?'Now here: ':'此刻在此：'}${ps.map(p=>`${p.glyph} ${ENM?(p.en||p.planet):p.zh} .${p.line}`).join('、')}</div>`:'';
+  const L=GATE_LINES[g], lt=L&&ps.length&&L[ps[0].line]?(ENM?L[ps[0].line].te:L[ps[0].line].tz):'';
+  return `<div class="gt-h"><span class="gt-gl">${v.glyph||''}</span>${ENM?'Gate':'闸门'} ${g} · ${esc(nm)}</div>`
+    +`<div class="gt-sub">${esc(ENM?(v.iching||''):((v.hex?v.hex+'卦 · ':'')+(v.iching||'')))} · ${SIGN_GLYPH[s]} ${esc(sign)}</div>`
+    +`<div class="gt-sub">${ENM?'Center: ':'中心：'}${esc(ENM?(v.center||''):(v.centerZh||''))}${v.circuit&&!ENM?' · '+esc(v.circuit):''}</div>`
+    +here+(lt?`<div class="gt-sub">${ENM?'Line ':'第'}${ps[0].line}${ENM?'':'爻'} · ${esc(lt)}</div>`:'');
+}
+function moveTip(e){ const t=e.target.closest&&e.target.closest('[data-gate]');
+  if(!t){ gtip.hidden=true; return; }
+  gtip.innerHTML=gateTipHTML(t.getAttribute('data-gate')); gtip.hidden=false;
+  const pad=14, w=gtip.offsetWidth, h=gtip.offsetHeight;
+  let x=e.clientX+pad, y=e.clientY+pad;
+  if(x+w>innerWidth-8) x=e.clientX-w-pad; if(y+h>innerHeight-8) y=e.clientY-h-pad;
+  gtip.style.left=x+'px'; gtip.style.top=y+'px';
+}
+$('wheel').addEventListener('mousemove',moveTip);
+$('wheel').addEventListener('mouseleave',()=>{ gtip.hidden=true; });
 // 点轮盘闸门 → 知识库
 $('wheel').addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('[data-gate]'); if(t) window.open('learn.html#gate:'+t.getAttribute('data-gate'),'_blank','noopener'); });
 $('now').onclick=()=>{ $('dt').value=''; run(); };
