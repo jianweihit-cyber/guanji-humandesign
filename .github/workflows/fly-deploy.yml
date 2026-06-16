@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: deploy-group   # 同一时间只跑一个部署
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Install swisseph-wasm
         run: npm install --no-audit --no-fund
       - name: Repack ephemeris (12MB → 2MB lite.data)

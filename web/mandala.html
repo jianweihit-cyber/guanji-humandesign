@@ -60,6 +60,7 @@ import { generateChart } from '/src/chart.js';
 import { WHEEL_START, GATE_ARC, GATE_ORDER, PLANETS } from '/src/hd-data.js';
 import { GATES_KB } from '/src/hd-knowledge.js';
 import { GATE_DETAIL } from '/src/hd-deep-kb.js';
+import { GATE_LINES } from '/src/hd-lines.js';
 const $=id=>document.getElementById(id);
 const ENM = window.HDI18N && window.HDI18N.lang==='en';
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -125,11 +126,13 @@ function drawWheel(c){
   const c2=el('text',{x:cx,y:cy+16,'text-anchor':'middle','font-size':26,fill:'var(--li)','font-weight':700});c2.textContent=sun.gate+'.'+sun.line;svg.appendChild(c2);
 }
 
-function lineKW(g,line){ const dg=GATE_DETAIL[g]; return dg&&dg.lines&&dg.lines[line]?dg.lines[line]:''; }
+// 爻线标题：优先观己爻线(GATE_LINES)，回退旧关键词
+function lineKW(g,line){ const L=GATE_LINES[g]&&GATE_LINES[g][line]; if(L) return ENM?(L.te||''):(L.tz||''); const dg=GATE_DETAIL[g]; return dg&&dg.lines&&dg.lines[line]?dg.lines[line]:''; }
+function lineMz(g,line){ const L=GATE_LINES[g]&&GATE_LINES[g][line]; return L?(ENM?(L.me||''):(L.mz||'')):''; }
 function drawDaily(c, label){
   const sun=c.personality[0], v=GATES_KB[sun.gate]||{};
   const nm=ENM?(v.nameEn||v.name||''):(v.name||'');
-  const lk=lineKW(sun.gate,sun.line);
+  const lk=lineKW(sun.gate,sun.line), lmz=lineMz(sun.gate,sun.line);
   const rows=c.personality.map(p=>{ const gv=GATES_KB[p.gate]||{};
     return `<tr><td>${p.glyph} ${esc(ENM?(p.en||p.planet):p.zh)}</td><td><a href="learn.html#gate:${p.gate}" target="_blank" rel="noopener">${p.gate}</a> <span class="pl">.${p.line}</span></td><td>${esc(ENM?(gv.nameEn||''):(gv.name||''))}</td></tr>`;
   }).join('');
@@ -137,8 +140,9 @@ function drawDaily(c, label){
     <div class="big">
       <div class="sub">${esc(label)}</div>
       <div style="margin-top:4px"><span class="glyph">${v.glyph||'☉'}</span><span class="gname">${ENM?'Gate':'闸门'} ${sun.gate}.${sun.line} · ${esc(nm)}</span></div>
-      <div class="sub">${esc(ENM?(v.iching||''):((v.hex?v.hex+'卦 · ':'')+(v.iching||'')))}${lk?' · '+esc(lk):''}</div>
+      <div class="sub">${esc(ENM?(v.iching||''):((v.hex?v.hex+'卦 · ':'')+(v.iching||'')))}${lk?' · '+(ENM?'Line ':'')+sun.line+(ENM?' ':' 爻 · ')+esc(lk):''}</div>
       <div class="kw">${esc(ENM?(v.keynote||''):(v.theme||v.keynote||''))}</div>
+      ${lmz?`<div class="kw" style="color:var(--sub)">${ENM?'Line '+sun.line:'第'+sun.line+'爻'}：${esc(lmz)}</div>`:''}
       <div class="muted" style="margin-top:8px">${ENM?'☉ Sun gate sets the day’s collective theme. Other planets color the field.':'☉ 太阳所在闸门是今日的集体主题，其余行星为今日能量场染色。'}</div>
     </div>
     <table class="ptable"><tr><th>${ENM?'Planet':'行星'}</th><th>${ENM?'Gate.Line':'闸门.爻'}</th><th>${ENM?'Gate name':'闸门名'}</th></tr>${rows}</table>
