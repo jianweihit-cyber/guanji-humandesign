@@ -1,0 +1,29 @@
+# 推送到 main 自动部署到 Fly.io —— 绕开本地远程构建器卡死/国内网络问题
+# 前置：仓库需配 Secret FLY_API_TOKEN（fly tokens create deploy -a guanji-humandesign 生成）
+# CI 必做两步：① npm install 取 swisseph-wasm（node_modules 不入库）② repack 生成 swisseph-lite.data
+#   （Dockerfile COPY node_modules/swisseph-wasm 且依赖瘦身后的 lite.data + 已打补丁的 swisseph.js）
+# 其余数据文件（world-cities*/cn-cities/hd-lines 等）已入库，无需在 CI 重新生成。
+name: Fly Deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}        # 也支持手动触发
+jobs:
+  deploy:
+    name: Deploy to Fly.io
+    runs-on: ubuntu-latest
+    concurrency: deploy-group   # 同一时间只跑一个部署
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install swisseph-wasm
+        run: npm install --no-audit --no-fund
+      - name: Repack ephemeris (12MB → 2MB lite.data)
+        run: node tools/repack-swisseph-data.mjs
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy
+        run: flyctl deploy --remote-only --ha=false
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
