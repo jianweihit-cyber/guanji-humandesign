@@ -32,6 +32,7 @@
     <a class="tab" href="solve.html">反推</a>
     <a class="tab" href="connect.html">合盘</a>
     <a class="tab" href="learn.html">学习 · 知识库</a>
+    <a class="tab" href="celebs.html">名人</a>
   </div>
 
   <input id="q" class="kb-search" placeholder="搜索：姓名 / 闸门号 / 类型 / 角色 / 通道…" />
@@ -73,7 +74,7 @@ function render(){
     <div class="rec" data-id="${r.id}">
       <button class="star ${r.fav?'on':''}" title="收藏">${r.fav?'★':'☆'}</button>
       <div class="meta">
-        <div class="n">${esc(r.name)||'—'}${r.gender?` <span style="font-weight:400;color:${r.gender==='M'?'#4A7BA6':'#C26A8A'}">${r.gender==='M'?'♂':'♀'}</span>`:''}${r.source==='solve'?` <span class="srcb">反推</span>`:''}</div>
+        <div class="n">${esc(r.name)||'—'}${r.gender?` <span style="font-weight:400;color:${r.gender==='M'?'#4A7BA6':'#C26A8A'}">${r.gender==='M'?'♂':'♀'}</span>`:''}${r.source==='solve'?` <span class="srcb">反推</span>`:r.source==='celeb'?` <span class="srcb">名人</span>`:''}</div>
         <div class="d">${fmtIn(r.input)}</div>
       </div>
       <div class="chips">

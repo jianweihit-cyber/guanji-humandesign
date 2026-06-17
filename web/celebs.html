@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>名人人类图 · 观己</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg" />
+<link rel="stylesheet" href="hd.css" />
+<style>
+  .cl-intro{margin:10px 2px 0;font-size:13px;line-height:1.7;color:var(--sub)}
+  .cl-note{margin:6px 2px 0;font-size:12px;line-height:1.6;color:var(--sub);opacity:.92}
+  .cl-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 2px 4px}
+  .chip{border:1px solid var(--border);background:var(--card);color:var(--sub);border-radius:999px;
+    padding:5px 13px;font-size:13px;cursor:pointer;white-space:nowrap;user-select:none}
+  .chip.on{background:var(--li);border-color:var(--li);color:#fff;font-weight:600}
+  .cl-search{flex:1 1 180px;min-width:150px;border:1px solid var(--border);border-radius:999px;
+    padding:7px 14px;font-size:16px;background:var(--card);color:var(--ink)}
+  .cl-tsel{border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:13px;background:var(--card);color:var(--sub)}
+  .cl-count{margin:8px 2px;font-size:12.5px;color:var(--sub)}
+  .cl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:4px}
+  .celeb{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:13px 14px;transition:transform .12s,box-shadow .12s,border-color .12s}
+  .celeb:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(60,38,8,.12);border-color:var(--li)}
+  .ct-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .ct-name{font-weight:700;font-size:15.5px;line-height:1.3}
+  .ct-en{display:block;font-weight:400;font-size:11.5px;color:var(--sub);margin-top:1px}
+  .ct-badge{flex:none;font-size:10.5px;font-weight:700;color:#7a6a3a;background:#FAF3E0;border:1px solid #E8DCC0;
+    border-radius:6px;padding:1px 6px;line-height:1.5}
+  .ct-badge.warn{color:#9a6a4a;background:#F3EAE2;border-color:#E3D0C0}
+  .ct-blurb{font-size:12.5px;color:var(--sub);margin-top:7px;line-height:1.55;min-height:2.4em}
+  .ct-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .ct-type{font-size:11.5px;font-weight:650;color:#fff;background:var(--tc,#999);border-radius:6px;padding:2px 8px}
+  .ct-pill{font-size:11.5px;color:var(--ink);background:#F6EFE2;border:1px solid #ECE0C8;border-radius:6px;padding:2px 8px}
+  .ct-meta{font-size:11px;color:var(--sub);margin-top:8px;opacity:.9}
+  .cl-empty{padding:30px 10px;text-align:center;color:var(--sub);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub">名人库</span></div>
+  </header>
+  <div class="tabs">
+    <a class="tab" href="index.html">排盘</a>
+    <a class="tab" href="mandala.html">流日</a>
+    <a class="tab" href="history.html">记录</a>
+    <a class="tab" href="solve.html">反推</a>
+    <a class="tab" href="connect.html">合盘</a>
+    <a class="tab" href="learn.html">学习 · 知识库</a>
+    <a class="tab on" href="celebs.html">名人</a>
+  </div>
+
+  <div id="head" data-noi18n></div>
+  <div class="cl-bar" id="bar"></div>
+  <div class="cl-count" id="count"></div>
+  <div class="cl-grid" id="grid"></div>
+  <p class="cl-note" id="foot" data-noi18n style="margin-top:20px"></p>
+</div>
+
+<script src="i18n.js"></script>
+<script type="module">
+import { CELEBS } from '/src/hd-celebs.js';
+const ENM = window.HDI18N && window.HDI18N.lang === 'en';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
+// 五型配色（离卦暖调为主 + 冷调点缀，便于一眼分辨）
+const TYPE_COLOR = {
+  'Generator': '#C9A227', 'Manifesting Generator': '#D98324',
+  'Manifestor': '#B23A48', 'Projector': '#5B7C99', 'Reflector': '#6E8B5B',
+};
+const CATS = [
+  { k: 'all',     zh: '全部',       en: 'All' },
+  { k: 'tech',    zh: '科技商业',   en: 'Tech & Business' },
+  { k: 'arts',    zh: '演艺音乐',   en: 'Arts & Music' },
+  { k: 'chinese', zh: '华人名人',   en: 'Chinese' },
+  { k: 'hd',      zh: '人类图人物', en: 'HD Figures' },
+];
+const TYPES = [
+  { k: 'all', zh: '全部类型', en: 'All types' },
+  { k: 'Generator', zh: '生产者', en: 'Generator' },
+  { k: 'Manifesting Generator', zh: '显示生产者', en: 'Manifesting Generator' },
+  { k: 'Manifestor', zh: '显示者', en: 'Manifestor' },
+  { k: 'Projector', zh: '投射者', en: 'Projector' },
+  { k: 'Reflector', zh: '反映者', en: 'Reflector' },
+];
+
+let state = { cat: 'all', type: 'all', q: '' };
+
+// 顶部介绍 + 可靠度说明
+$('head').innerHTML = ENM
+  ? `<p class="cl-intro">A reference gallery of famous people's Human Design charts — for study and comparison. Every chart is computed by our own engine from the person's public birth data; tap any card to open the full live chart and reading.</p>
+     <p class="cl-note">⚠️ Human Design is highly sensitive to birth time (minutes can change the whole chart), so this library only includes people whose recorded birth time is reliable — Rodden rating <b>AA</b> (official record) or <b>A</b> (from the person / family / news).</p>`
+  : `<p class="cl-intro">名人的人类图参考库——供学习与对照。每一张盘都由观己引擎根据其公开出生数据实时计算；点任意卡片即可打开完整命盘与解读。</p>
+     <p class="cl-note">⚠️ 人类图对出生时间极敏感（差几分钟可能整盘改变），因此本库只收录出生时间可靠的人物——Rodden 评级 <b>AA</b>（官方出生记录）或 <b>A</b>（本人/家属/新闻来源）。</p>`;
+
+// 筛选栏
+function buildBar() {
+  const cats = CATS.map(c => `<span class="chip cat${state.cat === c.k ? ' on' : ''}" data-cat="${c.k}">${ENM ? c.en : c.zh}${c.k !== 'all' ? ` <span style="opacity:.7">${CELEBS.filter(x => x.cat === c.k).length}</span>` : ''}</span>`).join('');
+  const tsel = `<select class="cl-tsel" id="tsel">${TYPES.map(t => `<option value="${esc(t.k)}"${state.type === t.k ? ' selected' : ''}>${ENM ? t.en : t.zh}</option>`).join('')}</select>`;
+  const search = `<input class="cl-search" id="q" placeholder="${ENM ? 'Search name…' : '搜索姓名…'}" value="${esc(state.q)}" />`;
+  $('bar').innerHTML = cats + tsel + search;
+  $('bar').querySelectorAll('.cat').forEach(el => el.onclick = () => { state.cat = el.dataset.cat; buildBar(); render(); });
+  $('tsel').onchange = e => { state.type = e.target.value; render(); };
+  const qi = $('q');
+  qi.oninput = e => { state.q = e.target.value; render(); };
+}
+
+function card(c) {
+  const name = ENM ? c.en : c.zh;
+  const sub = ENM ? c.zh : c.en;
+  const blurb = ENM ? (c.blurbEn || '') : (c.blurbZh || '');
+  const typeLabel = ENM ? c.sum.type : c.sum.typeZh;
+  const auth = ENM ? (c.sum.authority + ' Authority') : c.sum.authorityZh.replace(/[（(].*$/, '');
+  const place = ENM ? (c.placeEn || '') : (c.placeZh || '');
+  const date = `${c.input.year}-${String(c.input.month).padStart(2, '0')}-${String(c.input.day).padStart(2, '0')}`;
+  const color = TYPE_COLOR[c.sum.type] || '#999';
+  const relAA = c.rodden === 'AA' || c.rodden === 'A';
+  const badge = relAA
+    ? `<span class="ct-badge" title="${c.rodden === 'AA' ? (ENM ? 'Birth certificate / official record' : '出生证明 / 官方记录') : (ENM ? 'From the person / family / news' : '本人 / 家属 / 新闻来源')}">✓ ${c.rodden}</span>`
+    : `<span class="ct-badge warn" title="${ENM ? 'Birth time not officially verified (per founder org) — for reference only' : '出生时间未经官方核实（据创始机构）——仅供参考'}">${ENM ? 'ref' : '参考'}</span>`;
+  const q = new URLSearchParams({
+    name, y: c.input.year, mo: c.input.month, d: c.input.day, h: c.input.hour, mi: c.input.minute,
+    tz: c.input.tz, place, src: 'celeb',
+  });
+  return `<a class="celeb" href="index.html?${q.toString()}">
+    <div class="ct-top"><div class="ct-name">${esc(name)}<span class="ct-en">${esc(sub)}</span></div>${badge}</div>
+    <div class="ct-blurb">${esc(blurb)}</div>
+    <div class="ct-tags"><span class="ct-type" style="--tc:${color}">${esc(typeLabel)}</span>
+      <span class="ct-pill">${esc(c.sum.profile)}</span><span class="ct-pill">${esc(auth)}</span></div>
+    <div class="ct-meta">${esc(place)}${place ? ' · ' : ''}${date}</div>
+  </a>`;
+}
+
+function render() {
+  const q = state.q.trim().toLowerCase();
+  const list = CELEBS.filter(c =>
+    (state.cat === 'all' || c.cat === state.cat) &&
+    (state.type === 'all' || c.sum.type === state.type) &&
+    (!q || (c.zh || '').toLowerCase().includes(q) || (c.en || '').toLowerCase().includes(q))
+  );
+  $('count').textContent = ENM ? `${list.length} of ${CELEBS.length} people` : `共 ${list.length} / ${CELEBS.length} 位`;
+  $('grid').innerHTML = list.length
+    ? list.map(card).join('')
+    : `<div class="cl-empty">${ENM ? 'No matches.' : '没有匹配的名人。'}</div>`;
+}
+
+$('foot').textContent = ENM
+  ? 'Birth data: public records from the Astro-Databank (with Rodden reliability ratings). Charts are computed by the GuanJi engine; descriptions are original. No third-party chart readings are reproduced.'
+  : '出生数据：来自公开占星数据库 Astro-Databank（含 Rodden 可靠度评级）。命盘由观己引擎计算，简介为原创撰写，不转载任何第三方解读。';
+
+buildBar();
+render();
+</script>
+</body>
+</html>

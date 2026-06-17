@@ -59,6 +59,7 @@
     <a class="tab" href="solve.html">反推</a>
     <a class="tab" href="connect.html">合盘</a>
     <a class="tab" href="learn.html">学习 · 知识库</a>
+    <a class="tab" href="celebs.html">名人</a>
   </div>
 
   <div class="form">
@@ -505,9 +506,10 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
     if(rec.gender) setSex(rec.gender);
     chartSource=rec.source||'';                       // 重开反推记录再保存仍保留标识
     $('sname').value=rec.name==='—'?'':rec.name; run(rec.name); return; }
-  if(sp.get('y')&&sp.get('mo')){ // 反推页等外部带参直开：?y&mo&d&h&mi&tz&name&sex&src
-    if(sp.get('src')==='solve') chartSource='solve';
+  if(sp.get('y')&&sp.get('mo')){ // 外部带参直开：?y&mo&d&h&mi&tz&name&sex&src&place（反推页 src=solve / 名人库 src=celeb）
+    const src=sp.get('src'); if(src==='solve'||src==='celeb') chartSource=src;
     fillForm({year:+sp.get('y'),month:+sp.get('mo'),day:+sp.get('d')||1,hour:+sp.get('h')||12,minute:+sp.get('mi')||0,tz:sp.get('tz')||'Asia/Shanghai'});
+    if(sp.get('place')){ placeLabel=sp.get('place'); locq.value=placeLabel; $('placeTag').textContent='🕐 '+(sp.get('tz')||'Asia/Shanghai'); } // 名人库带出生地标签，保存时一并保留
     $('sname').value=sp.get('name')||'';
     if(sp.get('sex')) setSex(sp.get('sex'));
     run(sp.get('name')||''); return;
