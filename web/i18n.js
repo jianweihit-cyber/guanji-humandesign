@@ -42,6 +42,8 @@
     '两人之间没有形成任何通道连接。': 'No channels form between these two.',
     '双方皆有': 'Both', '金=通道完整 · 墨=半边 · 红字=缺口': 'Gold = complete · Ink = half · Red = gap',
     '首页': 'Home', '排盘': 'Chart', '学习 · 知识库': 'Learn · Library', '知识库': 'Library', '— 示例盘 —': '— Samples —',
+    '流日 ＝ 此刻天空中各行星所落的 64 闸门位置（曼陀罗轮）；最外圈是其对应的易经卦象。': 'Transit = where the planets sit in the 64 gates right now (the mandala wheel); the outer ring is each gate’s I Ching hexagram.',
+    '把鼠标移到 闸门 / 卦象 / 行星 / 星座 上即可查看基础知识，点击进入完整词条。数据由本机星历实时计算，无需联网。': 'Hover any gate / hexagram / planet / sign for the basics, or click to open its full entry — all computed live on-device, no network needed.',
     '名人': 'People', '名人库': 'Gallery', '名人人类图 · 观己': 'Famous Charts · Human Design · GuanJi',
     '流日': 'Transit', '流日曼陀罗': 'Daily Mandala', '流日曼陀罗 · 观己': 'Daily Transit Mandala · GuanJi',
     '日期时间（公历，留空=此刻）': 'Date & time (Gregorian; empty = now)', '回到此刻': 'Now',

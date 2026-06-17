@@ -7,10 +7,11 @@
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="stylesheet" href="hd.css" />
 <style>
-  .mandala-wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:8px}
-  .mandala-svg{flex:1 1 360px;min-width:300px;max-width:560px}
-  .mandala-svg svg{width:100%;height:auto;display:block}
-  .daily{flex:1 1 300px;min-width:260px}
+  .m-intro{margin:10px 2px 0;font-size:13px;color:var(--sub);line-height:1.7}
+  .m-intro p{margin:0 0 4px}
+  .mandala-grid{display:grid;grid-template-columns:minmax(300px,1.1fr) minmax(280px,1fr);gap:14px 18px;align-items:start;margin-top:16px}
+  .m-wheel svg{width:100%;height:auto;display:block;max-width:560px;margin:0 auto}
+  @media(max-width:760px){ .mandala-grid{grid-template-columns:1fr} .m-graph{order:4} .m-table{order:3} }
   .daily .big{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px}
   .daily .big .glyph{font-size:30px;color:var(--li);vertical-align:-4px;margin-right:6px}
   .daily .big .gname{font-size:18px;font-weight:700}
@@ -22,7 +23,9 @@
   .ptable td a{color:var(--li);text-decoration:none}
   .ptable .pl{color:var(--cinnabar);font-weight:650;font-variant-numeric:tabular-nums}
   .daterow{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:4px}
-  .mandala-svg [data-gate]{cursor:pointer}
+  .daterow #dt{height:40px;box-sizing:border-box}
+  .daterow #now{height:40px;box-sizing:border-box;align-self:flex-end}
+  #wheel [data-gate]{cursor:pointer}
   .gtip{position:fixed;z-index:200;max-width:240px;background:#fff;border:1px solid var(--border);border-radius:10px;
     box-shadow:0 8px 24px rgba(60,38,8,.16);padding:9px 12px;font-size:12.5px;line-height:1.55;pointer-events:none}
   .gtip .gt-h{font-weight:700;font-size:14px}
@@ -32,10 +35,11 @@
   .wheel-legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:6px;font-size:11.5px;color:var(--sub)}
   .wheel-legend .lg{display:inline-flex;align-items:center;gap:5px}
   .wheel-legend .lg i{width:18px;height:0;display:inline-block;border-top:2.6px solid #ccc}
+  .wheel-legend .lg i.band{height:9px;width:20px;border:none;border-radius:4px;opacity:.55}
   .wheel-legend .lg i.dash{border-top:1.4px dashed #b7a98c}
-  .tgraph-box{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
-  .tg-title{font-size:13px;font-weight:700;color:var(--li);text-align:center}
-  .tgraph-box svg{width:100%;max-width:272px;height:auto;display:block;margin:6px auto 0}
+  .tgraph-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+  .tg-title{font-size:14px;font-weight:700;color:var(--li);text-align:center}
+  .tgraph-box svg{width:100%;max-width:300px;height:auto;display:block;margin:8px auto 0}
   .tg-note{font-size:11.5px;text-align:center;margin-top:6px}
 </style>
 </head>
@@ -55,24 +59,28 @@
     <a class="tab" href="celebs.html">名人</a>
   </div>
 
-  <p class="muted" style="margin:10px 2px 0;font-size:13px">流日＝此刻天空中各行星落在 64 闸门的位置（曼陀罗轮）。最外圈为对应的易经卦象。本页用本机星历实时计算，无需联网取数。把鼠标移到 闸门 / 卦象 / 行星 / 星座 上可看基础知识，点击进入词条。</p>
+  <div class="m-intro">
+    <p>流日 ＝ 此刻天空中各行星所落的 64 闸门位置（曼陀罗轮）；最外圈是其对应的易经卦象。</p>
+    <p>把鼠标移到 闸门 / 卦象 / 行星 / 星座 上即可查看基础知识，点击进入完整词条。数据由本机星历实时计算，无需联网。</p>
+  </div>
   <div class="daterow">
     <div class="field"><label>日期时间（公历，留空=此刻）</label><input id="dt" type="datetime-local" /></div>
     <button class="btn ghost" id="now">回到此刻</button>
     <span class="status" id="status" style="align-self:center"></span>
   </div>
 
-  <div class="mandala-wrap">
-    <div class="mandala-svg">
+  <div class="mandala-grid">
+    <div class="m-wheel">
       <svg id="wheel" viewBox="0 0 500 500" aria-label="mandala"></svg>
       <div class="wheel-legend" id="wlegend" data-noi18n></div>
-      <div class="tgraph-box">
-        <div class="tg-title" id="tgTitle" data-noi18n></div>
-        <svg id="tgraph" viewBox="0 0 460 665" aria-label="transit bodygraph"></svg>
-        <div class="tg-note muted" id="tgNote" data-noi18n></div>
-      </div>
     </div>
-    <div class="daily" id="daily"></div>
+    <div class="daily m-summary" id="daily"></div>
+    <div class="tgraph-box m-graph">
+      <div class="tg-title" id="tgTitle" data-noi18n></div>
+      <svg id="tgraph" viewBox="0 0 460 665" aria-label="transit bodygraph"></svg>
+      <div class="tg-note muted" id="tgNote" data-noi18n></div>
+    </div>
+    <div class="daily m-table" id="dailyTable"></div>
   </div>
 </div>
 
@@ -156,14 +164,16 @@ function drawWheel(c){
     const [ax,ay]=pt(Lm,R_gateI-3),[bx,by]=pt(opp,R_gateI-3);
     svg.appendChild(el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:'rgba(140,120,90,.16)','stroke-width':0.7,'stroke-dasharray':'3 3'}));
   }
-  const axisLine=(a,b,color)=>{ if(!a||!b)return; const [ax,ay]=pt(gMid(a.gate),R_gateI-3),[bx,by]=pt(gMid(b.gate),R_gateI-3);
-    svg.appendChild(el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:color,'stroke-width':1.7,'stroke-linecap':'round',opacity:.9})); };
-  axisLine(sunP,earthP,'#D9A441');   // 日 ↔ 地：金
-  axisLine(nnP,snP,'#4E8C86');       // 北交 ↔ 南交：青
+  // 轴：用半透明色带「填充」对宫走廊（非细线），画在底层、中心数字盖其上仍清晰
+  const axisBand=(a,b,color)=>{ if(!a||!b)return; const [ax,ay]=pt(gMid(a.gate),R_gateI-3),[bx,by]=pt(gMid(b.gate),R_gateI-3);
+    svg.appendChild(el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:color,'stroke-width':9,'stroke-linecap':'round',opacity:.30}));
+    svg.appendChild(el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:color,'stroke-width':2,'stroke-linecap':'round',opacity:.55})); };
+  axisBand(sunP,earthP,'#D9A441');   // 日 ↔ 地：金
+  axisBand(nnP,snP,'#3F8C84');       // 北交 ↔ 南交：青
   // 图例
   $('wlegend').innerHTML =
-     `<span class="lg"><i style="border-top-color:#D9A441"></i>${ENM?'Sun–Earth axis':'日–地轴'}</span>`
-    +`<span class="lg"><i style="border-top-color:#4E8C86"></i>${ENM?'Nodal axis':'交点轴'}</span>`
+     `<span class="lg"><i class="band" style="background:#D9A441"></i>${ENM?'Sun–Earth axis':'日–地轴'}</span>`
+    +`<span class="lg"><i class="band" style="background:#3F8C84"></i>${ENM?'Nodal axis':'交点轴'}</span>`
     +`<span class="lg"><i class="dash"></i>${ENM?'opposite gates':'对宫'}</span>`;
   // 64 闸门扇区 + 编号 + 外圈卦象
   for(let i=0;i<64;i++){
@@ -232,7 +242,8 @@ function drawDaily(c, label){
       <div class="kw">${esc(ENM?(v.keynote||''):(v.theme||v.keynote||''))}</div>
       ${lmz?`<div class="kw" style="color:var(--sub)">${ENM?'Line '+sun.line:'第'+sun.line+'爻'}：${esc(lmz)}</div>`:''}
       <div class="muted" style="margin-top:8px">${ENM?'☉ Sun gate sets the day’s collective theme. Other planets color the field.':'☉ 太阳所在闸门是今日的集体主题，其余行星为今日能量场染色。'}</div>
-    </div>
+    </div>`;
+  $('dailyTable').innerHTML=`
     <table class="ptable"><tr><th>${ENM?'Planet':'行星'}</th><th>${ENM?'Gate.Line':'闸门.爻'}</th><th>${ENM?'Gate name':'闸门名'}</th></tr>${rows}</table>
     <p class="muted" style="margin-top:8px;font-size:12px">${ENM?'ⓘ Transit (daily) reading — a first-draft GuanJi summary.':'ⓘ 流日解读为观己白话初稿，结合权威资料持续完善。'}</p>`;
 }
