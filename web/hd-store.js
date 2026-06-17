@@ -11,6 +11,10 @@
   const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } };
   // 写入带容错：隐私模式/配额满时不静默失败，返回 false 让调用方提示用户
   const write = (a) => { try { localStorage.setItem(KEY, JSON.stringify(a)); return true; } catch (e) { console.warn('HDStore 写入失败', e); return false; } };
+  // 合盘 / Penta 链接记录（保存所选成员组合，可命名、去重、重开）
+  const LKEY = 'hd_links_v1';
+  const lread = () => { try { return JSON.parse(localStorage.getItem(LKEY)) || []; } catch (e) { return []; } };
+  const lwrite = (a) => { try { localStorage.setItem(LKEY, JSON.stringify(a)); return true; } catch (e) { return false; } };
 
   window.HDStore = {
     SCHEMA,
@@ -61,5 +65,11 @@
       try { if (navigator.storage && navigator.storage.persist) return await navigator.storage.persist(); } catch (e) {}
       return false;
     },
+
+    // ── 合盘 / Penta 链接记录 { id, name, kind:'conn'|'penta', members:[{id,name}], ts, v } ──
+    linksAll() { return lread().sort((x, y) => (y.ts - x.ts)); },
+    getLink(id) { return lread().find(r => r.id === id) || null; },
+    addLink(rec) { const a = lread(); rec.id = 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); rec.ts = Date.now(); rec.v = SCHEMA; a.push(rec); return lwrite(a) ? rec.id : null; },
+    removeLink(id) { return lwrite(lread().filter(r => r.id !== id)); },
   };
 })();
