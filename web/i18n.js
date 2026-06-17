@@ -45,7 +45,7 @@
     '名人': 'People', '名人库': 'Gallery', '名人人类图 · 观己': 'Famous Charts · Human Design · GuanJi',
     '流日': 'Transit', '流日曼陀罗': 'Daily Mandala', '流日曼陀罗 · 观己': 'Daily Transit Mandala · GuanJi',
     '日期时间（公历，留空=此刻）': 'Date & time (Gregorian; empty = now)', '回到此刻': 'Now',
-    '流日＝此刻天空中各行星落在 64 闸门的位置（曼陀罗轮）。本页用本机星历实时计算，无需联网取数。点轮盘外圈闸门或下方行星可查词条。': 'Transit = where the planets sit in the 64 gates right now (the mandala wheel). Computed live on-device, no network needed. Tap a gate on the wheel or a planet below for its entry.',
+    '流日＝此刻天空中各行星落在 64 闸门的位置（曼陀罗轮）。最外圈为对应的易经卦象。本页用本机星历实时计算，无需联网取数。把鼠标移到 闸门 / 卦象 / 行星 / 星座 上可看基础知识，点击进入词条。': 'Transit = where the planets sit in the 64 gates right now (the mandala wheel); the outer ring shows each gate’s I Ching hexagram. Computed live on-device, no network needed. Hover any gate / hexagram / planet / sign for basics, click to open its entry.',
     '年': 'Year', '月': 'Month', '日': 'Day', '时': 'Hr', '分': 'Min',
     '出生地（决定时区）': 'Birth place (sets timezone)', '生成人类图': 'Generate Chart',
     '性别': 'Gender', '城市，如 上海 / Shanghai / 拼音 shanghai': 'City — type English, pinyin or 中文',

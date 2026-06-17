@@ -47,7 +47,7 @@
     <a class="tab" href="celebs.html">名人</a>
   </div>
 
-  <p class="muted" style="margin:10px 2px 0;font-size:13px">流日＝此刻天空中各行星落在 64 闸门的位置（曼陀罗轮）。本页用本机星历实时计算，无需联网取数。点轮盘外圈闸门或下方行星可查词条。</p>
+  <p class="muted" style="margin:10px 2px 0;font-size:13px">流日＝此刻天空中各行星落在 64 闸门的位置（曼陀罗轮）。最外圈为对应的易经卦象。本页用本机星历实时计算，无需联网取数。把鼠标移到 闸门 / 卦象 / 行星 / 星座 上可看基础知识，点击进入词条。</p>
   <div class="daterow">
     <div class="field"><label>日期时间（公历，留空=此刻）</label><input id="dt" type="datetime-local" /></div>
     <button class="btn ghost" id="now">回到此刻</button>
@@ -78,6 +78,37 @@ const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAt
 const SIGNS=['白羊','金牛','双子','巨蟹','狮子','处女','天秤','天蝎','射手','摩羯','水瓶','双鱼'];
 const SIGNS_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const SIGN_GLYPH=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+// 行星基础知识（人类图视角，按字形索引）—— 原创精简
+const PLANET_KB={
+  '☉':{dZh:'个性主轴，约占人格表达的 70%，是你最核心的人生主题。',dEn:'Your core theme — about 70% of the personality you radiate.'},
+  '⨁':{dZh:'太阳的对宫，提供扎根与平衡，是你立足的土壤。',dEn:'Opposite the Sun — grounding and balance, the ground you stand on.'},
+  '☽':{dZh:'驱动与持续力，推着设计一步步落地。',dEn:'Drive and continuity — what keeps the design in motion.'},
+  '☊':{dZh:'人生后半段的环境与方向所在。',dEn:'The environment and direction of life’s second half.'},
+  '☋':{dZh:'人生前半段的主题，承自过往的方向。',dEn:'Themes of life’s first half, carried from the past.'},
+  '☿':{dZh:'沟通与思维表达——你想说、要分享的东西。',dEn:'Communication — what you need to think about and share.'},
+  '♀':{dZh:'价值观、品味与爱，你所珍视的一切。',dEn:'Values, taste and love — what you cherish.'},
+  '♂':{dZh:'行动力与欲望，常是尚未成熟、待磨炼的能量。',dEn:'Drive and desire — often raw, immature energy to mature.'},
+  '♃':{dZh:'扩张、法则与福分，带来成长与机遇。',dEn:'Expansion, law and blessing — growth and opportunity.'},
+  '♄':{dZh:'纪律、限制与功课，逼你成熟的力量。',dEn:'Discipline, limits and lessons that mature you.'},
+  '♅':{dZh:'独特、突变与不寻常，个体化的方向。',dEn:'The unusual and disruptive — your path of individuation.'},
+  '♆':{dZh:'幻象、灵性与消融，看不清也放得下。',dEn:'Illusion, spirituality and dissolving of the known.'},
+  '♇':{dZh:'真相、死亡与重生，深层的转化之力。',dEn:'Truth, death-rebirth and deep transformation.'},
+};
+// 星座基础知识（与 SIGNS 同序）—— 原创精简
+const SIGN_INFO=[
+  {date:'3.21–4.19',elZh:'火象',elEn:'Fire',dZh:'开创、冲劲、自我',dEn:'initiative, drive, the self'},
+  {date:'4.20–5.20',elZh:'土象',elEn:'Earth',dZh:'稳定、感官、价值',dEn:'stability, the senses, worth'},
+  {date:'5.21–6.21',elZh:'风象',elEn:'Air',dZh:'沟通、好奇、灵活',dEn:'communication, curiosity, agility'},
+  {date:'6.22–7.22',elZh:'水象',elEn:'Water',dZh:'情感、归属、滋养',dEn:'feeling, home, nurture'},
+  {date:'7.23–8.22',elZh:'火象',elEn:'Fire',dZh:'表现、热情、创造',dEn:'expression, heart, creativity'},
+  {date:'8.23–9.22',elZh:'土象',elEn:'Earth',dZh:'分析、服务、精进',dEn:'analysis, service, refinement'},
+  {date:'9.23–10.23',elZh:'风象',elEn:'Air',dZh:'关系、平衡、美感',dEn:'relationship, balance, beauty'},
+  {date:'10.24–11.22',elZh:'水象',elEn:'Water',dZh:'深度、转化、力量',dEn:'depth, transformation, power'},
+  {date:'11.23–12.21',elZh:'火象',elEn:'Fire',dZh:'探索、信念、自由',dEn:'exploration, meaning, freedom'},
+  {date:'12.22–1.19',elZh:'土象',elEn:'Earth',dZh:'责任、结构、成就',dEn:'responsibility, structure, mastery'},
+  {date:'1.20–2.18',elZh:'风象',elEn:'Air',dZh:'独立、革新、群体',dEn:'independence, innovation, the collective'},
+  {date:'2.19–3.20',elZh:'水象',elEn:'Water',dZh:'共情、想象、消融',dEn:'empathy, imagination, dissolving'},
+];
 
 const cx=250, cy=250;
 const pt=(lon,r)=>{ const a=lon*Math.PI/180; return [cx+r*Math.cos(a), cy-r*Math.sin(a)]; };  // 黄经→坐标(0°右,逆时针,与黄道一致)
@@ -86,29 +117,44 @@ const gateStartLon=g=>{ const i=GATE_ORDER.indexOf(g); return WHEEL_START + i*GA
 
 function drawWheel(c){
   const svg=$('wheel'); svg.innerHTML='';
-  const R_signO=242, R_signI=212, R_gateO=210, R_gateI=168, R_num=190;
+  // 外→内：卦象圈 / 星座圈 / 闸门圈(数字) / 行星 / 中心
+  const R_hexO=248, R_hex=233, R_signO=220, R_signI=197, R_gateO=195, R_gateI=150, R_num=176;
   // 本命行星落入的闸门集合（高亮）
   const activeG=new Set(c.personality.map(p=>p.gate));
   // 底圈
-  svg.appendChild(el('circle',{cx,cy,r:R_signO,fill:'#fff',stroke:'var(--border)','stroke-width':1}));
-  svg.appendChild(el('circle',{cx,cy,r:R_gateO,fill:'#FBF6EE',stroke:'var(--border)','stroke-width':1}));
+  svg.appendChild(el('circle',{cx,cy,r:R_hexO,fill:'#fff',stroke:'var(--border)','stroke-width':1}));
+  svg.appendChild(el('circle',{cx,cy,r:R_signO,fill:'#FBF6EE',stroke:'var(--border)','stroke-width':1}));
+  svg.appendChild(el('circle',{cx,cy,r:R_gateO,fill:'#fff',stroke:'var(--border)','stroke-width':1}));
   svg.appendChild(el('circle',{cx,cy,r:R_gateI,fill:'#fff',stroke:'var(--border)','stroke-width':1}));
-  // 64 闸门扇区 + 编号
+  // 对宫连线（活跃闸门 ↔ 其 180° 对宫；淡虚线，画在底层，直观看出能量轴）
+  const drawnPair=new Set();
+  for(const p of c.personality){
+    const i=GATE_ORDER.indexOf(p.gate), Lm=WHEEL_START+i*GATE_ARC+GATE_ARC/2, opp=(Lm+180)%360;
+    const k=Math.min(Lm%360,opp).toFixed(1); if(drawnPair.has(k))continue; drawnPair.add(k);
+    const [ax,ay]=pt(Lm,R_gateI-3),[bx,by]=pt(opp,R_gateI-3);
+    svg.appendChild(el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:'rgba(168,50,31,.15)','stroke-width':0.7,'stroke-dasharray':'3 3'}));
+  }
+  // 64 闸门扇区 + 编号 + 外圈卦象
   for(let i=0;i<64;i++){
-    const g=GATE_ORDER[i], L0=WHEEL_START+i*GATE_ARC, Lm=L0+GATE_ARC/2;
+    const g=GATE_ORDER[i], L0=WHEEL_START+i*GATE_ARC, Lm=L0+GATE_ARC/2, on=activeG.has(g);
     // 扇区分隔线
     const [x1,y1]=pt(L0,R_gateI), [x2,y2]=pt(L0,R_gateO);
     svg.appendChild(el('line',{x1,y1,x2,y2,stroke:'#E7DECF','stroke-width':0.6}));
     // 高亮有行星的闸门：填一段淡色扇环
-    if(activeG.has(g)){
+    if(on){
       const [ax,ay]=pt(L0,R_gateI),[bx,by]=pt(L0,R_gateO),[dx,dy]=pt(L0+GATE_ARC,R_gateO),[ex,ey]=pt(L0+GATE_ARC,R_gateI);
       const lg=GATE_ARC>180?1:0;
       const d=`M${ax} ${ay} L${bx} ${by} A${R_gateO} ${R_gateO} 0 ${lg} 0 ${dx} ${dy} L${ex} ${ey} A${R_gateI} ${R_gateI} 0 ${lg} 1 ${ax} ${ay} Z`;
       svg.appendChild(el('path',{d,fill:'rgba(224,169,59,.22)'}));
     }
+    // 闸门编号
     const [nx,ny]=pt(Lm,R_num);
-    const t=el('text',{x:nx,y:ny+3,'text-anchor':'middle','font-size':9.5,fill:activeG.has(g)?'var(--li)':'#A89C86','font-weight':activeG.has(g)?700:500,style:'cursor:pointer'});
+    const t=el('text',{x:nx,y:ny+3,'text-anchor':'middle','font-size':9.5,fill:on?'var(--li)':'#A89C86','font-weight':on?700:500,style:'cursor:pointer'});
     t.textContent=g; t.setAttribute('data-gate',g); svg.appendChild(t);
+    // 外圈易经卦象（与闸门一一对应）
+    const [hx,hy]=pt(Lm,R_hex);
+    const hg=el('text',{x:hx,y:hy+5,'text-anchor':'middle','font-size':14,fill:on?'var(--li)':'#C9BCA4',style:'cursor:pointer'});
+    hg.textContent=(GATES_KB[g]&&GATES_KB[g].glyph)||''; hg.setAttribute('data-gate',g); svg.appendChild(hg);
   }
   // 12 星座圈
   for(let s=0;s<12;s++){
@@ -116,18 +162,20 @@ function drawWheel(c){
     const [x1,y1]=pt(L0,R_signI),[x2,y2]=pt(L0,R_signO);
     svg.appendChild(el('line',{x1,y1,x2,y2,stroke:'#E7DECF','stroke-width':0.8}));
     const [gx,gy]=pt(Lm,(R_signO+R_signI)/2);
-    const t=el('text',{x:gx,y:gy+5,'text-anchor':'middle','font-size':14,fill:'#B9A989'});t.textContent=SIGN_GLYPH[s];svg.appendChild(t);
+    const t=el('text',{x:gx,y:gy+5,'text-anchor':'middle','font-size':14,fill:'#B9A989',style:'cursor:pointer'});t.textContent=SIGN_GLYPH[s];t.setAttribute('data-sign',s);svg.appendChild(t);
   }
   // 行星（此刻天象=personality 层）。同经度堆叠时内缩半径避让
   const placed=[];
-  for(const p of c.personality){
-    let r=150; for(const q of placed){ if(Math.abs(((p.lon-q)+540)%360-180)<5) r-=15; } placed.push(p.lon);
+  for(let pi=0;pi<c.personality.length;pi++){ const p=c.personality[pi];
+    let r=138; for(const q of placed){ if(Math.abs(((p.lon-q)+540)%360-180)<5) r-=15; } placed.push(p.lon);
     const [px,py]=pt(p.lon,r);
-    svg.appendChild(el('circle',{cx:px,cy:py,r:9,fill:'#fff',stroke:'var(--li)','stroke-width':1.2}));
-    const t=el('text',{x:px,y:py+4,'text-anchor':'middle','font-size':11,fill:'var(--inkline)'});t.textContent=p.glyph;svg.appendChild(t);
-    // 细引线到所在闸门
+    // 细引线到所在闸门（先画，置于底层）
     const [lx,ly]=pt(p.lon,R_gateI-2);
     svg.appendChild(el('line',{x1:px,y1:py,x2:lx,y2:ly,stroke:'rgba(168,50,31,.25)','stroke-width':0.7}));
+    const grp=el('g',{'data-planet':pi,style:'cursor:pointer'});
+    grp.appendChild(el('circle',{cx:px,cy:py,r:9,fill:'#fff',stroke:'var(--li)','stroke-width':1.2}));
+    const t=el('text',{x:px,y:py+4,'text-anchor':'middle','font-size':11,fill:'var(--inkline)'});t.textContent=p.glyph;grp.appendChild(t);
+    svg.appendChild(grp);
   }
   // 中心：日期 + 太阳闸门
   const sun=c.personality[0];
@@ -180,17 +228,38 @@ function gateTipHTML(g){
   const lon=((WHEEL_START+i*GATE_ARC)%360+360)%360, s=Math.floor(lon/30);
   const nm=ENM?(v.nameEn||v.name||''):(v.name||'');
   const sign=ENM?SIGNS_EN[s]:SIGNS[s];
+  const iching=ENM?(v.iching||''):((v.hex?v.hex+'卦':'')+(v.iching?' · '+v.iching:''));
   const ps=cur?cur.personality.filter(p=>String(p.gate)===String(g)):[];
   const here=ps.length?`<div class="gt-here">${ENM?'Now here: ':'此刻在此：'}${ps.map(p=>`${p.glyph} ${ENM?(p.en||p.planet):p.zh} .${p.line}`).join('、')}</div>`:'';
   const L=GATE_LINES[g], lt=L&&ps.length&&L[ps[0].line]?(ENM?L[ps[0].line].te:L[ps[0].line].tz):'';
   return `<div class="gt-h"><span class="gt-gl">${v.glyph||''}</span>${ENM?'Gate':'闸门'} ${g} · ${esc(nm)}</div>`
-    +`<div class="gt-sub">${esc(ENM?(v.iching||''):((v.hex?v.hex+'卦 · ':'')+(v.iching||'')))} · ${SIGN_GLYPH[s]} ${esc(sign)}</div>`
+    +`<div class="gt-sub">${ENM?'I Ching: ':'易经：'}${esc(iching)} · ${SIGN_GLYPH[s]} ${esc(sign)}</div>`
     +`<div class="gt-sub">${ENM?'Center: ':'中心：'}${esc(ENM?(v.center||''):(v.centerZh||''))}${v.circuit&&!ENM?' · '+esc(v.circuit):''}</div>`
     +here+(lt?`<div class="gt-sub">${ENM?'Line ':'第'}${ps[0].line}${ENM?'':'爻'} · ${esc(lt)}</div>`:'');
 }
-function moveTip(e){ const t=e.target.closest&&e.target.closest('[data-gate]');
-  if(!t){ gtip.hidden=true; return; }
-  gtip.innerHTML=gateTipHTML(t.getAttribute('data-gate')); gtip.hidden=false;
+function planetTipHTML(idx){
+  const p=cur&&cur.personality[idx]; if(!p) return '';
+  const kb=PLANET_KB[p.glyph]||{}, gv=GATES_KB[p.gate]||{};
+  const nm=ENM?(p.en||p.planet||''):(p.zh||'');
+  return `<div class="gt-h"><span class="gt-gl">${p.glyph}</span>${esc(nm)}</div>`
+    +`<div class="gt-sub">${esc(ENM?(kb.dEn||''):(kb.dZh||''))}</div>`
+    +`<div class="gt-here">${ENM?'Now in: ':'此刻落于：'}${ENM?'Gate':'闸门'} ${p.gate}.${p.line}${(gv.name||gv.nameEn)?' · '+esc(ENM?(gv.nameEn||''):(gv.name||'')):''}</div>`;
+}
+function signTipHTML(s){
+  const info=SIGN_INFO[s]||{}, nm=ENM?SIGNS_EN[s]:SIGNS[s];
+  const ps=cur?cur.personality.filter(p=>Math.floor((((p.lon%360)+360)%360)/30)===s):[];
+  const here=ps.length?`<div class="gt-here">${ENM?'Now here: ':'此刻在此：'}${ps.map(p=>p.glyph).join(' ')}</div>`:'';
+  return `<div class="gt-h"><span class="gt-gl">${SIGN_GLYPH[s]}</span>${esc(nm)}</div>`
+    +`<div class="gt-sub">${esc(info.date||'')} · ${esc(ENM?((info.elEn||'')+' sign'):(info.elZh||''))}</div>`
+    +`<div class="gt-sub">${esc(ENM?(info.dEn||''):(info.dZh||''))}</div>`+here;
+}
+function moveTip(e){
+  const tg=e.target.closest&&e.target.closest('[data-planet],[data-sign],[data-gate]');
+  if(!tg){ gtip.hidden=true; return; }
+  gtip.innerHTML = tg.hasAttribute('data-planet') ? planetTipHTML(+tg.getAttribute('data-planet'))
+    : tg.hasAttribute('data-sign') ? signTipHTML(+tg.getAttribute('data-sign'))
+    : gateTipHTML(tg.getAttribute('data-gate'));
+  gtip.hidden=false;
   const pad=14, w=gtip.offsetWidth, h=gtip.offsetHeight;
   let x=e.clientX+pad, y=e.clientY+pad;
   if(x+w>innerWidth-8) x=e.clientX-w-pad; if(y+h>innerHeight-8) y=e.clientY-h-pad;
@@ -198,8 +267,11 @@ function moveTip(e){ const t=e.target.closest&&e.target.closest('[data-gate]');
 }
 $('wheel').addEventListener('mousemove',moveTip);
 $('wheel').addEventListener('mouseleave',()=>{ gtip.hidden=true; });
-// 点轮盘闸门 → 知识库
-$('wheel').addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('[data-gate]'); if(t) window.open('learn.html#gate:'+t.getAttribute('data-gate'),'_blank','noopener'); });
+// 点击：闸门/卦象 → 该闸门词条；行星 → 其所在闸门词条
+$('wheel').addEventListener('click',e=>{
+  const gt=e.target.closest&&e.target.closest('[data-gate]'); if(gt){ window.open('learn.html#gate:'+gt.getAttribute('data-gate'),'_blank','noopener'); return; }
+  const pl=e.target.closest&&e.target.closest('[data-planet]'); if(pl&&cur){ const p=cur.personality[+pl.getAttribute('data-planet')]; if(p) window.open('learn.html#gate:'+p.gate,'_blank','noopener'); }
+});
 $('now').onclick=()=>{ $('dt').value=''; run(); };
 $('dt').onchange=()=>{ const v=$('dt').value; run(v?new Date(v):null); };
 run();
