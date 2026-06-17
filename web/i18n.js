@@ -41,7 +41,7 @@
     '合体定义中心': 'Defined together', '合体分裂数': 'Splits together', '成员': 'Members', '承载成员': 'Carried by', '暂无记录': 'No records yet',
     '两人之间没有形成任何通道连接。': 'No channels form between these two.',
     '双方皆有': 'Both', '金=通道完整 · 墨=半边 · 红字=缺口': 'Gold = complete · Ink = half · Red = gap',
-    '排盘': 'Chart', '学习 · 知识库': 'Learn · Library', '知识库': 'Library', '— 示例盘 —': '— Samples —',
+    '首页': 'Home', '排盘': 'Chart', '学习 · 知识库': 'Learn · Library', '知识库': 'Library', '— 示例盘 —': '— Samples —',
     '名人': 'People', '名人库': 'Gallery', '名人人类图 · 观己': 'Famous Charts · Human Design · GuanJi',
     '流日': 'Transit', '流日曼陀罗': 'Daily Mandala', '流日曼陀罗 · 观己': 'Daily Transit Mandala · GuanJi',
     '日期时间（公历，留空=此刻）': 'Date & time (Gregorian; empty = now)', '回到此刻': 'Now',

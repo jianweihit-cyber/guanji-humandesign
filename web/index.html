@@ -40,7 +40,8 @@
 </div>
 <script>
 (function(){var s=document.getElementById('splash');if(!s)return;
-  if(sessionStorage.getItem('hd_splash')){s.parentNode.removeChild(s);return;}
+  var force=/[?&]home=1/.test(location.search);   // 「首页」入口强制唤出开屏，无视本会话已看过标记
+  if(!force && sessionStorage.getItem('hd_splash')){s.parentNode.removeChild(s);return;}
   sessionStorage.setItem('hd_splash','1');
   var hide=function(){s.classList.add('gone');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s);},600);};
   var b=document.getElementById('spEnter'); if(b) b.addEventListener('click',hide);
@@ -53,6 +54,7 @@
     <select id="pick" class="adv" title="示例盘"><option value="">— 示例盘 —</option></select>
   </header>
   <div class="tabs">
+    <a class="tab" href="index.html?home=1">首页</a>
     <a class="tab on" href="index.html">排盘</a>
     <a class="tab" href="mandala.html">流日</a>
     <a class="tab" href="history.html">记录</a>
