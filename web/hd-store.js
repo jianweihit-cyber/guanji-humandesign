@@ -41,9 +41,9 @@
 
     // ── 备份/恢复（防丢失安全网；也是换设备/换浏览器/换域名的迁移手段）──
     exportJSON() {
-      return JSON.stringify({ app: 'guanji-humandesign', kind: 'charts-backup', schema: SCHEMA, exportedAt: Date.now(), records: read() }, null, 2);
+      return JSON.stringify({ app: 'guanji-humandesign', kind: 'charts-backup', schema: SCHEMA, exportedAt: Date.now(), records: read(), links: lread() }, null, 2);
     },
-    // 导入：按 id 合并去重，已存在则取 updatedAt 较新的一条；返回 {added, updated, total}
+    // 导入：命盘+链接均按 id 合并去重，已存在则取 updatedAt 较新者；写失败抛 write-failed（防谎报成功）
     importJSON(text) {
       let data; try { data = JSON.parse(text); } catch (e) { throw new Error('bad-json'); }
       const incoming = Array.isArray(data) ? data : (data.records || []);
@@ -56,8 +56,21 @@
         if (!old) { byId.set(r.id, r); added++; }
         else if ((r.updatedAt || r.ts || 0) > (old.updatedAt || old.ts || 0)) { byId.set(r.id, r); updated++; }
       }
-      write([...byId.values()]);
-      return { added, updated, total: byId.size };
+      if (!write([...byId.values()])) throw new Error('write-failed');   // 配额满/隐私模式：不谎报成功
+      // 合盘/Penta 链接（旧备份无 links 键自动兼容；守卫用 members 而非 input）
+      let links = 0;
+      const li = Array.isArray(data.links) ? data.links : [];
+      if (li.length) {
+        const lcur = lread(); const lById = new Map(lcur.map(r => [r.id, r]));
+        for (const r of li) {
+          if (!r || !r.id || !Array.isArray(r.members)) continue;
+          const old = lById.get(r.id);
+          if (!old) { lById.set(r.id, r); links++; }
+          else if ((r.updatedAt || r.ts || 0) > (old.updatedAt || old.ts || 0)) { lById.set(r.id, r); }
+        }
+        if (!lwrite([...lById.values()])) throw new Error('write-failed');
+      }
+      return { added, updated, total: byId.size, links };
     },
 
     // 申请「持久化存储」豁免：尽量让浏览器在存储压力/ITP 下不清除本站数据（best-effort）
@@ -69,7 +82,7 @@
     // ── 合盘 / Penta 链接记录 { id, name, kind:'conn'|'penta', members:[{id,name}], ts, v } ──
     linksAll() { return lread().sort((x, y) => (y.ts - x.ts)); },
     getLink(id) { return lread().find(r => r.id === id) || null; },
-    addLink(rec) { const a = lread(); rec.id = 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); rec.ts = Date.now(); rec.v = SCHEMA; a.push(rec); return lwrite(a) ? rec.id : null; },
+    addLink(rec) { const a = lread(); rec.id = 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); rec.ts = Date.now(); rec.updatedAt = rec.ts; rec.v = SCHEMA; a.push(rec); return lwrite(a) ? rec.id : null; },
     removeLink(id) { return lwrite(lread().filter(r => r.id !== id)); },
   };
 })();

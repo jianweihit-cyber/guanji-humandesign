@@ -27,7 +27,7 @@
 </head>
 <body>
 <!-- 开屏页：每会话首次进入展示品牌+当下流日人类图+介绍+CTA；为未来 App 套壳预留品牌开屏 -->
-<div id="splash" aria-hidden="true">
+<div id="splash">
   <div class="sp-in">
     <img src="logo.svg" alt="" />
     <div class="sp-t">观<span>己</span> · 人类图</div>
@@ -40,7 +40,7 @@
 </div>
 <script>
 (function(){var s=document.getElementById('splash');if(!s)return;
-  var force=/[?&]home=1/.test(location.search);   // 「首页」入口强制唤出开屏，无视本会话已看过标记
+  var force=new URLSearchParams(location.search).get('home')==='1';   // 「首页」入口强制唤出开屏（精确匹配，避免 home=10 等误命中）
   if(!force && sessionStorage.getItem('hd_splash')){s.parentNode.removeChild(s);return;}
   sessionStorage.setItem('hd_splash','1');
   var hide=function(){s.classList.add('gone');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s);},600);};
@@ -249,6 +249,8 @@ function glLines(g){ const gl=GL&&GL[g]; if(!gl) return '';
 const CENTER_EN2={Head:'Head',Ajna:'Ajna',Throat:'Throat',G:'G (Identity)',Heart:'Heart (Ego)',Sacral:'Sacral',SolarPlexus:'Solar Plexus',Spleen:'Spleen',Root:'Root'};
 function escClose(e){ if(e.key==='Escape') closeSheet(); }
 function closeSheet(){ if(gjMask){ gjMask.remove(); gjMask=null; navStack=[]; document.removeEventListener('keydown',escClose); } }
+// 自定义内容浮层（重名提示等用）：复用 gj 外壳，返回 .gj-sheet 供调用方 querySelector
+function openSheet(html){ ensureSheet(); navStack=[]; const sheet=gjMask.querySelector('.gj-sheet'); gjMask.querySelector('.gj-back').hidden=true; gjMask.querySelector('.gj-body').innerHTML=html; sheet.scrollTop=0; sheet.style.transform=''; return sheet; }
 function ensureSheet(){
   if(gjMask) return gjMask;
   const mask=document.createElement('div'); mask.className='gj-mask';
@@ -505,15 +507,16 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
   const rec=pid&&window.HDStore?HDStore.get(pid):null;
   if(rec){ fillForm(rec.input);
     if(rec.input.place){ placeLabel=rec.input.place; locq.value=placeLabel; $('placeTag').textContent='🕐 '+rec.input.tz; }
-    if(rec.gender) setSex(rec.gender);
+    if(rec.gender==='M'||rec.gender==='F') setSex(rec.gender);   // 白名单：阻断历史脏数据回灌
     chartSource=rec.source||'';                       // 重开反推记录再保存仍保留标识
     $('sname').value=rec.name==='—'?'':rec.name; run(rec.name); return; }
   if(sp.get('y')&&sp.get('mo')){ // 外部带参直开：?y&mo&d&h&mi&tz&name&sex&src&place（反推页 src=solve / 名人库 src=celeb）
     const src=sp.get('src'); if(src==='solve'||src==='celeb') chartSource=src;
-    fillForm({year:+sp.get('y'),month:+sp.get('mo'),day:+sp.get('d')||1,hour:+sp.get('h')||12,minute:+sp.get('mi')||0,tz:sp.get('tz')||'Asia/Shanghai'});
+    const gv=(k,d)=>sp.get(k)!=null?+sp.get(k):d;   // 存在性判断：午夜 hour=0 不能被 ||12 吞掉
+    fillForm({year:+sp.get('y'),month:+sp.get('mo'),day:gv('d',1),hour:gv('h',12),minute:gv('mi',0),tz:sp.get('tz')||'Asia/Shanghai'});
     if(sp.get('place')){ placeLabel=sp.get('place'); locq.value=placeLabel; $('placeTag').textContent='🕐 '+(sp.get('tz')||'Asia/Shanghai'); } // 名人库带出生地标签，保存时一并保留
     $('sname').value=sp.get('name')||'';
-    if(sp.get('sex')) setSex(sp.get('sex'));
+    const sx=sp.get('sex'); if(sx==='M'||sx==='F') setSex(sx);   // 白名单：防畸形深链污染性别
     run(sp.get('name')||''); return;
   }
   const now=new Date();

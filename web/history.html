@@ -86,15 +86,19 @@ function render(){
       </div>
       <a class="btn-sm" href="index.html?load=${r.id}">打开</a>
       <button class="btn-sm danger del">删除</button>
-    </div>`).join('') || '<p class="muted" style="margin-top:16px">暂无记录，去排盘页生成并保存</p>';
+    </div>`).join('') || (linkRows().length ? '' : '<p class="muted" style="margin-top:16px">暂无记录，去排盘页生成并保存</p>');  // 命盘空但有匹配的合盘/Penta 时不显占位
   renderLinks();
 }
 // 合盘 / Penta 链接记录（带徽标，点开进 connect.html 重排）
+function linkRows(){
+  if(f==='fav') return [];                                  // 链接无收藏，收藏筛选时不计
+  let list=(HDStore.linksAll&&HDStore.linksAll())||[];
+  if(q){ const s=q.toLowerCase(); list=list.filter(r=>(r.name||'').toLowerCase().includes(s)||(r.members||[]).some(m=>(m.name||'').toLowerCase().includes(s))); }
+  return list;
+}
 function renderLinks(){
   const en=window.HDI18N&&HDI18N.lang==='en';
-  let list=(HDStore.linksAll&&HDStore.linksAll())||[];
-  if(f==='fav'){ $('#linklist').innerHTML=''; return; }     // 链接无收藏，收藏筛选时不显示
-  if(q){ const s=q.toLowerCase(); list=list.filter(r=>(r.name||'').toLowerCase().includes(s)||(r.members||[]).some(m=>(m.name||'').toLowerCase().includes(s))); }
+  const list=linkRows();
   $('#linklist').innerHTML = list.length
     ? `<div class="cnt">${en?'Connections / Pentas':'合盘 / Penta'} · ${list.length}</div>`+list.map(r=>`
       <div class="rec" data-lid="${r.id}">
@@ -132,9 +136,9 @@ $('#importFile').onchange=async e=>{
   const file=e.target.files[0]; if(!file)return;
   try{
     const r=HDStore.importJSON(await file.text());
-    alert(tr('已恢复')+`：+${r.added} ${tr('新增')} / ${r.updated} ${tr('更新')}（${tr('共')} ${r.total}）`);
+    alert(tr('已恢复')+`：+${r.added} ${tr('新增')} / ${r.updated} ${tr('更新')}${r.links?` · +${r.links} ${EN?'links':'合盘/Penta'}`:''}（${tr('共')} ${r.total}）`);
     render();
-  }catch(err){ alert(tr('导入失败：文件格式不正确')); }
+  }catch(err){ alert(err&&err.message==='write-failed' ? (EN?'Storage write failed (full / private mode). Nothing saved — keep your backup file.':'存储写入失败（空间不足/隐私模式），数据未保存，请勿删除备份文件') : tr('导入失败：文件格式不正确')); }
   e.target.value='';
 };
 // 申请持久化存储 + 风险提示（未授予时告知用户做备份）

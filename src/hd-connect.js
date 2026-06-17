@@ -95,11 +95,12 @@ export const PENTA_INTRO = {
   en: 'A Penta is the energy field of a 3–5 person group (the BG5 model). It looks only at the 12 gates and 6 functional channels along the Throat–G–Sacral column. For the team to run smoothly, each of these six functions is best “carried” by someone. A gate no one carries is a “gap” — where the group tends to stall and needs conscious covering. A Penta is not a simple stack of individual charts, but the group seen as one whole.',
 };
 
-export function penta(charts) { // charts: [{name, chart}]
+export function penta(charts) { // charts: [{id?, name, chart}]；carriers 存 id(无则回退 name)，避免同名成员折叠
   const carriers = {}; for (const g of PENTA_GATES) carriers[g] = [];
   for (const m of charts) {
     const gs = unionGates(m.chart);
-    for (const g of PENTA_GATES) if (gs.has(g)) carriers[g].push(m.name);
+    const tag = m.id != null ? m.id : m.name;
+    for (const g of PENTA_GATES) if (gs.has(g)) carriers[g].push(tag);
   }
   const channels = PENTA_CHANNELS.map(ch => {
     const [gA, gB] = ch.gates;

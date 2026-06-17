@@ -80,11 +80,14 @@ const CATS = [
 const TYPES = [
   { k: 'all', zh: '全部类型', en: 'All types' },
   { k: 'Generator', zh: '生产者', en: 'Generator' },
-  { k: 'Manifesting Generator', zh: '显示生产者', en: 'Manifesting Generator' },
+  { k: 'Manifesting Generator', zh: '显化生产者', en: 'Manifesting Generator' },
   { k: 'Manifestor', zh: '显示者', en: 'Manifestor' },
   { k: 'Projector', zh: '投射者', en: 'Projector' },
   { k: 'Reflector', zh: '反映者', en: 'Reflector' },
 ];
+
+// 权威英文名（修驼峰内部值泄露：SelfProjected/Mental）
+const AUTH_EN = { SelfProjected: 'Self-Projected Authority', Mental: 'Mental (Environment)' };
 
 let state = { cat: 'all', type: 'all', q: '' };
 

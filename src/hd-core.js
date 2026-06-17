@@ -29,10 +29,10 @@ export function longitudeToGateLine(lon) {
 
 // 一层 13 天体黄经 → 激活数组
 export function buildActivations(bodies) {
-  return PLANETS.map(({ key, glyph, zh }) => {
+  return PLANETS.map(({ key, glyph, zh, en }) => {
     const { lon } = bodies[key];
     const gl = longitudeToGateLine(lon);
-    return { planet: key, glyph, zh, lon, ...gl };
+    return { planet: key, glyph, zh, en, lon, ...gl };   // 带出 en，供 EN 模式行星名（North Node/South Node）
   });
 }
 

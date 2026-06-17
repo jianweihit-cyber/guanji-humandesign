@@ -285,7 +285,7 @@ async function run(dt){
 const gtip=document.createElement('div'); gtip.className='gtip'; gtip.hidden=true; document.body.appendChild(gtip);
 function gateTipHTML(g){
   const v=GATES_KB[g]||{}, i=GATE_ORDER.indexOf(+g);
-  const lon=((WHEEL_START+i*GATE_ARC)%360+360)%360, s=Math.floor(lon/30);
+  const lon=((WHEEL_START+i*GATE_ARC+GATE_ARC/2)%360+360)%360, s=Math.floor(lon/30);   // 用闸门中点定星座，与轮盘绘制一致（修交界门错指）
   const nm=ENM?(v.nameEn||v.name||''):(v.name||'');
   const sign=ENM?SIGNS_EN[s]:SIGNS[s];
   const iching=ENM?(v.iching||''):((v.hex?v.hex+'卦':'')+(v.iching?' · '+v.iching:''));
