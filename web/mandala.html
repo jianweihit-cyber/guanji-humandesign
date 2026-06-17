@@ -20,8 +20,9 @@
   .ptable{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:13px}
   .ptable th,.ptable td{padding:5px 8px;border-bottom:1px solid #F3ECDF;text-align:left}
   .ptable th{background:#FAF5EA;color:var(--sub);font-weight:600}
-  .ptable td a{color:var(--li);text-decoration:none}
-  .ptable .pl{color:var(--cinnabar);font-weight:650;font-variant-numeric:tabular-nums}
+  .ptable td a{color:var(--ink);text-decoration:none;cursor:pointer}
+  .ptable td[data-gate]{cursor:pointer}
+  .ptable .pl{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums}
   .daterow{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:4px}
   .daterow #dt{height:40px;box-sizing:border-box}
   .daterow #now{height:40px;box-sizing:border-box;align-self:flex-end}
@@ -37,9 +38,13 @@
   .wheel-legend .lg i{width:18px;height:0;display:inline-block;border-top:2.6px solid #ccc}
   .wheel-legend .lg i.band{height:9px;width:20px;border:none;border-radius:4px;opacity:.55}
   .wheel-legend .lg i.dash{border-top:1.4px dashed #b7a98c}
-  .tgraph-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
-  .tg-title{font-size:14px;font-weight:700;color:var(--li);text-align:center}
-  .tgraph-box svg{width:100%;max-width:300px;height:auto;display:block;margin:8px auto 0}
+  .m-graph,.m-table{align-self:stretch}              /* 左右两展示框等高，便于截图 */
+  .tgraph-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column}
+  .tg-title{font-size:14px;font-weight:700;color:var(--li);text-align:center;flex:none}
+  .tgraph-box svg{width:100%;max-width:300px;height:auto;display:block;margin:auto}  /* 卡片更高时图垂直居中 */
+  .m-table{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;justify-content:center}
+  .m-table .ptable{border:none;background:transparent;font-size:13px}
+  .m-table .ptable th{background:transparent}
   .tg-note{font-size:11.5px;text-align:center;margin-top:6px}
 </style>
 </head>
@@ -91,7 +96,7 @@
 <script src="hd-render.js"></script>
 <script type="module">
 import { generateChart } from '/src/chart.js';
-import { WHEEL_START, GATE_ARC, GATE_ORDER, PLANETS } from '/src/hd-data.js';
+import { WHEEL_START, GATE_ARC, GATE_ORDER, PLANETS, CHANNELS } from '/src/hd-data.js';
 import { GATES_KB } from '/src/hd-knowledge.js';
 import { GATE_DETAIL } from '/src/hd-deep-kb.js';
 import { GATE_LINES } from '/src/hd-lines.js';
@@ -231,8 +236,8 @@ function drawDaily(c, label){
   const sun=c.personality[0], v=GATES_KB[sun.gate]||{};
   const nm=ENM?(v.nameEn||v.name||''):(v.name||'');
   const lk=lineKW(sun.gate,sun.line), lmz=lineMz(sun.gate,sun.line);
-  const rows=c.personality.map(p=>{ const gv=GATES_KB[p.gate]||{};
-    return `<tr><td>${p.glyph} ${esc(ENM?(p.en||p.planet):p.zh)}</td><td><a href="learn.html#gate:${p.gate}" target="_blank" rel="noopener">${p.gate}</a> <span class="pl">.${p.line}</span></td><td>${esc(ENM?(gv.nameEn||''):(gv.name||''))}</td></tr>`;
+  const rows=c.personality.map((p,idx)=>{ const gv=GATES_KB[p.gate]||{};
+    return `<tr><td data-planet="${idx}">${p.glyph} ${esc(ENM?(p.en||p.planet):p.zh)}</td><td data-gate="${p.gate}"><a href="learn.html#gate:${p.gate}" target="_blank" rel="noopener">${p.gate}</a> <span class="pl">.${p.line}</span></td><td>${esc(ENM?(gv.nameEn||''):(gv.name||''))}</td></tr>`;
   }).join('');
   $('daily').innerHTML=`
     <div class="big">
@@ -248,6 +253,13 @@ function drawDaily(c, label){
     <p class="muted" style="margin-top:8px;font-size:12px">${ENM?'ⓘ Transit (daily) reading — a first-draft GuanJi summary.':'ⓘ 流日解读为观己白话初稿，结合权威资料持续完善。'}</p>`;
 }
 
+// 流日盘 → 只保留个性(黑)层：design 置空，按个性闸门两两成通道重算已定义中心
+function transitChart(c){
+  const pg=new Set(c.personality.map(a=>a.gate));
+  const ch=CHANNELS.filter(x=>pg.has(x.gates[0])&&pg.has(x.gates[1]));
+  const centers=[...new Set(ch.flatMap(x=>x.centers))];
+  return {...c, design:[], definedCenters:centers};
+}
 let busy=false, cur=null;
 async function run(dt){
   if(busy)return; busy=true;
@@ -259,9 +271,10 @@ async function run(dt){
     const c=await generateChart(input); cur=c;
     const label=`${input.year}-${String(input.month).padStart(2,'0')}-${String(input.day).padStart(2,'0')} ${String(input.hour).padStart(2,'0')}:${String(input.minute).padStart(2,'0')} · ${tz}`;
     drawWheel(c); drawDaily(c, label);
-    // 红框区：此刻流日的人类图 bodygraph（高亮当下激活闸门）
+    // 红框区：此刻流日 bodygraph——只显「当下流日」黑色个性闸门（去掉 88°设计的红色层），
+    // 中心按个性闸门两两成通道重算，保持严谨
     const tg=$('tgraph');
-    if(tg && window.HDRender){ try{ HDRender.bodygraph(tg, c); }catch(e){ console.error(e); } }
+    if(tg && window.HDRender){ try{ HDRender.bodygraph(tg, transitChart(c)); }catch(e){ console.error(e); } }
     $('tgTitle').textContent = ENM?'This transit · Bodygraph':'此刻流日 · 人类图';
     $('tgNote').textContent = ENM?'Highlighted gates = energies active in the sky right now; click a gate on the wheel above for its entry.':'高亮闸门＝此刻天空正在激活的能量；点上方轮盘的闸门可查词条。';
     $('status').textContent='';
@@ -314,6 +327,9 @@ function moveTip(e){
 }
 $('wheel').addEventListener('mousemove',moveTip);
 $('wheel').addEventListener('mouseleave',()=>{ gtip.hidden=true; });
+// 行星表：闸门.爻 / 行星 悬停同样出提示（复用 moveTip 委托）
+$('dailyTable').addEventListener('mousemove',moveTip);
+$('dailyTable').addEventListener('mouseleave',()=>{ gtip.hidden=true; });
 // 点击：闸门/卦象 → 该闸门词条；行星 → 其所在闸门词条
 $('wheel').addEventListener('click',e=>{
   const gt=e.target.closest&&e.target.closest('[data-gate]'); if(gt){ window.open('learn.html#gate:'+gt.getAttribute('data-gate'),'_blank','noopener'); return; }
