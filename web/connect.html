@@ -71,6 +71,7 @@
       <div class="field"><label>人 A（墨）</label><select id="selA"></select></div>
       <div class="field"><label>人 B（朱）</label><select id="selB"></select></div>
       <button class="btn" id="goConn">生成合盘</button>
+      <button class="btn ghost" id="connSave" hidden>💾 保存此合盘</button><span class="savemsg" id="connSaveMsg"></span>
     </div>
     <div class="status" id="connSt"></div>
     <div id="connLinks"></div>
@@ -79,7 +80,7 @@
   <div class="form" id="pentaForm" hidden>
     <p class="muted" id="pentaHint" data-noi18n style="margin:6px 2px 0;font-size:13px">勾选 3-5 人（来自「记录」）。Penta 只看 喉咙-G-荐骨 纵列的 6 条通道 / 12 个闸门：小组场域的角色与缺口。</p>
     <div class="plist" id="plist"></div>
-    <div class="pickrow"><button class="btn" id="goPenta">生成 Penta</button><span class="status" id="pcount" data-noi18n></span><span class="status" id="pentaSt"></span></div>
+    <div class="pickrow"><button class="btn" id="goPenta">生成 Penta</button><button class="btn ghost" id="pentaSave" hidden>💾 保存此 Penta</button><span class="status" id="pcount" data-noi18n></span><span class="status" id="pentaSt"></span><span class="savemsg" id="pentaSaveMsg"></span></div>
     <div id="pentaLinks"></div>
   </div>
 
@@ -125,10 +126,13 @@ function updatePentaCount(e){
   $('goPenta').disabled=!ok; $('goPenta').style.opacity=ok?1:.5;
 }
 $('plist').addEventListener('change',updatePentaCount); updatePentaCount(); renderLinks();
+$('connSave').textContent = ENM?'💾 Save this connection':'💾 保存此合盘';
+$('pentaSave').textContent = ENM?'💾 Save this Penta':'💾 保存此 Penta';
 
 $('mode').onclick=e=>{const t=e.target.closest('[data-m]');if(!t)return;
   for(const x of $('mode').children)x.classList.toggle('on',x===t);
-  $('connForm').hidden=t.dataset.m!=='conn'; $('pentaForm').hidden=t.dataset.m!=='penta'; $('out').innerHTML='';};
+  $('connForm').hidden=t.dataset.m!=='conn'; $('pentaForm').hidden=t.dataset.m!=='penta'; $('out').innerHTML='';
+  $('connSave').hidden=true; $('pentaSave').hidden=true;};
 
 const charts={}; // id → chart 缓存
 async function chartOf(id){ if(charts[id])return charts[id]; const r=HDStore.get(id); const c=await generateChart(r.input); charts[id]=c; return c; }
@@ -186,6 +190,7 @@ function openConnLink(rec){ const ok=rec.members.filter(mm=>haveRec(mm.id));
   $('selA').value=ok[0].id; $('selB').value=ok[1].id; $('goConn').click(); }
 function openPentaLink(rec){ const ok=rec.members.filter(mm=>haveRec(mm.id));
   document.querySelectorAll('#plist input').forEach(i=>{ i.checked=ok.some(mm=>mm.id===i.value); });
+  updatePentaCount();  // 同步计数并启用「生成 Penta」按钮
   if(ok.length<3){ $('pentaSt').textContent=ENM?'Some members were deleted from Records':'部分成员已从记录删除'; return; }
   $('goPenta').click(); }
 
@@ -214,8 +219,7 @@ $('goConn').onclick=async()=>{
         return `<span class="chip"><b>${c.key}</b> ${esc(ENM?(c.en||c.zh):c.zh)}${who}</span>`; };
       return `<div class="cat"><h4>${ENM?et:zt}<span class="hint">${ENM?ed:zd}</span></h4><div class="chips">${list.map(chip).join('')}</div></div>`;
     }).join('');
-    $('out').innerHTML=`<div class="savebar"><button class="btn ghost" id="connSave">${ENM?'💾 Save this connection':'💾 保存此合盘'}</button><span class="savemsg" id="connSaveMsg"></span></div>
-      <div class="duo">
+    $('out').innerHTML=`<div class="duo">
       <div class="graph"><svg class="bodygraph" viewBox="0 0 460 665"></svg>
         <div class="legend"><span><span class="dot" style="background:var(--inkline)"></span>${esc(rA.name)}</span>
         <span><span class="dot" style="background:var(--cinnabar)"></span>${esc(rB.name)}</span>
@@ -229,12 +233,14 @@ $('goConn').onclick=async()=>{
         <p class="muted" style="margin-top:10px;font-size:12px">${ENM?'ⓘ Connection reading is a first draft; categories: Companionship / Dominance / Compromise / Electromagnetic.':'ⓘ 合盘解读文案为初稿；分类规则：友谊/主导/妥协/电磁。'}</p>
       </div></div>`;
     HDRender.bodygraph(document.querySelector('#out svg.bodygraph'), fake);
+    $('connSave').hidden=false; $('connSaveMsg').textContent='';
     $('connSave').onclick=()=>saveLink('conn', `${rA.name} + ${rB.name}`, [{id:a,name:rA.name},{id:b,name:rB.name}], `${rA.name} · ${rB.name}`, $('connSaveMsg'));
   }catch(e){ $('connSt').textContent=(ENM?'Failed: ':'生成失败：')+(e.message||e); console.error(e); }
 };
 
 // ── Penta ──
-const PXY={31:[130,76],8:[150,76],33:[170,76],7:[130,146],1:[150,122],13:[170,146],15:[130,168],46:[170,168],2:[150,190],5:[130,272],14:[150,272],29:[170,272]};
+// 三列拉宽布局（每列＝一条上半+一条下半通道），便于多成员彩线清晰铺开
+const PXY={31:[120,58],8:[180,58],33:[240,58], 7:[120,150],1:[180,150],13:[240,150], 15:[120,214],2:[180,214],46:[240,214], 5:[120,306],14:[180,306],29:[240,306]};
 const PCH=[[31,7],[8,1],[33,13],[15,5],[2,14],[46,29]];
 $('goPenta').onclick=async()=>{
   const ids=[...document.querySelectorAll('#plist input:checked')].map(i=>i.value);
@@ -247,25 +253,25 @@ $('goPenta').onclick=async()=>{
   // 成员配色映射 + 取色 + 画线助手
   const memColor=n=>{ const i=members.findIndex(m=>m.name===n); return MEMBER_COLORS[(i<0?0:i)%MEMBER_COLORS.length]; };
   const L=(P,Q,c,w,cap)=>`<line x1="${P[0]}" y1="${P[1]}" x2="${Q[0]}" y2="${Q[1]}" stroke="${c}" stroke-width="${w}" stroke-linecap="${cap||'round'}"/>`;
-  // 纵列 SVG（响应式）：先画三中心底形，再每条通道按「参与成员」画多条平行彩线（每色一人），最后画闸门
-  let svg=`<svg viewBox="0 0 300 340" style="width:100%;max-width:330px;height:auto;display:block">`;
+  // 纵列 SVG（放大加宽，响应式）：三中心底形 → 每条通道浅色底轨 + 每位参与成员一条粗色带(相邻铺开) → 闸门
+  let svg=`<svg viewBox="0 0 360 380" style="width:100%;max-width:460px;height:auto;display:block">`;
   const tD=px.channels.some(c=>c.complete&&['7-31','1-8','13-33'].includes(c.key));
   const sD=px.channels.some(c=>c.complete&&['5-15','2-14','29-46'].includes(c.key));
-  svg+=`<rect x="110" y="20" width="80" height="60" rx="6" fill="${tD?'#EFD75C':'#fff'}" stroke="#D8CFC0"/>`;
-  svg+=`<polygon points="150,112 196,158 150,204 104,158" fill="${(tD||sD)?'#E9C46A':'#fff'}" stroke="#D8CFC0"/>`;
-  svg+=`<rect x="110" y="260" width="80" height="60" rx="6" fill="${sD?'#C03B2D':'#fff'}" stroke="#D8CFC0"/>`;
+  svg+=`<rect x="86" y="26" width="188" height="58" rx="10" fill="${tD?'#EFD75C':'#fff'}" stroke="#D8CFC0"/>`;
+  svg+=`<rect x="86" y="124" width="188" height="116" rx="12" fill="${(tD||sD)?'#E9C46A':'#fff'}" stroke="#D8CFC0"/>`;
+  svg+=`<rect x="86" y="280" width="188" height="58" rx="10" fill="${sD?'#C03B2D':'#fff'}" stroke="#D8CFC0"/>`;
   for(const [a,b] of PCH){ const A=PXY[a],B=PXY[b];
-    svg+=L(A,B,'#E0D4BE',8)+L(A,B,'#FFFFFF',5.4);
+    svg+=L(A,B,'#EAE0CC',3);  // 浅色底轨
     const parts=members.map((m,i)=>({i,a:px.carriers[a].includes(m.name),b:px.carriers[b].includes(m.name)})).filter(p=>p.a||p.b);
-    const k=parts.length, dx=B[0]-A[0],dy=B[1]-A[1],len=Math.hypot(dx,dy)||1, ux=-dy/len, uy=dx/len, gap=3.2;
+    const k=parts.length, dx=B[0]-A[0],dy=B[1]-A[1],len=Math.hypot(dx,dy)||1, ux=-dy/len, uy=dx/len, bw=6, gap=7.5;
     parts.forEach((p,j)=>{ const off=(j-(k-1)/2)*gap;
       const oa=[A[0]+ux*off,A[1]+uy*off], ob=[B[0]+ux*off,B[1]+uy*off], mid=[(oa[0]+ob[0])/2,(oa[1]+ob[1])/2];
       const seg=(p.a&&p.b)?[oa,ob]:p.a?[oa,mid]:[ob,mid];
-      svg+=L(seg[0],seg[1],MEMBER_COLORS[p.i%MEMBER_COLORS.length],2.4); });
+      svg+=L(seg[0],seg[1],MEMBER_COLORS[p.i%MEMBER_COLORS.length],bw); });
   }
   for(const g of PENTA_GATES){ const [x,y]=PXY[g]; const on=px.carriers[g].length>0;
-    if(on) svg+=`<circle cx="${x}" cy="${y}" r="7" fill="var(--inkline,#2B2B26)" stroke="#fff" stroke-width="1"/>`;
-    svg+=`<text x="${x}" y="${y+0.5}" text-anchor="middle" dominant-baseline="middle" font-size="8" font-weight="700" fill="${on?'#fff':'#B3433A'}">${g}</text>`; }
+    if(on) svg+=`<circle cx="${x}" cy="${y}" r="9.5" fill="var(--inkline,#2B2B26)" stroke="#fff" stroke-width="1.4"/>`;
+    svg+=`<text x="${x}" y="${y+0.5}" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" fill="${on?'#fff':'#B3433A'}">${g}</text>`; }
   svg+='</svg>';
   const palette=members.map((m,i)=>`<span class="lg"><span class="sw" style="background:${MEMBER_COLORS[i%MEMBER_COLORS.length]}"></span>${esc(m.name)}</span>`).join('');
   const rows=PENTA_CHANNELS.flatMap(ch=>ch.gates.map(g=>({g, ch, who:px.carriers[g]})));
@@ -276,8 +282,7 @@ $('goPenta').onclick=async()=>{
   const kb=`<div class="pkb"><h4>${ENM?'What a Penta is':'什么是 Penta'}</h4>`
     +`<p class="intro">${esc(ENM?PENTA_INTRO.en:PENTA_INTRO.zh)}</p>`
     +`<h4>${ENM?'The 6 functions':'六大功能'}</h4><div class="fns">${fns}</div></div>`;
-  $('out').innerHTML=`<div class="savebar"><button class="btn ghost" id="pentaSave">${ENM?'💾 Save this Penta':'💾 保存此 Penta'}</button><span class="savemsg" id="pentaSaveMsg"></span></div>
-    <div class="duo"><div class="graph">${svg}
+  $('out').innerHTML=`<div class="duo"><div class="graph">${svg}
       <div class="pcolor">${palette}</div>
       <p class="muted" style="font-size:12px;margin-top:6px">${ENM?'Each colored line = a member in that channel · ink dot = gate held · red number = gap':'每条彩线＝一位成员参与该通道 · 墨点＝有人承载 · 红字＝缺口'}</p></div>
     <div class="side">
@@ -291,6 +296,7 @@ $('goPenta').onclick=async()=>{
       ${kb}
       <p class="muted" style="margin-top:10px;font-size:12px">${ENM?'ⓘ A Penta is a 3–5 person field; 2 is a partnership, 6+ becomes a WA. Role text is a GuanJi first draft.':'ⓘ Penta 为 3-5 人场域；2 人是伴侣连结、6 人及以上成为 WA。角色文案为观己白话初稿。'}</p>
     </div></div>`;
+  $('pentaSave').hidden=false; $('pentaSaveMsg').textContent='';
   $('pentaSave').onclick=()=>saveLink('penta', members.map(m=>abbr(m.name)).join('·'), ids.map((id,i)=>({id,name:members[i].name})), members.map(m=>m.name).join(' · '), $('pentaSaveMsg'));
   }catch(e){ $('pentaSt').textContent=(ENM?'Failed: ':'生成失败：')+(e.message||e); console.error(e); }
 };
@@ -298,6 +304,16 @@ $('goPenta').onclick=async()=>{
 $('pentaHint').textContent = ENM
   ? 'Pick 3–5 people (from Records). Penta looks only at the Throat–G–Sacral column: 6 channels / 12 gates — the roles and gaps of a group field.'
   : '勾选 3-5 人（来自「记录」）。Penta 只看 喉咙-G-荐骨 纵列的 6 条通道 / 12 个闸门：小组场域的角色与缺口。';
+
+// 从「记录」页点开已存合盘/Penta：?openLink=id → 切到对应模式并自动重排
+(function bootLink(){
+  const id=new URLSearchParams(location.search).get('openLink'); if(!id||!window.HDStore)return;
+  const rec=HDStore.getLink(id); if(!rec)return;
+  const isPenta=rec.kind==='penta';
+  [...$('mode').children].forEach(x=>x.classList.toggle('on',x.dataset.m===(isPenta?'penta':'conn')));
+  $('connForm').hidden=isPenta; $('pentaForm').hidden=!isPenta;
+  if(isPenta) openPentaLink(rec); else openConnLink(rec);
+})();
 </script>
 </body>
 </html>

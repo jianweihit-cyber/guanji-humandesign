@@ -48,6 +48,7 @@
   <p class="muted" id="safetynote" style="margin:8px 2px 0;font-size:12px;line-height:1.6"></p>
   <div class="cnt" id="cnt"></div>
   <div id="list"></div>
+  <div id="linklist"></div>
 </div>
 
 <script src="hd-store.js"></script>
@@ -86,7 +87,32 @@ function render(){
       <a class="btn-sm" href="index.html?load=${r.id}">打开</a>
       <button class="btn-sm danger del">删除</button>
     </div>`).join('') || '<p class="muted" style="margin-top:16px">暂无记录，去排盘页生成并保存</p>';
+  renderLinks();
 }
+// 合盘 / Penta 链接记录（带徽标，点开进 connect.html 重排）
+function renderLinks(){
+  const en=window.HDI18N&&HDI18N.lang==='en';
+  let list=(HDStore.linksAll&&HDStore.linksAll())||[];
+  if(f==='fav'){ $('#linklist').innerHTML=''; return; }     // 链接无收藏，收藏筛选时不显示
+  if(q){ const s=q.toLowerCase(); list=list.filter(r=>(r.name||'').toLowerCase().includes(s)||(r.members||[]).some(m=>(m.name||'').toLowerCase().includes(s))); }
+  $('#linklist').innerHTML = list.length
+    ? `<div class="cnt">${en?'Connections / Pentas':'合盘 / Penta'} · ${list.length}</div>`+list.map(r=>`
+      <div class="rec" data-lid="${r.id}">
+        <div class="meta">
+          <div class="n">${esc(r.name)} <span class="srcb">${r.kind==='penta'?'Penta':(en?'Connection':'合盘')}</span></div>
+          <div class="d">${esc((r.members||[]).map(m=>m.name).join(' · '))}</div>
+        </div>
+        <a class="btn-sm" href="connect.html?openLink=${r.id}">${en?'Open':'打开'}</a>
+        <button class="btn-sm danger ldel">${en?'Delete':'删除'}</button>
+      </div>`).join('')
+    : '';
+}
+$('#linklist').onclick=e=>{
+  const row=e.target.closest('.rec'); if(!row)return;
+  if(e.target.closest('.ldel')){ const I=window.HDI18N, m='确定删除？';
+    const msg=I&&I.lang==='en'?(I.EN[m]||m):I&&I.lang==='zh-Hant'?I.s2t(m):m;
+    if(confirm(msg)){ HDStore.removeLink(row.dataset.lid); render(); } }
+};
 $('#q').oninput=()=>{q=$('#q').value.trim();render();};
 $('#filter').onclick=e=>{const t=e.target.closest('[data-f]');if(!t)return;f=t.dataset.f;for(const x of $('#filter').children)x.classList.toggle('on',x===t);render();};
 
