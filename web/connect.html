@@ -260,7 +260,7 @@ $('goPenta').onclick=async()=>{
   const L=(P,Q,c,w,cap)=>`<line x1="${P[0]}" y1="${P[1]}" x2="${Q[0]}" y2="${Q[1]}" stroke="${c}" stroke-width="${w}" stroke-linecap="${cap||'round'}"/>`;
   // 纵列 SVG（放大浑厚）：渐变定义 → 三中心渐变底形 → 每条通道浅底轨 + 每位成员一条粗渐变带(最多5条并排) → 闸门(带投影)
   const defs='<defs>'
-    +MEMBER_COLORS.map((c,i)=>`<linearGradient id="mg${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${MEMBER_LIGHT[i]}"/><stop offset="1" stop-color="${c}"/></linearGradient>`).join('')
+    +MEMBER_COLORS.map((c,i)=>`<linearGradient id="mg${i}" gradientUnits="userSpaceOnUse" x1="0" y1="28" x2="0" y2="352"><stop offset="0" stop-color="${MEMBER_LIGHT[i]}"/><stop offset="1" stop-color="${c}"/></linearGradient>`).join('')
     +`<linearGradient id="cThroat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4E07E"/><stop offset="1" stop-color="#E6C24A"/></linearGradient>`
     +`<linearGradient id="cG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0CE7E"/><stop offset="1" stop-color="#E3B45A"/></linearGradient>`
     +`<linearGradient id="cSac" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D2533F"/><stop offset="1" stop-color="#B0392B"/></linearGradient>`
