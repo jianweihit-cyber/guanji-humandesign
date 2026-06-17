@@ -33,7 +33,9 @@
   .modal-box .mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
   /* Penta 成员色板 + 知识段 */
   .pcolor{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:12.5px}
-  .pcolor .lg{display:inline-flex;align-items:center;gap:6px}
+  .pcolor .lg{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:3px 9px;border-radius:999px;border:1px solid transparent;user-select:none}
+  .pcolor .lg:hover{background:#fff}
+  .pcolor .lg.on{border-color:var(--li);background:#fff;font-weight:600}
   .pcolor .sw{width:22px;height:8px;border-radius:3px;display:inline-block}
   .pkb{margin-top:16px;border-top:1px solid var(--border);padding-top:12px}
   .pkb h4{margin:0 0 6px;font-size:14px}
@@ -266,26 +268,30 @@ $('goPenta').onclick=async()=>{
     +`<linearGradient id="cSac" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D2533F"/><stop offset="1" stop-color="#B0392B"/></linearGradient>`
     +`<filter id="psh" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="1.4" stdDeviation="1.5" flood-color="#3A2A12" flood-opacity="0.16"/></filter>`
     +'</defs>';
-  let svg=`<svg viewBox="0 0 440 400" style="width:100%;max-width:520px;height:auto;display:block">`+defs;
   const tD=px.channels.some(c=>c.complete&&['7-31','1-8','13-33'].includes(c.key));
   const sD=px.channels.some(c=>c.complete&&['5-15','2-14','29-46'].includes(c.key));
-  svg+=`<rect x="92" y="28" width="256" height="58" rx="12" fill="${tD?'url(#cThroat)':'#fff'}" stroke="#D8CFC0"/>`;
-  svg+=`<rect x="92" y="126" width="256" height="128" rx="14" fill="${(tD||sD)?'url(#cG)':'#fff'}" stroke="#D8CFC0"/>`;
-  svg+=`<rect x="92" y="294" width="256" height="58" rx="12" fill="${sD?'url(#cSac)':'#fff'}" stroke="#D8CFC0"/>`;
-  for(const [a,b] of PCH){ const A=PXY[a],B=PXY[b];
-    svg+=L(A,B,'#E7DCC6',4);  // 浅色底轨
-    const parts=members.map((m,i)=>({i,id:m.id,a:px.carriers[a].includes(m.id),b:px.carriers[b].includes(m.id)})).filter(p=>p.a||p.b);
-    const k=parts.length, dx=B[0]-A[0],dy=B[1]-A[1],len=Math.hypot(dx,dy)||1, ux=-dy/len, uy=dx/len, bw=11, gap=13;
-    parts.forEach((p,j)=>{ const off=(j-(k-1)/2)*gap;
-      const oa=[A[0]+ux*off,A[1]+uy*off], ob=[B[0]+ux*off,B[1]+uy*off], mid=[(oa[0]+ob[0])/2,(oa[1]+ob[1])/2];
-      const seg=(p.a&&p.b)?[oa,ob]:p.a?[oa,mid]:[ob,mid];
-      svg+=L(seg[0],seg[1],`url(#mg${p.i%MEMBER_COLORS.length})`,bw); });
-  }
-  for(const g of PENTA_GATES){ const [x,y]=PXY[g]; const on=px.carriers[g].length>0;
-    svg+=`<circle cx="${x}" cy="${y}" r="13" fill="${on?'var(--inkline,#2B2B26)':'#fff'}" stroke="#fff" stroke-width="2" filter="url(#psh)"/>`;
-    svg+=`<text x="${x}" y="${y+0.5}" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="700" fill="${on?'#fff':'#B3433A'}">${g}</text>`; }
-  svg+='</svg>';
-  const palette=members.map((m,i)=>`<span class="lg"><span class="sw" style="background:${MEMBER_COLORS[i%MEMBER_COLORS.length]}"></span>${esc(m.name)}</span>`).join('');
+  // 画 Penta SVG；focus=成员id 时只显该成员的彩带与所承载闸门（图示↔色板联动）
+  const pentaSVG=(focus)=>{
+    let svg=`<svg viewBox="0 0 440 400" style="width:100%;max-width:520px;height:auto;display:block">`+defs;
+    svg+=`<rect x="92" y="28" width="256" height="58" rx="12" fill="${tD?'url(#cThroat)':'#fff'}" stroke="#D8CFC0"/>`;
+    svg+=`<rect x="92" y="126" width="256" height="128" rx="14" fill="${(tD||sD)?'url(#cG)':'#fff'}" stroke="#D8CFC0"/>`;
+    svg+=`<rect x="92" y="294" width="256" height="58" rx="12" fill="${sD?'url(#cSac)':'#fff'}" stroke="#D8CFC0"/>`;
+    for(const [a,b] of PCH){ const A=PXY[a],B=PXY[b];
+      svg+=L(A,B,'#E7DCC6',4);  // 浅色底轨
+      let parts=members.map((m,i)=>({i,id:m.id,a:px.carriers[a].includes(m.id),b:px.carriers[b].includes(m.id)})).filter(p=>p.a||p.b);
+      if(focus!=null) parts=parts.filter(p=>p.id===focus);
+      const k=parts.length, dx=B[0]-A[0],dy=B[1]-A[1],len=Math.hypot(dx,dy)||1, ux=-dy/len, uy=dx/len, bw=11, gap=13;
+      parts.forEach((p,j)=>{ const off=(j-(k-1)/2)*gap;
+        const oa=[A[0]+ux*off,A[1]+uy*off], ob=[B[0]+ux*off,B[1]+uy*off], mid=[(oa[0]+ob[0])/2,(oa[1]+ob[1])/2];
+        const seg=(p.a&&p.b)?[oa,ob]:p.a?[oa,mid]:[ob,mid];
+        svg+=L(seg[0],seg[1],`url(#mg${p.i%MEMBER_COLORS.length})`,bw); });
+    }
+    for(const g of PENTA_GATES){ const [x,y]=PXY[g]; const on=focus!=null?px.carriers[g].includes(focus):px.carriers[g].length>0;
+      svg+=`<circle cx="${x}" cy="${y}" r="13" fill="${on?'var(--inkline,#2B2B26)':'#fff'}" stroke="#fff" stroke-width="2" filter="url(#psh)"/>`;
+      svg+=`<text x="${x}" y="${y+0.5}" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="700" fill="${on?'#fff':'#B3433A'}">${g}</text>`; }
+    svg+='</svg>'; return svg;
+  };
+  const palette=members.map((m,i)=>`<span class="lg" data-mid="${esc(m.id)}"><span class="sw" style="background:${MEMBER_COLORS[i%MEMBER_COLORS.length]}"></span>${esc(m.name)}</span>`).join('');
   const rows=PENTA_CHANNELS.flatMap(ch=>ch.gates.map(g=>({g, ch, who:px.carriers[g]})));
   const sep=ENM?', ':'、', gapWord=ENM?'Gap':'缺口';
   const fns=PENTA_CHANNELS.map(ch=>`<div class="fn"><div class="t">${ch.key} · ${esc(ENM?ch.en:ch.zh)}</div>`
@@ -294,20 +300,31 @@ $('goPenta').onclick=async()=>{
   const kb=`<div class="pkb"><h4>${ENM?'What a Penta is':'什么是 Penta'}</h4>`
     +`<p class="intro">${esc(ENM?PENTA_INTRO.en:PENTA_INTRO.zh)}</p>`
     +`<h4>${ENM?'The 6 functions':'六大功能'}</h4><div class="fns">${fns}</div></div>`;
-  $('out').innerHTML=`<div class="duo"><div class="graph">${svg}
-      <div class="pcolor">${palette}</div>
-      <p class="muted" style="font-size:12px;margin-top:6px">${ENM?'Each colored line = a member in that channel · ink dot = gate held · red number = gap':'每条彩线＝一位成员参与该通道 · 墨点＝有人承载 · 红字＝缺口'}</p></div>
-    <div class="side">
-      <div class="summary" style="grid-template-columns:1fr 1fr">
-        <div class="card"><div class="k">${ENM?'Members':'成员'}</div><div class="v">${px.size}${ENM?'':' 人'}</div></div>
-        <div class="card"><div class="k">${gapWord}</div><div class="v">${px.gaps.length?px.gaps.join(', '):(ENM?'None ✓':'无 ✓')}</div></div>
+  $('out').innerHTML=`<div class="duo">
+      <div class="graph">
+        <div id="pgraph">${pentaSVG(null)}</div>
+        <div class="pcolor">${palette}</div>
+        <p class="muted" style="font-size:12px;margin-top:6px">${ENM?'Tap a name to isolate that member · colored line = a member in the channel · ink dot = gate held · red = gap':'点姓名只看该成员 · 每条彩线＝一位成员 · 墨点＝有人承载 · 红字＝缺口'}</p>
       </div>
-      <table class="pg"><tr><th>${ENM?'Gate':'闸门'}</th><th>${ENM?'Role':'角色'}</th><th>${ENM?'Carried by':'承载成员'}</th></tr>
-      ${rows.map(r=>`<tr><td${r.who.length?'':' class="gap"'}>${r.g} ${esc(ENM?PENTA_GATE_INFO[r.g].en:PENTA_GATE_INFO[r.g].zh)}</td><td>${esc(ENM?(r.ch.rolesEn?r.ch.rolesEn[r.g]:r.ch.roles[r.g]):r.ch.roles[r.g])}<span class="hint" style="color:var(--sub)"> · ${r.ch.key} ${esc(ENM?(r.ch.en||r.ch.zh):r.ch.zh)}</span></td><td>${r.who.length?r.who.map(id=>{const nm=(members.find(m=>m.id===id)||{}).name||id; return `<span style="color:${memColor(id)};font-weight:600">${esc(nm)}</span>`;}).join(sep):`<span style="color:#B3433A">${gapWord}</span>`}</td></tr>`).join('')}
-      </table>
-      ${kb}
-      <p class="muted" style="margin-top:10px;font-size:12px">${ENM?'ⓘ A Penta is a 3–5 person field; 2 is a partnership, 6+ becomes a WA. Role text is a GuanJi first draft.':'ⓘ Penta 为 3-5 人场域；2 人是伴侣连结、6 人及以上成为 WA。角色文案为观己白话初稿。'}</p>
-    </div></div>`;
+      <div class="side">
+        <div class="summary" style="grid-template-columns:1fr 1fr">
+          <div class="card"><div class="k">${ENM?'Members':'成员'}</div><div class="v">${px.size}${ENM?'':' 人'}</div></div>
+          <div class="card"><div class="k">${gapWord}</div><div class="v">${px.gaps.length?px.gaps.join(', '):(ENM?'None ✓':'无 ✓')}</div></div>
+        </div>
+        <table class="pg"><tr><th>${ENM?'Gate':'闸门'}</th><th>${ENM?'Role':'角色'}</th><th>${ENM?'Carried by':'承载成员'}</th></tr>
+        ${rows.map(r=>`<tr><td${r.who.length?'':' class="gap"'}>${r.g} ${esc(ENM?PENTA_GATE_INFO[r.g].en:PENTA_GATE_INFO[r.g].zh)}</td><td>${esc(ENM?(r.ch.rolesEn?r.ch.rolesEn[r.g]:r.ch.roles[r.g]):r.ch.roles[r.g])}<span class="hint" style="color:var(--sub)"> · ${r.ch.key} ${esc(ENM?(r.ch.en||r.ch.zh):r.ch.zh)}</span></td><td>${r.who.length?r.who.map(id=>{const nm=(members.find(m=>m.id===id)||{}).name||id; return `<span style="color:${memColor(id)};font-weight:600">${esc(nm)}</span>`;}).join(sep):`<span style="color:#B3433A">${gapWord}</span>`}</td></tr>`).join('')}
+        </table>
+      </div>
+    </div>
+    ${kb}
+    <p class="muted" style="margin-top:10px;font-size:12px">${ENM?'ⓘ A Penta is a 3–5 person field; 2 is a partnership, 6+ becomes a WA. Role text is a GuanJi first draft.':'ⓘ Penta 为 3-5 人场域；2 人是伴侣连结、6 人及以上成为 WA。角色文案为观己白话初稿。'}</p>`;
+  // 图示↔色板联动：点成员只看该成员，再点恢复全部
+  let pfocus=null;
+  $('out').querySelectorAll('.pcolor .lg[data-mid]').forEach(el=>el.onclick=()=>{
+    const id=el.getAttribute('data-mid'); pfocus=(pfocus===id)?null:id;
+    $('pgraph').innerHTML=pentaSVG(pfocus);
+    $('out').querySelectorAll('.pcolor .lg').forEach(x=>x.classList.toggle('on', x.getAttribute('data-mid')===pfocus));
+  });
   $('pentaSave').hidden=false; $('pentaSaveMsg').textContent='';
   $('pentaSave').onclick=()=>saveLink('penta', members.map(m=>abbr(m.name)).join('·'), ids.map((id,i)=>({id,name:members[i].name})), members.map(m=>m.name).join(' · '), $('pentaSaveMsg'));
   }catch(e){ $('pentaSt').textContent=(ENM?'Failed: ':'生成失败：')+(e.message||e); console.error(e); }
