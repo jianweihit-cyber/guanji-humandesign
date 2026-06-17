@@ -29,6 +29,14 @@
   .gtip .gt-gl{font-size:18px;color:var(--li);margin-right:5px;vertical-align:-2px}
   .gtip .gt-sub{color:var(--sub);margin-top:2px}
   .gtip .gt-here{color:var(--li);margin-top:4px;font-weight:600}
+  .wheel-legend{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:6px;font-size:11.5px;color:var(--sub)}
+  .wheel-legend .lg{display:inline-flex;align-items:center;gap:5px}
+  .wheel-legend .lg i{width:18px;height:0;display:inline-block;border-top:2.6px solid #ccc}
+  .wheel-legend .lg i.dash{border-top:1.4px dashed #b7a98c}
+  .tgraph-box{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+  .tg-title{font-size:13px;font-weight:700;color:var(--li);text-align:center}
+  .tgraph-box svg{width:100%;max-width:272px;height:auto;display:block;margin:6px auto 0}
+  .tg-note{font-size:11.5px;text-align:center;margin-top:6px}
 </style>
 </head>
 <body>
@@ -55,7 +63,15 @@
   </div>
 
   <div class="mandala-wrap">
-    <div class="mandala-svg"><svg id="wheel" viewBox="0 0 500 500" aria-label="mandala"></svg></div>
+    <div class="mandala-svg">
+      <svg id="wheel" viewBox="0 0 500 500" aria-label="mandala"></svg>
+      <div class="wheel-legend" id="wlegend" data-noi18n></div>
+      <div class="tgraph-box">
+        <div class="tg-title" id="tgTitle" data-noi18n></div>
+        <svg id="tgraph" viewBox="0 0 460 665" aria-label="transit bodygraph"></svg>
+        <div class="tg-note muted" id="tgNote" data-noi18n></div>
+      </div>
+    </div>
     <div class="daily" id="daily"></div>
   </div>
 </div>
@@ -64,6 +80,7 @@
 { "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }
 </script>
 <script src="i18n.js"></script>
+<script src="hd-render.js"></script>
 <script type="module">
 import { generateChart } from '/src/chart.js';
 import { WHEEL_START, GATE_ARC, GATE_ORDER, PLANETS } from '/src/hd-data.js';
@@ -126,14 +143,28 @@ function drawWheel(c){
   svg.appendChild(el('circle',{cx,cy,r:R_signO,fill:'#FBF6EE',stroke:'var(--border)','stroke-width':1}));
   svg.appendChild(el('circle',{cx,cy,r:R_gateO,fill:'#fff',stroke:'var(--border)','stroke-width':1}));
   svg.appendChild(el('circle',{cx,cy,r:R_gateI,fill:'#fff',stroke:'var(--border)','stroke-width':1}));
-  // 对宫连线（活跃闸门 ↔ 其 180° 对宫；淡虚线，画在底层，直观看出能量轴）
+  // 对宫连线：日↔地(金)、北交↔南交(青) 专属色加粗实线；其余对宫淡虚线，直观看出能量轴
+  const byGlyph=gl=>c.personality.find(p=>p.glyph===gl);
+  const sunP=c.personality[0], earthP=byGlyph('⨁'), nnP=byGlyph('☊'), snP=byGlyph('☋');
+  const special=new Set([sunP,earthP,nnP,snP].filter(Boolean).map(p=>p.gate));
+  const gMid=g=>{ const i=GATE_ORDER.indexOf(g); return WHEEL_START+i*GATE_ARC+GATE_ARC/2; };
   const drawnPair=new Set();
   for(const p of c.personality){
-    const i=GATE_ORDER.indexOf(p.gate), Lm=WHEEL_START+i*GATE_ARC+GATE_ARC/2, opp=(Lm+180)%360;
-    const k=Math.min(Lm%360,opp).toFixed(1); if(drawnPair.has(k))continue; drawnPair.add(k);
+    if(special.has(p.gate)) continue;                 // 日地/交点轴另用专属色，跳过
+    const Lm=gMid(p.gate), opp=(Lm+180)%360, k=Math.min(Lm%360,opp).toFixed(1);
+    if(drawnPair.has(k))continue; drawnPair.add(k);
     const [ax,ay]=pt(Lm,R_gateI-3),[bx,by]=pt(opp,R_gateI-3);
-    svg.appendChild(el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:'rgba(168,50,31,.15)','stroke-width':0.7,'stroke-dasharray':'3 3'}));
+    svg.appendChild(el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:'rgba(140,120,90,.16)','stroke-width':0.7,'stroke-dasharray':'3 3'}));
   }
+  const axisLine=(a,b,color)=>{ if(!a||!b)return; const [ax,ay]=pt(gMid(a.gate),R_gateI-3),[bx,by]=pt(gMid(b.gate),R_gateI-3);
+    svg.appendChild(el('line',{x1:ax,y1:ay,x2:bx,y2:by,stroke:color,'stroke-width':1.7,'stroke-linecap':'round',opacity:.9})); };
+  axisLine(sunP,earthP,'#D9A441');   // 日 ↔ 地：金
+  axisLine(nnP,snP,'#4E8C86');       // 北交 ↔ 南交：青
+  // 图例
+  $('wlegend').innerHTML =
+     `<span class="lg"><i style="border-top-color:#D9A441"></i>${ENM?'Sun–Earth axis':'日–地轴'}</span>`
+    +`<span class="lg"><i style="border-top-color:#4E8C86"></i>${ENM?'Nodal axis':'交点轴'}</span>`
+    +`<span class="lg"><i class="dash"></i>${ENM?'opposite gates':'对宫'}</span>`;
   // 64 闸门扇区 + 编号 + 外圈卦象
   for(let i=0;i<64;i++){
     const g=GATE_ORDER[i], L0=WHEEL_START+i*GATE_ARC, Lm=L0+GATE_ARC/2, on=activeG.has(g);
@@ -217,6 +248,11 @@ async function run(dt){
     const c=await generateChart(input); cur=c;
     const label=`${input.year}-${String(input.month).padStart(2,'0')}-${String(input.day).padStart(2,'0')} ${String(input.hour).padStart(2,'0')}:${String(input.minute).padStart(2,'0')} · ${tz}`;
     drawWheel(c); drawDaily(c, label);
+    // 红框区：此刻流日的人类图 bodygraph（高亮当下激活闸门）
+    const tg=$('tgraph');
+    if(tg && window.HDRender){ try{ HDRender.bodygraph(tg, c); }catch(e){ console.error(e); } }
+    $('tgTitle').textContent = ENM?'This transit · Bodygraph':'此刻流日 · 人类图';
+    $('tgNote').textContent = ENM?'Highlighted gates = energies active in the sky right now; click a gate on the wheel above for its entry.':'高亮闸门＝此刻天空正在激活的能量；点上方轮盘的闸门可查词条。';
     $('status').textContent='';
   }catch(e){ $('status').textContent=(ENM?'Error: ':'出错：')+(e.message||e); console.error(e); }
   busy=false;
