@@ -2,7 +2,7 @@
    纯 fetch、无外部依赖。鉴权用 Authorization 头（非 cookie），跨域安全。
    后端：自有子域 cloud.zaiyuxingzhe.com（CNAME→guanji-cloud.fly.dev，Pocketbase v0.39）。 */
 (function(){
-  var BASE = 'https://guanji-humandesign-cloud.fly.dev'; // 人类图后端(上自有子域后改为 https://cloud-hd.zaiyuxingzhe.com)
+  var BASE = 'https://cloud-hd.zaiyuxingzhe.com'; // 人类图后端(自有子域，已通)
   var AUTH_KEY = 'gc_auth';   // {token, user:{id,email,verified,tier,name}}
   var st = null;
   try { st = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch(e){}

@@ -30,6 +30,9 @@
     remove(id) { return write(read().filter(r => r.id !== id)); },
     toggleFav(id) { const a = read(); const r = a.find(x => x.id === id); if (r) { r.fav = !r.fav; r.updatedAt = Date.now(); write(a); } return r && r.fav; },
     count() { return read().length; },
+    // 批量写回（云同步拉回合并后整体落地；写失败返回 false 不谎报）
+    replaceAll(arr) { return write(Array.isArray(arr) ? arr : []); },
+    replaceLinks(arr) { return lwrite(Array.isArray(arr) ? arr : []); },
     summarize(c) { // 从完整 chart 提摘要（供搜索：闸门/类型/角色/通道）
       return {
         type: c.type, typeZh: c.typeZh, profile: c.profile.str,

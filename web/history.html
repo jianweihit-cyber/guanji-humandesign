@@ -36,6 +36,7 @@
     <a class="tab" href="celebs.html">名人</a>
   </div>
 
+  <div id="hd-acct"></div>
   <input id="q" class="kb-search" placeholder="搜索：姓名 / 闸门号 / 类型 / 角色 / 通道…" />
   <div class="tabs" id="filter">
     <span class="tab on" data-f="all">全部</span>
@@ -53,6 +54,9 @@
 
 <script src="hd-store.js"></script>
 <script src="i18n.js"></script>
+<script src="nickpool.js"></script>
+<script src="hd-cloud.js"></script>
+<script src="hd-account.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -157,6 +161,7 @@ $('#list').onclick=e=>{
     if(confirm(msg)){ HDStore.remove(id); render(); }
   }
 };
+window.HDRerender=render;   // 云同步拉回后让 hd-account.js 触发本页重渲染
 render();
 </script>
 </body>
