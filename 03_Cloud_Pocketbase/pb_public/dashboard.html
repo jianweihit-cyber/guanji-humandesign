@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>观己 · 运营总览</title>
+<style>
+  :root{--paper:#F6F0E2;--card:#FCFAF4;--ink:#2E2B26;--soft:#6B6557;--seal:#A6392C;--line:rgba(46,43,38,.14);--ok:#3a7d44;--blue:#4C6E7D;--gold:#C49A3A;}
+  @media (prefers-color-scheme:dark){:root{--paper:#1c1b17;--card:#262420;--ink:#ECE6D8;--soft:#9b948a;--seal:#C66A52;--line:rgba(236,230,216,.15);--ok:#7fc98a;}}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.7 "PingFang SC","Noto Sans SC",-apple-system,system-ui,sans-serif;}
+  .wrap{max-width:840px;margin:0 auto;padding:34px 20px 80px;}
+  h1{font-size:24px;letter-spacing:2px;margin:0 0 2px;font-weight:600;}
+  .sub{color:var(--soft);font-size:13px;margin-bottom:26px;}
+  .seal-dot{color:var(--seal);}
+  /* 登录 */
+  .login{max-width:380px;margin:40px auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 22px;}
+  .login h2{font-size:18px;margin:0 0 4px;letter-spacing:1px;}
+  .login p{color:var(--soft);font-size:12.5px;margin:0 0 18px;}
+  input{width:100%;padding:11px 13px;margin-bottom:11px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:14px;font-family:inherit;}
+  input:focus{outline:none;border-color:var(--seal);}
+  button{font-family:inherit;cursor:pointer;}
+  .btn{width:100%;padding:11px;border:none;border-radius:10px;background:var(--ink);color:var(--paper);font-size:15px;letter-spacing:2px;}
+  .btn:disabled{opacity:.55;}
+  .err{color:var(--seal);font-size:12.5px;min-height:16px;margin-top:4px;}
+  /* 看板 */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+  .seg{display:inline-flex;gap:5px;flex-wrap:wrap;}
+  .seg button{padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--soft);font-size:13px;}
+  .seg button.on{background:var(--seal);color:#fff;border-color:var(--seal);}
+  .lk{background:none;border:none;color:var(--soft);font-size:12.5px;text-decoration:underline;padding:0;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:8px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;}
+  .card .n{font-size:30px;font-weight:600;letter-spacing:.5px;line-height:1.1;}
+  .card .l{color:var(--soft);font-size:12.5px;margin-top:5px;}
+  .card .d{color:var(--ok);font-size:12px;margin-top:3px;}
+  .sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:14px;}
+  .sec h3{font-size:14px;margin:0 0 12px;color:var(--soft);font-weight:600;letter-spacing:1px;}
+  .bar{display:flex;align-items:center;gap:10px;margin:9px 0;font-size:13.5px;}
+  .bar .tag{width:64px;flex:none;}
+  .bar .track{flex:1;height:10px;background:var(--paper);border-radius:6px;overflow:hidden;}
+  .bar .fill{height:100%;border-radius:6px;}
+  .bar .v{width:54px;flex:none;text-align:right;color:var(--soft);}
+  .note{color:var(--soft);font-size:12px;margin-top:22px;line-height:1.7;border-top:1px solid var(--line);padding-top:14px;}
+  .hide{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>观己 <span class="seal-dot">·</span> 运营总览</h1>
+  <div class="sub">GuanJi Cloud · Overview　|　仅聚合统计，不含任何个人生辰隐私</div>
+
+  <!-- 登录 -->
+  <div class="login" id="login">
+    <h2>超管登录</h2>
+    <p>请输入后台超级管理员邮箱与密码（与 /_/ 后台同一账号）。</p>
+    <input id="em" type="email" placeholder="超管邮箱" autocomplete="username">
+    <input id="pw" type="password" placeholder="密码" autocomplete="current-password">
+    <button class="btn" id="loginBtn" onclick="doLogin()">登 录</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <!-- 看板 -->
+  <div id="board" class="hide">
+    <div class="topbar">
+      <div class="seg" id="rangeSeg">
+        <button data-d="7">近 7 天</button>
+        <button data-d="30" class="on">近 30 天</button>
+        <button data-d="90">近 90 天</button>
+        <button data-d="0">全部</button>
+      </div>
+      <div><button class="lk" onclick="loadAll()">刷新</button>　<button class="lk" onclick="logout()">退出</button></div>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div class="sec">
+      <h3>会员档位分布</h3>
+      <div id="tiers"></div>
+    </div>
+    <div class="sec">
+      <h3>区间新增（按所选时间段）</h3>
+      <div class="cards" id="growth" style="margin:0"></div>
+    </div>
+    <div class="sec">
+      <h3>临期 / 已过期会员（有效期 ≤ 14 天，及时续期 / 联系）</h3>
+      <div id="expiring"></div>
+    </div>
+    <div class="sec">
+      <h3>最近操作审计（注册 / 验证 / 档位 / 邮箱变更）</h3>
+      <div id="audit"></div>
+    </div>
+    <div class="note">
+      本看板只读取<b>聚合数量</b>（用户数、记录数、档位、验证率、区间新增），<b>不展示任何用户的姓名、生辰、八字等个人信息</b>，符合「仅本人可见」的隐私承诺。<br>
+      如需对个别记录排错，请用后台 <b>Collections → charts</b>（含四柱八字与生辰，可读）。
+    </div>
+  </div>
+</div>
+
+<script>
+var TOKEN=null;
+try{ TOKEN=sessionStorage.getItem('gc_dash_tok')||null; }catch(e){}
+var RANGE=30;
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+function api(path){
+  return fetch(path, {headers: TOKEN?{'Authorization':TOKEN}:{}}).then(function(r){
+    if(r.status===401||r.status===403){ TOKEN=null; throw new Error('unauth'); }
+    return r.json();
+  });
+}
+function countOf(coll, filter){
+  var q='/api/collections/'+coll+'/records?page=1&perPage=1';
+  if(filter) q+='&filter='+encodeURIComponent(filter);
+  return api(q).then(function(j){ return (j&&j.totalItems)||0; }).catch(function(){ return '—'; });
+}
+function cutoffISO(days){
+  if(!days) return null;
+  var t=Date.now()-days*86400000;
+  return new Date(t).toISOString().replace('T',' '); // PB datetime 比较
+}
+
+async function doLogin(){
+  var em=document.getElementById('em').value.trim(), pw=document.getElementById('pw').value;
+  var btn=document.getElementById('loginBtn'), err=document.getElementById('err');
+  if(!em||!pw){ err.textContent='请输入邮箱和密码'; return; }
+  btn.disabled=true; btn.textContent='登录中…'; err.textContent='';
+  try{
+    var r=await fetch('/api/collections/_superusers/auth-with-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identity:em,password:pw})});
+    var j=await r.json();
+    if(!r.ok||!j.token){ throw new Error((j&&j.message)||'登录失败'); }
+    TOKEN=j.token; try{ sessionStorage.setItem('gc_dash_tok',TOKEN); }catch(e){}
+    showBoard();
+  }catch(e){ err.textContent='登录失败：邮箱或密码不正确'; }
+  btn.disabled=false; btn.textContent='登 录';
+}
+function logout(){ TOKEN=null; try{ sessionStorage.removeItem('gc_dash_tok'); }catch(e){} document.getElementById('board').classList.add('hide'); document.getElementById('login').classList.remove('hide'); }
+function showBoard(){ document.getElementById('login').classList.add('hide'); document.getElementById('board').classList.remove('hide'); loadAll(); }
+
+async function loadAll(){
+  // 顶部总览
+  var users=await countOf('users');
+  var charts=await countOf('charts','deleted=false');
+  var verified=await countOf('users','verified=true');
+  var vRate=(typeof users==='number'&&users>0&&typeof verified==='number')?Math.round(verified/users*100)+'%':'—';
+  document.getElementById('cards').innerHTML=
+    card(users,'注册用户')+card(charts,'云端记录（条）')+card(verified,'已验证邮箱',vRate+' 验证率')+card(perUser(users,charts),'人均记录');
+  // 档位分布
+  var free=await countOf('users','tier="free"'), pro=await countOf('users','tier="pro"'), vip=await countOf('users','tier="vip"');
+  var max=Math.max(free||0,pro||0,vip||0,1);
+  document.getElementById('tiers').innerHTML=
+    barRow('免费 free',free,max,'var(--soft)')+barRow('Pro',pro,max,'var(--blue)')+barRow('VIP',vip,max,'var(--gold)');
+  // 区间新增
+  var co=cutoffISO(RANGE), f=co?('created>="'+co+'"'):'';
+  var nu=await countOf('users',f), nc=await countOf('charts',(f?f+' && ':'')+'deleted=false');
+  var label=RANGE?('近 '+RANGE+' 天'):'全部';
+  document.getElementById('growth').innerHTML=card(nu,'新增用户 · '+label)+card(nc,'新增记录 · '+label);
+  // 审计：最近策略调整
+  try{
+    var au=await api('/api/collections/audit/records?perPage=12&sort=-at');
+    var items=(au&&au.items)||[];
+    var ACT={user_create:'注册',tier_change:'档位',email_change:'邮箱',verify:'验证',unverify:'撤销验证'};
+    document.getElementById('audit').innerHTML = items.length
+      ? items.map(function(r){ var tag=ACT[r.action]||esc(r.action||'操作'); return '<div class="bar" style="justify-content:space-between;gap:12px"><span><span class="rp-tag" style="display:inline-block;min-width:46px;text-align:center;padding:1px 7px;border-radius:7px;background:var(--paper);color:var(--soft);font-size:11.5px;margin-right:7px">'+tag+'</span><b>'+esc(r.detail||'')+'</b> · '+esc(r.target||'')+(r.by?('　<span style="color:var(--soft)">by '+esc(r.by)+'</span>'):'')+'</span><span class="v" style="width:auto;color:var(--soft)">'+esc(String(r.at||'').replace('T',' ').slice(0,16))+'</span></div>'; }).join('')
+      : '<div style="color:var(--soft);font-size:13px">暂无操作记录（用户注册、邮箱验证、或你在后台改某人 tier/邮箱后，这里会留痕：类型·谁·把谁·从什么→什么·何时）。</div>';
+  }catch(e){ document.getElementById('audit').innerHTML='<div style="color:var(--soft);font-size:13px">审计读取失败</div>'; }
+  // 临期/已过期会员（tier≠free 且 activeTo ≤ 今天+14天）
+  try{
+    var soon=new Date(Date.now()+14*86400000).toISOString().replace('T',' ');
+    var ex=await api('/api/collections/users/records?perPage=50&sort=activeTo&filter='+encodeURIComponent('tier!="free" && activeTo!="" && activeTo<="'+soon+'"'));
+    var its=(ex&&ex.items)||[];
+    document.getElementById('expiring').innerHTML = its.length
+      ? its.map(function(u){
+          var at=String(u.activeTo||'').slice(0,10);
+          var dl=at?Math.ceil((new Date(at+'T23:59:59').getTime()-Date.now())/86400000):null;
+          var expd=(dl!=null&&dl<0), col=(expd||dl<=7)?'var(--seal)':'var(--gold)';
+          var stx=expd?'已过期':(dl+' 天');
+          return '<div class="bar" style="justify-content:space-between;gap:12px"><span><span style="display:inline-block;min-width:42px;text-align:center;padding:1px 7px;border-radius:7px;background:var(--paper);color:'+col+';font-size:11.5px;margin-right:7px">'+esc(String(u.tier||'').toUpperCase())+'</span><b>'+esc(u.email||u.id)+'</b> · 至 '+esc(at)+'</span><span class="v" style="width:auto;color:'+col+'">'+stx+'</span></div>';
+        }).join('')
+      : '<div style="color:var(--soft);font-size:13px">14 天内暂无临期会员 🎉</div>';
+  }catch(e){ document.getElementById('expiring').innerHTML='<div style="color:var(--soft);font-size:13px">临期会员读取失败（确认 users 已有 activeTo 字段）</div>'; }
+}
+function card(n,l,d){ return '<div class="card"><div class="n">'+n+'</div><div class="l">'+l+'</div>'+(d?'<div class="d">'+d+'</div>':'')+'</div>'; }
+function barRow(tag,v,max,c){ var w=(typeof v==='number')?Math.max(2,Math.round(v/max*100)):0; return '<div class="bar"><span class="tag">'+tag+'</span><span class="track"><span class="fill" style="width:'+w+'%;background:'+c+'"></span></span><span class="v">'+v+'</span></div>'; }
+function perUser(u,c){ return (typeof u==='number'&&u>0&&typeof c==='number')?(Math.round(c/u*10)/10):'—'; }
+
+document.getElementById('rangeSeg').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  RANGE=+b.dataset.d;
+  Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){ x.classList.toggle('on',x===b); });
+  loadAll();
+});
+// 已有 token 直接进看板
+if(TOKEN){ showBoard(); }
+</script>
+</body>
+</html>

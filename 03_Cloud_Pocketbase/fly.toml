@@ -1,0 +1,21 @@
+# 观己·人类图 云端后端（PocketBase）。部署：cd 本目录 && fly deploy --ha=false --yes --depot=false
+# 独立后端 app，与人类图静态站 guanji-humandesign 分离。
+app = "guanji-humandesign-cloud"
+primary_region = "sin"
+
+[build]
+
+[mounts]
+  source = "pb_data"
+  destination = "/pb/pb_data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
