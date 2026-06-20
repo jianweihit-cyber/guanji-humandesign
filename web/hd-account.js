@@ -79,7 +79,7 @@
       if (mb.tier === 'free') memHtml = '<i style="font-style:normal;color:#6B5B43">' + T('免费版', 'Free', '免費版') + '</i>';
       else { var tn = (mb.tier === 'vip' ? 'VIP' : mb.tier === 'pro' ? 'Pro' : mb.tier);
         if (mb.expired) memHtml = '<i style="font-style:normal;color:#c0392b">' + tn + ' · ' + T('已过期', 'expired', '已過期') + '</i>' + renewLink;
-        else { memHtml = '<i style="font-style:normal;color:#3a7d44">' + tn + (mb.daysLeft != null ? ' · ' + (ENM ? (mb.daysLeft + 'd left') : ('剩 ' + mb.daysLeft + ' 天')) : '') + '</i>'; if (mb.daysLeft != null && mb.daysLeft <= 30) memHtml += renewLink; }
+        else { memHtml = '<i style="font-style:normal;color:#3a7d44">' + tn + (mb.daysLeft != null ? ' · ' + T('剩 ' + mb.daysLeft + ' 天', mb.daysLeft + ' days left', '剩 ' + mb.daysLeft + ' 天') : '') + '</i>'; if (mb.daysLeft != null && mb.daysLeft <= 30) memHtml += renewLink; }
       }
       var syncSub = GC.syncOn() ? T('已开 · 记录自动备份、跨设备恢复', 'On · auto backup & cross-device restore', '已開 · 記錄自動備份、跨裝置恢復')
         : (vr ? T('已关 · 仅存本机', 'Off · local only', '已關 · 僅存本機') : T('需先完成邮箱验证才能开启', 'Verify your email to enable', '需先完成信箱驗證才能開啟'));
