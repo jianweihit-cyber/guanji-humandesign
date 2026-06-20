@@ -42,6 +42,7 @@
     <span class="tab on" data-f="all">全部</span>
     <span class="tab" data-f="fav">★ 收藏</span>
     <span style="flex:1"></span>
+    <a class="btn-sm" id="celebBtn" href="celebs.html" data-noi18n>🌟 名人盘</a>
     <button class="btn-sm" id="exportBtn" title="导出备份">⤓ 导出备份</button>
     <button class="btn-sm" id="importBtn" title="导入恢复">⤒ 导入恢复</button>
     <input type="file" id="importFile" accept="application/json,.json" hidden />
@@ -135,6 +136,7 @@ const tagLbl=o=>EN?o.en:(I&&I.lang==='zh-Hant'?o.tw:o.zh);
 const tagLblByKey=k=>{const o=HDTAGS.find(x=>x.k===k);return o?tagLbl(o):k;};
 (function buildTagFilters(){ const bar=$('#filter'); const sp=bar.querySelector('span[style*="flex"]');
   HDTAGS.forEach(o=>{ const el=document.createElement('span'); el.className='tab'; el.dataset.f=o.k; el.textContent=tagLbl(o); bar.insertBefore(el, sp); }); })();
+(function(){ const b=$('#celebBtn'); if(b) b.textContent=EN?'🌟 Celebrities':(I&&I.lang==='zh-Hant'?'🌟 名人盤':'🌟 名人盘'); })();
 $('#exportBtn').onclick=()=>{
   const blob=new Blob([HDStore.exportJSON()],{type:'application/json'});
   const a=document.createElement('a');

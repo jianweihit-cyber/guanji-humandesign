@@ -10,6 +10,8 @@
   const navLang = nav.startsWith('zh') ? (/^zh-(tw|hk|mo|hant)/.test(nav) ? 'zh-Hant' : 'zh-Hans') : 'en';
   const lang = (['zh-Hans', 'zh-Hant', 'en'].includes(qlang) ? qlang : null) || localStorage.getItem(LS) || navLang;
   document.documentElement.lang = lang === 'en' ? 'en' : lang === 'zh-Hant' ? 'zh-TW' : 'zh-CN';
+  // 防中文闪烁(FOUC)：非简体先隐藏整页，i18n 应用完(boot)再显示；1.2s 兜底防脚本异常卡死。简体零代价。
+  if (lang !== 'zh-Hans') { try { document.documentElement.style.visibility = 'hidden'; setTimeout(function () { document.documentElement.style.visibility = ''; }, 1200); } catch (e) {} }
 
   // ── 简→繁 字表（按全站实际用字生成；咸/只/台/周/谷/系 等易错字有意不转）──
   const P = '专專业業东東两兩严嚴个個丰豐临臨为為举舉么麼义義乐樂习習乡鄉买買乱亂争爭产產亲親仅僅从從们們价價众眾优優会會传傳伦倫体體余餘侧側倾傾偿償兑兌关關养養内內写寫冲沖决決况況准準减減几幾则則创創别別剥剝办辦动動励勵区區华華单單卖賣厂廠历歷压壓厨廚参參双雙发發变變叠疊号號后後听聽启啟咙嚨响響唤喚围圍国國图圖圆圓场場块塊坚堅壮壯声聲处處复復够夠头頭学學实實宽寬对對寻尋导導将將尝嘗尽盡层層属屬岁歲师師带帶帮幫干乾并並广廣库庫应應开開异異强強归歸当當录錄怀懷态態总總恒恆恶惡悦悅惊驚惧懼愤憤愿願战戰户戶扩擴扰擾护護报報拥擁择擇挣掙损損换換据據数數断斷无無时時显顯晋晉机機权權条條来來极極构構枢樞标標树樹样樣桥橋检檢楼樓欢歡气氣汇匯沟溝没沒浅淺济濟浓濃涣渙涩澀淀澱渐漸温溫湿濕满滿潜潛灵靈点點炼煉热熱爱愛状狀独獨狭狹狮獅献獻环環现現电電画畫畅暢盖蓋盘盤着著矶磯础礎确確离離种種积積称稱稳穩竖豎签簽简簡类類纠糾红紅约約级級纯純纳納纵縱纽紐线線组組细細织織终終经經结結给給绝絕统統绪緒续續维維综綜编編缘緣缩縮网網联聯肾腎脉脈脑腦节節范範荐薦获獲虚虛蛊蠱蜕蛻衅釁补補装裝见見观觀视視览覽觉覺触觸计計订訂认認讨討让讓讲講许許论論讼訟设設证證评評识識词詞试試诚誠话話该該详詳说說请請诺諾读讀谁誰调調谈談谊誼谦謙谨謹贡貢责責败敗质質贯貫贲賁资資赋賦赶趕践踐车車轨軌转轉轮輪载載较較辅輔辑輯边邊达達过過迈邁运運这這进進远遠连連递遞逻邏遥遙采採里裡钥鑰钱錢链鏈锐銳错錯镜鏡长長门門闭閉问問间間闸閘阂閡阅閱阔闊阳陽阶階际際险險随隨隐隱难難静靜韵韻页頁顶頂项項顺順顿頓领領颐頤频頻题題颜顏饭飯饮飲饱飽饿餓马馬驯馴驱驅验驗骤驟鱼魚黄黃齐齊键鍵释釋荣榮亏虧夺奪愈癒尔爾迟遲钝鈍络絡寿壽忧憂虑慮浏瀏滚滾筛篩苏蘇选選记記删刪';
@@ -144,7 +146,7 @@
     head.appendChild(box);
   }
 
-  function boot() { mountSwitch(); apply(); mo.observe(document.body, { childList: true, subtree: true, characterData: true }); }
+  function boot() { mountSwitch(); apply(); mo.observe(document.body, { childList: true, subtree: true, characterData: true }); if (lang !== 'zh-Hans') { try { document.documentElement.style.visibility = ''; } catch (e) {} } }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
   window.HDI18N = { lang: cur, s2t, EN };
