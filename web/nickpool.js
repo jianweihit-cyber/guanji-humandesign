@@ -351,4 +351,24 @@
     "渔歌唱晚","且吟","得句客","拈韵","围棋","鼓琴","横琴","弄笛","击节","卧游","梦蝶","数萤","扑萤客","戏鱼","饲鹤","驯鸥客",
     "看云起","坐看云起","数峰","倚阑","凭阑听雨","围炉","围炉煮酒","看竹"
   ];
+  /* 英文雅号池 —— 默认语言为英文的用户用。意境取自 自然 / 星辰 / 光景 / 草木 / 品德 / 静好，
+     符合英文命名习惯、读来雅致无算命味。GC.poeticNick(email,'en') 按邮箱哈希取一个，稳定一致、可改。 */
+  window.NICKPOOL_EN = [
+    "Aurora","Vesper","Lumen","Sol","Luna","Lyra","Orion","Caspian","Soren","Cael",
+    "Rowan","Wren","Lark","Wilder","Marlowe","Briar","Fern","Hazel","Juniper","Linnea",
+    "Elowen","Maren","Isolde","Sage","Reed","River","Brook","Vale","Meadow","Heath",
+    "Glen","Bay","Cove","Dune","Tarn","Ridge","Flint","Ember","Cinder","Ash",
+    "Frost","Snow","Mist","Dew","Cloud","Storm","Zephyr","Breeze","Aura","Dawn",
+    "Dusk","Twilight","Gloam","Star","Nova","Astra","Stella","Celeste","Skye","Rune",
+    "Echo","Haven","Faye","Linden","Alder","Birch","Cedar","Aspen","Maple","Willow",
+    "Olive","Laurel","Ivy","Holly","Jasmine","Lotus","Iris","Dahlia","Poppy","Lily",
+    "Saffron","Clover","Sorrel","Indigo","Azure","Teal","Jade","Amber","Sienna","Pearl",
+    "Opal","Onyx","Quartz","Slate","Cleo","Mira","Esme","Noor","Eden","Bliss",
+    "Solace","Serene","Halcyon","Calm","Grace","Hope","Verity","Honor","Noble","Felix",
+    "Beau","Wynn","Asa","True","Merit","Sterling","Sonnet","Lyric","Cadence","Muse",
+    "Quill","Ink","Vellum","Margin","Prologue","Story","Fable","Myth","Saga","Ode",
+    "Halo","Gleam","Shimmer","Glow","Ray","Beam","Spark","Flame","Lantern","Candle",
+    "Anchor","Compass","Harbor","Tide","Marin","Pelagic","Coral","Shell","Pebble","Stone",
+    "Cliff","Summit","Vista","Horizon","Meridian","Solstice","Equinox","Zenith","Crest","Drift"
+  ];
 })();

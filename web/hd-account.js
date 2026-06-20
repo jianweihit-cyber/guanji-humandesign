@@ -72,7 +72,7 @@
 
   function cardBody() {
     if (GC.loggedIn()) {
-      var u = GC.user(), vr = GC.verified();
+      var u = GC.user(), vr = GC.verified(), dl = GC.defaultLang(), em = GC.emailOn();
       var syncSub = GC.syncOn() ? T('已开 · 记录自动备份、跨设备恢复', 'On · auto backup & cross-device restore', '已開 · 記錄自動備份、跨裝置恢復')
         : (vr ? T('已关 · 仅存本机', 'Off · local only', '已關 · 僅存本機') : T('需先完成邮箱验证才能开启', 'Verify your email to enable', '需先完成信箱驗證才能開啟'));
       var vrow = vr
@@ -82,8 +82,11 @@
         + '<div class="ha-row"><span>' + T('昵称', 'Nickname', '暱稱') + '</span><b>' + esc(GC.nick()) + '</b><button class="ha-link" data-act="nick">' + T('改', 'Edit', '改') + '</button></div>'
         + '<div class="ha-row"><span>' + T('邮箱', 'Email', '信箱') + '</span><b>' + esc(u.email) + '</b></div>'
         + '<div class="ha-row"><span>' + T('邮箱验证', 'Email verify', '信箱驗證') + '</span><b>' + vrow + '</b></div>'
+        + '<div class="ha-row"><span>' + T('默认语言', 'Default language', '預設語言') + '</span><b><button class="ha-pick' + (dl === 'zh' ? ' on' : '') + '" data-act="lang-zh">中文</button><button class="ha-pick' + (dl === 'en' ? ' on' : '') + '" data-act="lang-en">English</button></b></div>'
         + '<div class="ha-sync"><div><b>' + T('云端同步', 'Cloud sync', '雲端同步') + '</b><i>' + syncSub + '</i></div><button class="ha-toggle' + (GC.syncOn() ? ' on' : '') + (vr ? '' : ' off-disabled') + '" data-act="sync" aria-label="sync"><span></span></button></div>'
-        + '<p class="ha-note">' + T('开启即同意将「邮箱 + 命盘记录」加密存于服务器，用于备份与跨设备恢复。仅你本人可见，可随时关闭或注销。', 'Enabling stores your email + chart records encrypted on the server for backup and cross-device restore. Visible only to you; turn off or delete anytime.', '開啟即同意將「信箱 + 命盤記錄」加密存於伺服器，用於備份與跨裝置恢復。僅你本人可見，可隨時關閉或登出。') + '</p>'
+        + '<div class="ha-sync"><div><b>' + T('系统邮件', 'System emails', '系統郵件') + '</b><i>' + (em ? T('已开 · 生日/周年祝福、重要通知', 'On · birthday & anniversary blessings, key notices', '已開 · 生日/週年祝福、重要通知') : T('已关 · 不再发送系统邮件', 'Off · no system emails', '已關 · 不再發送系統郵件')) + '</i></div><button class="ha-toggle' + (em ? ' on' : '') + '" data-act="emailtoggle" aria-label="email"><span></span></button></div>'
+        + '<p class="ha-note">' + T('开启同步即同意将「邮箱 + 命盘记录」加密存于服务器，用于备份与跨设备恢复，仅你本人可见，可随时关闭或注销。', 'Enabling sync stores your email + chart records encrypted on the server for backup and cross-device restore — visible only to you, turn off or delete anytime.', '開啟同步即同意將「信箱 + 命盤記錄」加密存於伺服器，用於備份與跨裝置恢復，僅你本人可見，可隨時關閉或登出。')
+        + ' ' + T('提供邮箱即表示同意接收观己的定期系统邮件（生日 / 周年祝福、重要通知）；不想接收可随时关闭上方「系统邮件」开关。', 'By providing your email you agree to receive periodic GuanJi emails (birthday & anniversary blessings, key notices); turn off "System emails" above anytime.', '提供信箱即表示同意接收觀己的定期系統郵件（生日 / 週年祝福、重要通知）；不想接收可隨時關閉上方「系統郵件」開關。') + '</p>'
         + '<button class="ha-btn ghost" data-act="logout">' + T('退出登录', 'Log out', '登出') + '</button>';
     }
     var reg = authMode === 'register';
@@ -140,6 +143,9 @@
       }
       else if (a === 'resend') { var u = GC.user(); if (u) { await GC.requestVerify(u.email); toast(T('验证邮件已重发', 'Verification email resent', '驗證郵件已重發')); } }
       else if (a === 'recheck') { await GC.refresh(); panel(); bar(); toast(GC.verified() ? T('邮箱已验证 ✓', 'Email verified ✓', '信箱已驗證 ✓') : T('尚未验证，请点邮件中的链接', 'Not verified yet — click the link in the email', '尚未驗證，請點郵件中的連結')); }
+      else if (a === 'lang-zh') { await GC.setDefaultLang('zh'); panel(); bar(); toast(T('默认语言：中文', 'Default language: 中文', '預設語言：中文')); }
+      else if (a === 'lang-en') { await GC.setDefaultLang('en'); panel(); bar(); toast(T('Default language: English', 'Default language: English', 'Default language: English')); }
+      else if (a === 'emailtoggle') { var enx = !GC.emailOn(); await GC.setEmailOn(enx); panel(); toast(enx ? T('已开启系统邮件', 'System emails on', '已開啟系統郵件') : T('已关闭系统邮件（生日/周年祝福等将不再发送）', 'System emails off (no more blessings or notices)', '已關閉系統郵件（生日/週年祝福等將不再發送）')); }
       else if (a === 'nick') { var cur = GC.nick(); var nv = prompt(T('改昵称（留空恢复系统雅号）', 'Edit nickname (blank = system name)', '改暱稱（留空恢復系統雅號）'), cur); if (nv != null) { await GC.setNickname(nv.trim()); panel(); bar(); } }
       else if (a === 'logout') { if (!confirm(T('确定退出登录？退出后此设备不再自动同步。', 'Log out? This device will stop auto-syncing.', '確定登出？登出後此裝置不再自動同步。'))) return; GC.setSync(false); GC.logout(); toast(T('已退出', 'Logged out', '已登出')); panel(); bar(); }
     } catch (err) { toast(err && err.offline ? T('网络不可达，请检查网络', 'Network unreachable — check your connection', '網路不可達，請檢查網路') : (T('操作失败：', 'Failed: ', '操作失敗：') + (err && err.message || ''))); }
@@ -162,7 +168,8 @@
     + '.ha-toggle{width:44px;height:26px;border-radius:13px;border:none;background:#D8CFC0;position:relative;cursor:pointer;flex:none}.ha-toggle.on{background:#6B5B43}.ha-toggle span{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}.ha-toggle.on span{left:21px}'
     + '.ha-note{font-size:12px;color:#9b948a;line-height:1.6;margin:12px 0 0}'
     + '.ha-tabs{display:flex;gap:6px;margin-bottom:12px}.ha-tab{flex:1;padding:8px;border:1px solid #D8CFC0;border-radius:10px;background:#fff;color:#8A7A5E;font-size:14px;cursor:pointer;font-family:inherit}.ha-tab.on{background:#6B5B43;color:#fff;border-color:transparent;font-weight:600}'
-    + '.ha-toggle.off-disabled{opacity:.4;cursor:not-allowed}';
+    + '.ha-toggle.off-disabled{opacity:.4;cursor:not-allowed}'
+    + '.ha-pick{border:1px solid #D8CFC0;background:#fff;color:#8A7A5E;border-radius:8px;padding:4px 12px;font-size:13px;cursor:pointer;font-family:inherit;margin-left:6px}.ha-pick.on{background:#6B5B43;color:#fff;border-color:transparent;font-weight:600}';
   document.head.appendChild(css);
 
   // —— 启动：渲染账号条 + 已登录则刷新并同步 ——
