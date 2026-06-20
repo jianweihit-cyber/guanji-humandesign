@@ -5,6 +5,7 @@
 
 var LOGO = "https://humandesign.zaiyuxingzhe.com/web/logo-email.png";
 var APP = "https://humandesign.zaiyuxingzhe.com/web/index.html";
+var ADMIN = "jianwei.hit@gmail.com";   // 会员续期联系（管理员）；改这里即可换
 
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
 function hashStr(s) { var h = 0; s = String(s || ''); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
@@ -121,6 +122,48 @@ function composeGreeting(kind, lang, nick, sum, years, gender, email) {
   return { subject: subject, html: html, fromName: fromName };
 }
 
+// 会员到期 / 即将到期 提醒邮件 {subject, html, fromName}
+function composeMembership(lang, nick, gender, daysLeft, expired, tier) {
+  var en = (lang === 'en');
+  var fromName = en ? 'GuanJi · Human Design' : '观己 · 人类图';
+  var accent = (gender === 'F') ? '#C2698A' : (gender === 'M') ? '#4E7BA6' : '#B3433A';
+  var brand = '#B3433A';
+  var tn = (tier === 'vip') ? 'VIP' : (tier === 'pro') ? 'Pro' : tier;
+  var subject, eyebrow, headline, lead;
+  if (expired) {
+    subject = en ? ('🔔 ' + nick + ', your GuanJi ' + tn + ' membership has expired') : ('🔔 ' + nick + '，你的观己 ' + tn + ' 会员已到期');
+    eyebrow = en ? '✦ MEMBERSHIP EXPIRED' : '✦ 会员已到期';
+    headline = en ? (nick + ', your ' + tn + ' has expired') : (nick + '，你的 ' + tn + ' 会员到期了');
+    lead = en ? ("Your " + tn + " membership has come to a close — but your journey of self-knowing continues. Renew anytime to keep full access; just reach out and we'll extend it for you.")
+              : ("你的 " + tn + " 会员到这里告一段落——但你向内观照的旅程不会停。随时可以续期，联系管理员即可为你延长，继续解锁全部功能。");
+  } else {
+    subject = en ? ('⏳ ' + nick + ', your GuanJi ' + tn + ' expires in ' + daysLeft + (daysLeft > 1 ? ' days' : ' day')) : ('⏳ ' + nick + '，观己 ' + tn + ' 会员还剩 ' + daysLeft + ' 天');
+    eyebrow = en ? ('✦ ' + daysLeft + (daysLeft > 1 ? ' DAYS LEFT' : ' DAY LEFT')) : ('✦ 会员还剩 ' + daysLeft + ' 天');
+    headline = en ? ('A gentle heads-up, ' + nick) : (nick + '，温馨提醒');
+    lead = en ? ("Your " + tn + " membership has " + daysLeft + (daysLeft > 1 ? ' days' : ' day') + " left. To keep your full access uninterrupted, renew anytime — reach out to the admin and we'll extend it for you.")
+              : ("你的 " + tn + " 会员还有 " + daysLeft + " 天到期。想不中断地继续享有全部功能，随时可以续期——联系管理员，我们就为你延长。");
+  }
+  var cta = en ? 'Contact admin to renew' : '联系管理员续期';
+  var mailto = 'mailto:' + ADMIN + '?subject=' + encodeURIComponent(en ? 'GuanJi membership renewal' : '观己会员续期');
+  var foot = en ? 'You receive this because you have a GuanJi account. To stop these, open Account → System emails in the app.' : '你收到这封信，是因为你拥有观己账号。如不想再收到，可在 App 内「账号 → 系统邮件」关闭。';
+  var html =
+    '<div style="margin:0;padding:24px 12px;background:#F0E7D6">'
+    + '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:0 auto;background:#FCFAF4;border:1px solid #ECDDC4;border-radius:18px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">'
+    + '<tr><td style="background:' + brand + ';background-image:linear-gradient(135deg,#B3433A,#8c2f28);padding:24px 20px;text-align:center">'
+    + '<img src="' + LOGO + '" width="60" height="60" alt="观己" style="display:block;margin:0 auto 8px;border:0;outline:none">'
+    + '<div style="color:#fff;font-size:18px;font-weight:700;letter-spacing:1px">' + (en ? 'GuanJi · Human Design' : '观己 · 人类图') + '</div></td></tr>'
+    + '<tr><td style="padding:24px 26px 4px"><div style="font-size:12px;font-weight:700;letter-spacing:2px;color:' + accent + '">' + esc(eyebrow) + '</div>'
+    + '<h1 style="font-size:21px;line-height:1.4;margin:8px 0 6px;color:#3a3330">' + esc(headline) + '</h1>'
+    + '<p style="font-size:15px;line-height:1.85;color:#5a5048;margin:6px 0 4px">' + esc(lead) + '</p></td></tr>'
+    + '<tr><td style="padding:16px 26px 26px;text-align:center"><a href="' + mailto + '" style="display:inline-block;background:' + brand + ';color:#fff;text-decoration:none;padding:12px 26px;border-radius:999px;font-size:15px;font-weight:600">' + esc(cta) + ' &rsaquo;</a>'
+    + '<div style="font-size:12px;color:#9b948a;margin-top:10px">' + esc(en ? ('or write to ' + ADMIN) : ('或来信 ' + ADMIN)) + '</div></td></tr>'
+    + '<tr><td style="background:#F6EFE2;padding:16px 22px;text-align:center;border-top:1px solid #ECDDC4">'
+    + '<div style="font-size:12px;color:#9b948a;line-height:1.6">' + esc(foot) + '</div>'
+    + '<div style="font-size:12px;color:#C9BEA9;margin-top:6px">· ' + (en ? 'Zai Yu Xing Zhe' : '再遇行者') + ' ·</div></td></tr>'
+    + '</table></div>';
+  return { subject: subject, html: html, fromName: fromName };
+}
+
 // 发一封信（尊重退订 + 写 mail_log + 可去重 + 可覆盖发件名）。返回 {ok, skipped, reason, err}
 function sendMail(app, to, subject, html, kind, dedupKey, fromName) {
   try { var u = app.findFirstRecordByData("users", "email", to); if (u && u.getBool("emailOptOut")) return { skipped: true, reason: "opted_out" }; } catch (_) {}
@@ -162,4 +205,4 @@ function selfChart(app, ownerId) {
   } catch (_) { return null; }
 }
 
-module.exports = { esc: esc, typeLine: typeLine, composeGreeting: composeGreeting, sendMail: sendMail, selfChart: selfChart };
+module.exports = { esc: esc, typeLine: typeLine, composeGreeting: composeGreeting, composeMembership: composeMembership, sendMail: sendMail, selfChart: selfChart };

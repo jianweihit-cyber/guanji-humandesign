@@ -9,6 +9,7 @@
   function T(zh, en, tw) { var g = (window.HDI18N && window.HDI18N.lang) || 'zh-Hans'; return g === 'en' ? en : (g === 'zh-Hant' ? (tw || zh) : zh); }
   var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;   // 基本邮箱格式校验，挡随手乱填
   var authMode = 'login';                      // 登录 / 注册 子模式
+  var ADMIN = 'jianwei.hit@gmail.com';         // 会员续期联系（管理员）；改这里即可换
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function toast(msg) {
@@ -72,7 +73,14 @@
 
   function cardBody() {
     if (GC.loggedIn()) {
-      var u = GC.user(), vr = GC.verified(), dl = GC.defaultLang(), em = GC.emailOn();
+      var u = GC.user(), vr = GC.verified(), dl = GC.defaultLang(), em = GC.emailOn(), mb = GC.membership();
+      var renewLink = ' <a class="ha-link" href="mailto:' + ADMIN + '?subject=' + encodeURIComponent(T('观己会员续期', 'GuanJi membership renewal', '觀己會員續期')) + '">' + T('联系续期', 'Renew', '聯絡續期') + '</a>';
+      var memHtml;
+      if (mb.tier === 'free') memHtml = '<i style="font-style:normal;color:#6B5B43">' + T('免费版', 'Free', '免費版') + '</i>';
+      else { var tn = (mb.tier === 'vip' ? 'VIP' : mb.tier === 'pro' ? 'Pro' : mb.tier);
+        if (mb.expired) memHtml = '<i style="font-style:normal;color:#c0392b">' + tn + ' · ' + T('已过期', 'expired', '已過期') + '</i>' + renewLink;
+        else { memHtml = '<i style="font-style:normal;color:#3a7d44">' + tn + (mb.daysLeft != null ? ' · ' + (ENM ? (mb.daysLeft + 'd left') : ('剩 ' + mb.daysLeft + ' 天')) : '') + '</i>'; if (mb.daysLeft != null && mb.daysLeft <= 30) memHtml += renewLink; }
+      }
       var syncSub = GC.syncOn() ? T('已开 · 记录自动备份、跨设备恢复', 'On · auto backup & cross-device restore', '已開 · 記錄自動備份、跨裝置恢復')
         : (vr ? T('已关 · 仅存本机', 'Off · local only', '已關 · 僅存本機') : T('需先完成邮箱验证才能开启', 'Verify your email to enable', '需先完成信箱驗證才能開啟'));
       var vrow = vr
@@ -82,6 +90,7 @@
         + '<div class="ha-row"><span>' + T('昵称', 'Nickname', '暱稱') + '</span><b>' + esc(GC.nick()) + '</b><button class="ha-link" data-act="nick">' + T('改', 'Edit', '改') + '</button></div>'
         + '<div class="ha-row"><span>' + T('邮箱', 'Email', '信箱') + '</span><b>' + esc(u.email) + '</b></div>'
         + '<div class="ha-row"><span>' + T('邮箱验证', 'Email verify', '信箱驗證') + '</span><b>' + vrow + '</b></div>'
+        + '<div class="ha-row"><span>' + T('会员', 'Membership', '會員') + '</span><b>' + memHtml + '</b></div>'
         + '<div class="ha-row"><span>' + T('默认语言', 'Default language', '預設語言') + '</span><b><button class="ha-pick' + (dl === 'zh' ? ' on' : '') + '" data-act="lang-zh">中文</button><button class="ha-pick' + (dl === 'en' ? ' on' : '') + '" data-act="lang-en">English</button></b></div>'
         + '<div class="ha-sync"><div><b>' + T('云端同步', 'Cloud sync', '雲端同步') + '</b><i>' + syncSub + '</i></div><button class="ha-toggle' + (GC.syncOn() ? ' on' : '') + (vr ? '' : ' off-disabled') + '" data-act="sync" aria-label="sync"><span></span></button></div>'
         + '<div class="ha-sync"><div><b>' + T('系统邮件', 'System emails', '系統郵件') + '</b><i>' + (em ? T('已开 · 生日/周年祝福、重要通知', 'On · birthday & anniversary blessings, key notices', '已開 · 生日/週年祝福、重要通知') : T('已关 · 不再发送系统邮件', 'Off · no system emails', '已關 · 不再發送系統郵件')) + '</i></div><button class="ha-toggle' + (em ? ' on' : '') + '" data-act="emailtoggle" aria-label="email"><span></span></button></div>'

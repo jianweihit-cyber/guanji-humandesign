@@ -34,6 +34,15 @@ cronAdd("hd_greetings", "30 8 * * *", function () {
             var years = now.getUTCFullYear() - parseInt(cr.slice(0, 4), 10);
             if (cmd === md && years >= 1) { var ga = G.composeGreeting("anniversary", lang, nick, sum, years, gender, email); G.sendMail($app, email, ga.subject, ga.html, "anniversary", year, ga.fromName); }
           }
+          // 会员到期提醒：付费档(tier≠free)且有 activeTo → 到期前 30/14/7/3/1 天 + 过期，各去重
+          var tier = u.getString("tier") || "free";
+          var atStr = u.getString("activeTo");
+          if (tier !== "free" && atStr && atStr.length >= 10) {
+            var atDate = atStr.slice(0, 10);
+            var dl = Math.ceil((new Date(atDate + "T23:59:59Z").getTime() - now.getTime()) / 86400000);
+            if ([30, 14, 7, 3, 1].indexOf(dl) >= 0) { var gm = G.composeMembership(lang, nick, gender, dl, false, tier); G.sendMail($app, email, gm.subject, gm.html, "membership-expiring", "exp" + dl + "@" + atDate, gm.fromName); }
+            else if (dl <= 0) { var ge = G.composeMembership(lang, nick, gender, dl, true, tier); G.sendMail($app, email, ge.subject, ge.html, "membership-expired", "expired@" + atDate, ge.fromName); }
+          }
         } catch (_) {}
       }
       if (users.length < per) break; page++;
@@ -48,7 +57,7 @@ routerAdd("POST", "/greet-test", function (e) {
   var want = ""; try { want = $os.getenv("SEND_SECRET"); } catch (_) {}
   if (!want || k !== want) return e.json(403, { error: "forbidden" });
   var body = {}; try { body = e.requestInfo().body || {}; } catch (_) {}
-  var email = body.email, kind = (body.kind === "anniversary") ? "anniversary" : "birthday", years = body.years || 1;
+  var email = body.email, kind = body.kind || "birthday", years = body.years || 1;
   if (!email) return e.json(400, { error: "missing email" });
   try {
     var G = require(__hooks + "/greet_lib.js");
@@ -61,7 +70,10 @@ routerAdd("POST", "/greet-test", function (e) {
     if (body.gender === "M" || body.gender === "F") gender = body.gender;   // 测试可强制性别
     if (body.nick) nick = body.nick;                                        // 测试可强制昵称
     if (!nick) nick = (lang === "en" ? "friend" : "朋友");
-    var g = G.composeGreeting(kind, lang, nick, sum, years, gender, email || "seed");
+    var g;
+    if (kind === "membership-expired") g = G.composeMembership(lang, nick, gender, (body.daysLeft != null ? body.daysLeft : 0), true, body.tier || "pro");
+    else if (kind === "membership-expiring") g = G.composeMembership(lang, nick, gender, (body.daysLeft != null ? body.daysLeft : 7), false, body.tier || "pro");
+    else g = G.composeGreeting(kind === "anniversary" ? "anniversary" : "birthday", lang, nick, sum, years, gender, email || "seed");
     var r = G.sendMail(e.app, email, g.subject, g.html, kind + "-test", "", g.fromName);
     return e.json(200, { ok: !!r.ok, skipped: r.skipped || false, reason: r.reason || "", err: r.err || "", subject: g.subject, lang: lang, gender: gender });
   } catch (ex) {

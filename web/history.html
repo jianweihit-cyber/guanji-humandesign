@@ -18,6 +18,14 @@
   .btn-sm{font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid #D8CFC0;background:#fff;cursor:pointer;color:#6B5B43;text-decoration:none;white-space:nowrap}
   .btn-sm.danger{color:#B3433A;border-color:#E5C5C0}
   .cnt{font-size:12px;color:var(--sub);margin:10px 2px 0}
+  .upc{background:#FBF3E6;border:1px solid #ECDDC4;border-radius:12px;padding:10px 14px;margin:10px 0 0}
+  .upc-h{font-size:13px;font-weight:700;color:var(--li);margin-bottom:4px}
+  .upc-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13.5px;border-top:1px solid #F1E7D3}
+  .upc-row:first-of-type{border-top:none}
+  .upc-n{color:#3a3330}
+  .upc-self{font-size:11px;color:var(--li);border:1px solid #E8DCC0;border-radius:5px;padding:0 5px;margin-left:4px}
+  .upc-d{color:var(--sub);font-variant-numeric:tabular-nums}
+  .upc-d.soon{color:var(--li);font-weight:700}
 </style>
 </head>
 <body>
@@ -37,6 +45,7 @@
   </div>
 
   <div id="hd-acct"></div>
+  <div id="upcoming"></div>
   <input id="q" class="kb-search" placeholder="搜索：姓名 / 闸门号 / 类型 / 角色 / 通道…" />
   <div class="tabs" id="filter">
     <span class="tab on" data-f="all">全部</span>
@@ -95,6 +104,27 @@ function render(){
       <button class="btn-sm danger del">删除</button>
     </div>`).join('') || (linkRows().length ? '' : '<p class="muted" style="margin-top:16px">暂无记录，去排盘页生成并保存</p>');  // 命盘空但有匹配的合盘/Penta 时不显占位
   renderLinks();
+  renderUpcoming();
+}
+// 近期生日提醒：扫所有记录的出生 月-日，列出未来 30 天内将到的生日（含本人/朋友），方便主动送祝福
+function renderUpcoming(){
+  const en=window.HDI18N&&HDI18N.lang==='en';
+  const now=new Date(), t0=new Date(now.getFullYear(),now.getMonth(),now.getDate()), ty=now.getFullYear();
+  const items=[];
+  for(const r of HDStore.all()){
+    const i=r.input; if(!i||!i.month||!i.day) continue;
+    let d=new Date(ty,i.month-1,i.day); if(d<t0) d=new Date(ty+1,i.month-1,i.day);
+    const days=Math.round((d-t0)/86400000);
+    if(days<=30) items.push({name:r.name||'—', days, tags:r.tags||[]});
+  }
+  items.sort((a,b)=>a.days-b.days);
+  if(!items.length){ $('#upcoming').innerHTML=''; return; }
+  const selfTxt=en?'You':'本人';
+  $('#upcoming').innerHTML='<div class="upc"><div class="upc-h">🎂 '+(en?'Upcoming birthdays':'近期生日')+'</div>'
+    +items.map(it=>{ const when=it.days===0?(en?'Today 🎉':'就在今天 🎉'):(it.days===1?(en?'Tomorrow':'明天'):(en?('in '+it.days+' days'):(it.days+' 天后')));
+      const self=(it.tags||[]).indexOf('self')>=0?(' <span class="upc-self">'+selfTxt+'</span>'):'';
+      return '<div class="upc-row"><span class="upc-n">'+esc(it.name)+self+'</span><span class="upc-d'+(it.days<=1?' soon':'')+'">'+when+'</span></div>'; }).join('')
+    +'</div>';
 }
 // 合盘 / Penta 链接记录（带徽标，点开进 connect.html 重排）
 function linkRows(){
