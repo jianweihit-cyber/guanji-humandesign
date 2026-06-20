@@ -100,8 +100,9 @@
       + '<div class="ha-or"><span>' + T('或', 'or', '或') + '</span></div>'
       + '<div id="ha-otp"><button class="ha-link" data-act="otp">' + T('用邮箱验证码登录（免密码）', 'Sign in with email code (no password)', '用信箱驗證碼登入（免密碼）') + '</button></div>'
       + '<p class="ha-note">' + (reg
-        ? T('注册后请到邮箱完成验证，验证通过才能开启云同步。默认仅存本机。', 'After signing up, verify via the email we send — cloud sync unlocks only after verification. Local-only by default.', '註冊後請到信箱完成驗證，驗證通過才能開啟雲同步。預設僅存本機。')
-        : T('开启云端备份后，换设备 / 清缓存也能恢复命盘记录。默认仅存本机，登录并开启同步才上云。', 'With cloud backup on, restore records after switching devices or clearing cache. Local-only by default.', '開啟雲端備份後，換裝置 / 清快取也能恢復命盤記錄。')) + '</p>';
+        ? T('注册后请到邮箱完成验证，验证通过才能开启云同步。默认仅存本机。', 'After signing up, verify via the email we send — cloud sync unlocks only after verification. Local-only by default.', '註冊後請到信箱完成驗證，驗證通過才能開啟雲同步。預設僅存本機。') + ' ' + T('注册即表示你已阅读并同意', 'By signing up you agree to our', '註冊即表示你已閱讀並同意') + ' '
+        : T('开启云端备份后，换设备 / 清缓存也能恢复命盘记录。默认仅存本机，登录并开启同步才上云。', 'With cloud backup on, restore records after switching devices or clearing cache. Local-only by default.', '開啟雲端備份後，換裝置 / 清快取也能恢復命盤記錄。') + ' ')
+        + '<a href="terms.html" target="_blank" rel="noopener" style="color:#6B5B43;text-decoration:underline">' + T('《用户协议与隐私》', 'Terms & Privacy', '《使用者協議與隱私》') + '</a></p>';
   }
 
   // —— 事件委托 ——
@@ -143,8 +144,8 @@
       }
       else if (a === 'resend') { var u = GC.user(); if (u) { await GC.requestVerify(u.email); toast(T('验证邮件已重发', 'Verification email resent', '驗證郵件已重發')); } }
       else if (a === 'recheck') { await GC.refresh(); panel(); bar(); toast(GC.verified() ? T('邮箱已验证 ✓', 'Email verified ✓', '信箱已驗證 ✓') : T('尚未验证，请点邮件中的链接', 'Not verified yet — click the link in the email', '尚未驗證，請點郵件中的連結')); }
-      else if (a === 'lang-zh') { await GC.setDefaultLang('zh'); panel(); bar(); toast(T('默认语言：中文', 'Default language: 中文', '預設語言：中文')); }
-      else if (a === 'lang-en') { await GC.setDefaultLang('en'); panel(); bar(); toast(T('Default language: English', 'Default language: English', 'Default language: English')); }
+      else if (a === 'lang-zh') { await GC.setDefaultLang('zh'); try { if ((window.HDI18N && window.HDI18N.lang) === 'en') { localStorage.setItem('hd_lang', 'zh-Hans'); return location.reload(); } } catch (e) {} panel(); bar(); toast('默认语言：中文'); }
+      else if (a === 'lang-en') { await GC.setDefaultLang('en'); try { if ((window.HDI18N && window.HDI18N.lang) !== 'en') { localStorage.setItem('hd_lang', 'en'); return location.reload(); } } catch (e) {} panel(); bar(); toast('Default language: English'); }
       else if (a === 'emailtoggle') { var enx = !GC.emailOn(); await GC.setEmailOn(enx); panel(); toast(enx ? T('已开启系统邮件', 'System emails on', '已開啟系統郵件') : T('已关闭系统邮件（生日/周年祝福等将不再发送）', 'System emails off (no more blessings or notices)', '已關閉系統郵件（生日/週年祝福等將不再發送）')); }
       else if (a === 'nick') { var cur = GC.nick(); var nv = prompt(T('改昵称（留空恢复系统雅号）', 'Edit nickname (blank = system name)', '改暱稱（留空恢復系統雅號）'), cur); if (nv != null) { await GC.setNickname(nv.trim()); panel(); bar(); } }
       else if (a === 'logout') { if (!confirm(T('确定退出登录？退出后此设备不再自动同步。', 'Log out? This device will stop auto-syncing.', '確定登出？登出後此裝置不再自動同步。'))) return; GC.setSync(false); GC.logout(); toast(T('已退出', 'Logged out', '已登出')); panel(); bar(); }

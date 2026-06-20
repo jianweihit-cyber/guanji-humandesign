@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>用户协议与隐私 · 观己</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg" />
+<link rel="stylesheet" href="hd.css" />
+<style>
+  .terms{max-width:720px;margin:0 auto}
+  .terms h1{font-size:20px;margin:14px 0 4px}
+  .terms .upd{font-size:12px;color:var(--sub);margin-bottom:14px}
+  .terms section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:10px}
+  .terms h2{font-size:15px;margin:0 0 6px;color:var(--li)}
+  .terms p{font-size:13.5px;line-height:1.8;color:var(--ink);margin:0}
+  .terms .back{display:inline-block;margin-top:18px;font-size:13px;color:var(--li);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub" data-noi18n>用户协议</span></div>
+  </header>
+  <div class="terms" id="terms" data-noi18n></div>
+</div>
+<script src="i18n.js"></script>
+<script>
+(function(){
+  var lang = (window.HDI18N && window.HDI18N.lang) || 'zh-Hans';
+  var L = lang==='en' ? 'en' : (lang==='zh-Hant' ? 'tw' : 'zh');
+  var D = {
+    zh: { title:'用户协议与隐私说明', upd:'最近更新：2026-06-17', back:'‹ 返回',
+      secs:[
+        ['本地优先存储','你的命盘记录默认只保存在你自己的浏览器中，不会上传服务器。清缓存/换设备可能丢失，建议定期「导出备份」。'],
+        ['可选云端备份','仅当你登录并主动开启「云同步」后，「邮箱 + 命盘记录」才会加密存于服务器，用于备份与跨设备恢复；仅你本人可见，可随时关闭或注销删除。'],
+        ['出生数据用途','你输入的出生日期 / 时间 / 地点仅用于计算你的人类图（多在本地完成），不作其他用途，也不会公开。'],
+        ['邮箱与系统邮件','提供邮箱即表示同意接收观己的定期系统邮件——例如生日祝福、来到观己满一年（及每周年）的祝福、重要通知等。如不想接收，可随时在「账号 → 系统邮件」开关中关闭。'],
+        ['不向第三方出售或分享','我们不会把你的个人数据出售或分享给第三方。'],
+        ['账号与注销','你可随时退出登录并删除云端数据，掌控权始终在你手中。'],
+        ['免责声明','人类图内容仅供自我了解与学习参考，不构成医疗、心理或投资建议。']
+      ]},
+    tw: { title:'使用者協議與隱私說明', upd:'最近更新：2026-06-17', back:'‹ 返回',
+      secs:[
+        ['本地優先儲存','你的命盤記錄預設只儲存在你自己的瀏覽器中，不會上傳伺服器。清快取／換裝置可能遺失，建議定期「匯出備份」。'],
+        ['可選雲端備份','僅當你登入並主動開啟「雲同步」後，「信箱 + 命盤記錄」才會加密存於伺服器，用於備份與跨裝置恢復；僅你本人可見，可隨時關閉或登出刪除。'],
+        ['出生資料用途','你輸入的出生日期 / 時間 / 地點僅用於計算你的人類圖（多在本地完成），不作其他用途，也不會公開。'],
+        ['信箱與系統郵件','提供信箱即表示同意接收觀己的定期系統郵件——例如生日祝福、來到觀己滿一年（及每週年）的祝福、重要通知等。如不想接收，可隨時在「帳號 → 系統郵件」開關中關閉。'],
+        ['不向第三方出售或分享','我們不會把你的個人資料出售或分享給第三方。'],
+        ['帳號與登出','你可隨時登出並刪除雲端資料，掌控權始終在你手中。'],
+        ['免責聲明','人類圖內容僅供自我了解與學習參考，不構成醫療、心理或投資建議。']
+      ]},
+    en: { title:'Terms & Privacy', upd:'Last updated: 2026-06-17', back:'‹ Back',
+      secs:[
+        ['Local-first storage','Your chart records are stored only in your own browser by default and are not uploaded. Clearing cache or switching devices can lose them — export a backup periodically.'],
+        ['Optional cloud backup','Only when you sign in and turn on "Cloud sync" are your email + chart records stored encrypted on the server, for backup and cross-device restore. Visible only to you; turn off or delete anytime.'],
+        ['Use of birth data','The birth date / time / place you enter is used only to compute your Human Design chart (mostly on-device), for nothing else, and is never made public.'],
+        ['Email & system messages','By providing your email you agree to receive periodic GuanJi emails — e.g. birthday blessings, your 1-year (and each anniversary) "joined GuanJi" greeting, and key notices. You can turn these off anytime under Account → System emails.'],
+        ['No selling or sharing','We do not sell or share your personal data with third parties.'],
+        ['Account & deletion','You can log out and delete your cloud data anytime — you stay in control.'],
+        ['Disclaimer','Human Design content is for self-knowledge and learning only; it is not medical, psychological or financial advice.']
+      ]}
+  };
+  var d = D[L] || D.zh;
+  var esc = function(s){ return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); };
+  var html = '<h1>'+esc(d.title)+'</h1><div class="upd">'+esc(d.upd)+'</div>';
+  for (var i=0;i<d.secs.length;i++){ html += '<section><h2>'+esc(d.secs[i][0])+'</h2><p>'+esc(d.secs[i][1])+'</p></section>'; }
+  html += '<a class="back" href="history.html">'+esc(d.back)+'</a>';
+  document.getElementById('terms').innerHTML = html;
+  document.title = d.title + ' · ' + (L==='en'?'GuanJi':'观己');
+})();
+</script>
+</body>
+</html>

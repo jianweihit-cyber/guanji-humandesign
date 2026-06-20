@@ -43,10 +43,16 @@
     replaceAll(arr) { return write(Array.isArray(arr) ? arr : []); },
     replaceLinks(arr) { return lwrite(Array.isArray(arr) ? arr : []); },
     summarize(c) { // 从完整 chart 提摘要（供搜索：闸门/类型/角色/通道）
+      var pl = a => `${a.gate}.${a.line}`;   // 闸门.爻
       return {
         type: c.type, typeZh: c.typeZh, profile: c.profile.str,
         authority: c.authority, definition: c.definitionZh,
-        gates: [...new Set([...c.personality, ...c.design].map(a => a.gate))].sort((x, y) => x - y),
+        gates: [...new Set([...c.personality, ...c.design].map(a => a.gate))].sort((x, y) => x - y), // 合并去重(供搜索/兼容)
+        // 明确区分两层（个性=出生时刻/意识；设计=出生前88°/潜意识），按行星顺序列出 闸门.爻
+        personality: c.personality.map(a => ({ planet: a.planet, gateLine: pl(a) })),
+        design: c.design.map(a => ({ planet: a.planet, gateLine: pl(a) })),
+        gatesP: [...new Set(c.personality.map(a => a.gate))].sort((x, y) => x - y),
+        gatesD: [...new Set(c.design.map(a => a.gate))].sort((x, y) => x - y),
         channels: c.definedChannels.map(x => x.key),
       };
     },
