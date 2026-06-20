@@ -23,15 +23,16 @@ cronAdd("hd_greetings", "30 8 * * *", function () {
           var nick = u.getString("nickname") || (lang === "en" ? "friend" : "朋友");
           var data = G.selfChart($app, u.id);
           var sum = (data && data.sum) || {};
+          var gender = (data && data.gender) || '';
           if (data && data.input && data.input.month && data.input.day) {
             var bmd = (("0" + data.input.month).slice(-2)) + "-" + (("0" + data.input.day).slice(-2));
-            if (bmd === md) { var g = G.composeGreeting("birthday", lang, nick, sum, 0); G.sendMail($app, email, g.subject, g.html, "birthday", year); }
+            if (bmd === md) { var g = G.composeGreeting("birthday", lang, nick, sum, 0, gender, email); G.sendMail($app, email, g.subject, g.html, "birthday", year, g.fromName); }
           }
           var cr = u.getString("created");
           if (cr && cr.length >= 10) {
             var cmd = cr.slice(5, 7) + "-" + cr.slice(8, 10);
             var years = now.getUTCFullYear() - parseInt(cr.slice(0, 4), 10);
-            if (cmd === md && years >= 1) { var ga = G.composeGreeting("anniversary", lang, nick, sum, years); G.sendMail($app, email, ga.subject, ga.html, "anniversary", year); }
+            if (cmd === md && years >= 1) { var ga = G.composeGreeting("anniversary", lang, nick, sum, years, gender, email); G.sendMail($app, email, ga.subject, ga.html, "anniversary", year, ga.fromName); }
           }
         } catch (_) {}
       }
@@ -51,16 +52,18 @@ routerAdd("POST", "/greet-test", function (e) {
   if (!email) return e.json(400, { error: "missing email" });
   try {
     var G = require(__hooks + "/greet_lib.js");
-    var lang = "zh", nick = "", sum = {};
+    var lang = "zh", nick = "", sum = {}, gender = "";
     try {
       var u = e.app.findFirstRecordByData("users", "email", email);
-      if (u) { lang = (u.getString("lang") === "en") ? "en" : "zh"; nick = u.getString("nickname") || ""; var d = G.selfChart(e.app, u.id); if (d && d.sum) sum = d.sum; }
+      if (u) { lang = (u.getString("lang") === "en") ? "en" : "zh"; nick = u.getString("nickname") || ""; var d = G.selfChart(e.app, u.id); if (d) { if (d.sum) sum = d.sum; gender = d.gender || ""; } }
     } catch (_) {}
     if (body.lang === "en" || body.lang === "zh") lang = body.lang;
-    if (!nick) nick = (lang === "en" ? "friend" : "朋友");   // 兜底昵称随语言
-    var g = G.composeGreeting(kind, lang, nick, sum, years);
-    var r = G.sendMail(e.app, email, g.subject, g.html, kind + "-test", "");
-    return e.json(200, { ok: !!r.ok, skipped: r.skipped || false, reason: r.reason || "", err: r.err || "", subject: g.subject, lang: lang });
+    if (body.gender === "M" || body.gender === "F") gender = body.gender;   // 测试可强制性别
+    if (body.nick) nick = body.nick;                                        // 测试可强制昵称
+    if (!nick) nick = (lang === "en" ? "friend" : "朋友");
+    var g = G.composeGreeting(kind, lang, nick, sum, years, gender, email || "seed");
+    var r = G.sendMail(e.app, email, g.subject, g.html, kind + "-test", "", g.fromName);
+    return e.json(200, { ok: !!r.ok, skipped: r.skipped || false, reason: r.reason || "", err: r.err || "", subject: g.subject, lang: lang, gender: gender });
   } catch (ex) {
     return e.json(200, { ok: false, error: String((ex && ex.stack) || ex) });
   }
