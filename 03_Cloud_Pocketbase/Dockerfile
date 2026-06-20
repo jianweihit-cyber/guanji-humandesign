@@ -1,4 +1,4 @@
-# 观己·五行 云端后端 —— Pocketbase 单文件后端（账号鉴权 + 排盘记录库 + 管理后台）
+# 观己·人类图 云端后端 —— Pocketbase 单文件后端（账号鉴权 + 命盘记录库 + 管理后台）
 FROM alpine:3.20
 ARG PB_VERSION=0.39.4
 RUN apk add --no-cache ca-certificates unzip wget

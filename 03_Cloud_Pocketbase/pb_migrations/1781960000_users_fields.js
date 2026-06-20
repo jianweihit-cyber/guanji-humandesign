@@ -3,7 +3,7 @@
 //   字段：tier(free/pro/vip) · nickname · emailOptOut · activeFrom · activeTo。
 //   createRule：注册只允许 tier 不传或=free（堵注册即提权）。
 //   updateRule：仅本人、且不得携带 tier/activeFrom/activeTo/verified（与 users_guard 钩子双保险）。
-//   ⚠️ 复用要点：这些五行当初手动加的，现固化为迁移；幂等(已存在字段跳过)。
+//   ⚠️ 复用要点：会员/账号字段固化为迁移（别手动在后台加），幂等(已存在字段跳过)。
 migrate((app) => {
   const c = app.findCollectionByNameOrId("_pb_users_auth_");
   function addIfMissing(f) { try { if (!c.fields.getByName(f.name)) c.fields.add(new Field(f)); } catch (e) { c.fields.add(new Field(f)); } }

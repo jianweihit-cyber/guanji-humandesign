@@ -1,6 +1,6 @@
-/* 观己·五行 云端客户端 —— Pocketbase 鉴权 + 排盘记录云同步（离线优先）。
+/* 观己·人类图 云端客户端 —— Pocketbase 鉴权 + 命盘记录云同步（离线优先）。
    纯 fetch、无外部依赖。鉴权用 Authorization 头（非 cookie），跨域安全。
-   后端：自有子域 cloud.zaiyuxingzhe.com（CNAME→guanji-cloud.fly.dev，Pocketbase v0.39）。 */
+   后端：自有子域 cloud-hd.zaiyuxingzhe.com（CNAME→guanji-humandesign-cloud.fly.dev，Pocketbase v0.39）。 */
 (function(){
   var BASE = 'https://cloud-hd.zaiyuxingzhe.com'; // 人类图后端(自有子域，已通)
   var AUTH_KEY = 'gc_auth';   // {token, user:{id,email,verified,tier,name}}
@@ -10,9 +10,10 @@
   function persist(){ try{ st ? localStorage.setItem(AUTH_KEY, JSON.stringify(st)) : localStorage.removeItem(AUTH_KEY); }catch(e){} }
   function token(){ return st && st.token; }
   function user(){ return st && st.user; }
-  function slim(rec){ return rec ? {id:rec.id, email:rec.email, verified:!!rec.verified, tier:rec.tier||'free', name:rec.name||'', nickname:rec.nickname||'', created:rec.created||'', emailOptOut:!!rec.emailOptOut, activeFrom:rec.activeFrom||'', activeTo:rec.activeTo||''} : null; }
-  /* 诗意默认昵称：按邮箱确定性哈希取一个雅号(同一邮箱永远同一个、跨设备一致)。NICKPOOL 未加载则返回空、回退邮箱前缀。 */
-  function poeticNick(em){ try{ var P=window.NICKPOOL; if(!P||!P.length||!em) return ''; var h=0; for(var i=0;i<em.length;i++){ h=(h*31+em.charCodeAt(i))|0; } return P[Math.abs(h)%P.length]; }catch(e){ return ''; } }
+  function slim(rec){ return rec ? {id:rec.id, email:rec.email, verified:!!rec.verified, tier:rec.tier||'free', name:rec.name||'', nickname:rec.nickname||'', lang:rec.lang||'', created:rec.created||'', emailOptOut:!!rec.emailOptOut, activeFrom:rec.activeFrom||'', activeTo:rec.activeTo||''} : null; }
+  /* 诗意默认昵称：按邮箱确定性哈希取一个雅号(同一邮箱永远同一个、跨设备一致)。
+     lang==='en' 取英文雅号池 NICKPOOL_EN，否则中文 NICKPOOL；未加载则返回空、回退邮箱前缀。 */
+  function poeticNick(em, lang){ try{ var P=(lang==='en' && window.NICKPOOL_EN && window.NICKPOOL_EN.length) ? window.NICKPOOL_EN : window.NICKPOOL; if(!P||!P.length||!em) return ''; var h=0; for(var i=0;i<em.length;i++){ h=(h*31+em.charCodeAt(i))|0; } return P[Math.abs(h)%P.length]; }catch(e){ return ''; } }
   function setAuth(res){ st = {token:res.token, user:slim(res.record)}; persist(); return st.user; }
 
   async function req(method, path, body, noAuth){
@@ -59,7 +60,22 @@
     nick: function(){
       var u=user(), em=(u&&u.email)||'', pre=em.split('@')[0]||'';
       var ls=''; try{ ls=localStorage.getItem('gc_nick')||''; }catch(e){}
-      return (u&&u.nickname) || ls || poeticNick(em) || pre || '朋友';
+      return (u&&u.nickname) || ls || poeticNick(em, this.defaultLang()) || pre || (this.defaultLang()==='en'?'Friend':'朋友');
+    },
+    /* 用户默认语言（昵称语种 + 系统/祝福邮件语言）：本地 gc_lang，尽力同步后端 users.lang。
+       未设时取界面语言(EN→en)，再回退中文(zh)。 */
+    defaultLang: function(){
+      try{ var v=localStorage.getItem('gc_lang'); if(v==='en'||v==='zh') return v; }catch(e){}
+      var u=user(); if(u&&u.lang) return u.lang==='en'?'en':'zh';
+      try{ if(window.HDI18N && window.HDI18N.lang==='en') return 'en'; }catch(e){}
+      return 'zh';
+    },
+    async setDefaultLang(l){
+      l = (l==='en') ? 'en' : 'zh';
+      try{ localStorage.setItem('gc_lang', l); }catch(e){}
+      if(st&&st.user){ st.user.lang=l; persist(); }
+      if(token()&&user()&&user().id){ try{ await req('PATCH','/api/collections/users/records/'+user().id, {lang:l}); }catch(e){} }
+      return l;
     },
     async setNickname(n){
       n=String(n||'').trim().slice(0,30);
@@ -171,7 +187,7 @@
         var lt=L?(L.updatedAt||0):-1, stime=S?(S.cupd||0):-1;
         if(S && S.deleted && stime>=lt){ if(L) removed++; return; }      // 云端删除生效
         if(S && (!L || stime>lt)){ var d=S.data||{}; d.id=cid; d.updatedAt=stime; merged.push(d); downloaded++; } // 下载较新
-        else if(L){ merged.push(L); if(!S || lt>stime || (S && S.data && (!S.data.bazi || !S.data.createdAt))) toPush.push(L); }  // 保留本地；本地较新、或云端旧记录缺 bazi/createdAt(回填) → 待上传
+        else if(L){ merged.push(L); if(!S || lt>stime) toPush.push(L); }  // 保留本地；仅本地较新才待上传（人类图无五行式 denormalize 回填）
       });
       return {merged:merged, toPush:toPush, downloaded:downloaded, removed:removed};
     },
