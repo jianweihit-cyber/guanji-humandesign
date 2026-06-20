@@ -107,7 +107,11 @@
     },
     async login(email, pass){
       var res = await req('POST', '/api/collections/users/auth-with-password', {identity:email, password:pass}, true);
-      return setAuth(res);
+      var u = setAuth(res); await this._ensureNick(); return u;
+    },
+    /* 首次登录把诗意雅号持久化到服务器(users.nickname 为空才写)，让生日/周年祝福邮件用上真雅号(而非通用「朋友/friend」)。随默认语言取中/英池。 */
+    async _ensureNick(){
+      try{ var u=user(); if(u && u.email && !u.nickname){ var pn=poeticNick(u.email, this.defaultLang()); if(pn) await this.setNickname(pn); } }catch(e){}
     },
     async requestVerify(email){
       try { await req('POST', '/api/collections/users/request-verification', {email:email}, true); } catch(e){}
@@ -119,11 +123,11 @@
     },
     async loginOTP(otpId, code){
       var res = await req('POST', '/api/collections/users/auth-with-otp', {otpId:otpId, password:code}, true);
-      return setAuth(res);
+      var u = setAuth(res); await this._ensureNick(); return u;
     },
     async refresh(){      // 刷新 token / 拉取最新 tier·verified
       if(!token()) return null;
-      try { var res = await req('POST', '/api/collections/users/auth-refresh', {}); return setAuth(res); }
+      try { var res = await req('POST', '/api/collections/users/auth-refresh', {}); var u = setAuth(res); this._ensureNick(); return u; }
       catch(e){ if(e.status===401){ this.logout(); } return null; }
     },
     logout(){ st = null; persist(); },
