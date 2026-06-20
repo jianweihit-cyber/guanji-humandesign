@@ -81,6 +81,9 @@
     <div class="frow" style="margin-top:10px">
       <div class="field locbox" style="flex:1 1 100%"><label>出生地（决定时区）</label><input id="locq" autocomplete="off" placeholder="城市，如 上海 / Shanghai / 拼音 shanghai" /><div id="locdrop" class="locdrop" hidden></div></div>
     </div>
+    <div class="frow" style="margin-top:10px">
+      <div class="field" style="flex:1 1 100%"><label id="tagsLabel" data-noi18n></label><div class="tagrow" id="tagrow" data-noi18n></div></div>
+    </div>
     <div class="frow" style="margin-top:10px;align-items:center;gap:10px">
       <button class="btn" id="go">生成人类图</button>
       <button class="btn ghost" id="saveBtn" hidden>保存此盘</button>
@@ -473,7 +476,7 @@ const autoName=()=>{ const d=new Date(), p=n=>String(n).padStart(2,'0');
 const uniqueName=nm=>{ const names=new Set(HDStore.all().map(r=>r.name)); if(!names.has(nm))return nm; let n=2; while(names.has(`${nm} (${n})`)) n++; return `${nm} (${n})`; };
 function doSave(name, overwriteId){
   if(overwriteId) HDStore.remove(overwriteId);
-  const id=HDStore.add({ name, gender:sexVal||'F', ...(chartSource?{source:chartSource}:{}), input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
+  const id=HDStore.add({ name, gender:sexVal||'F', fav:favOn, ...(selTags.size?{tags:[...selTags]}:{}), ...(chartSource?{source:chartSource}:{}), input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
   if(id){ $('savemsg').textContent=(ENM?'✓ Saved as ':'✓ 已保存为 ')+name; if(!$('sname').value.trim()) $('sname').value=name; }
   else $('savemsg').textContent=ENM?'✕ Save failed: storage unavailable or full':'✕ 保存失败：浏览器存储不可用或已满';
 }
@@ -500,6 +503,22 @@ $('saveBtn').onclick=()=>{
 };
 if(window.HDStore&&HDStore.requestPersist) HDStore.requestPersist(); // 申请持久化保护，降低被清风险
 
+// 标记（可选）：星标→fav；本人/家人/朋友/伙伴/其他 → tags[]，便于后端管理与定制化问候分群
+const HDTAGS=(window.HDStore&&HDStore.TAGS)||[];
+const _lang=window.HDI18N?HDI18N.lang:'zh-Hans';
+const STAR=ENM?'Star':(_lang==='zh-Hant'?'星標':'星标');
+const tagLbl=o=>ENM?o.en:(_lang==='zh-Hant'?o.tw:o.zh);
+let favOn=false; const selTags=new Set();
+$('tagsLabel').textContent=ENM?'🏷️ Tags (optional · applied when you save)':(_lang==='zh-Hant'?'🏷️ 標記（可選 · 儲存到記錄時一併生效）':'🏷️ 标记（可选 · 保存到记录时一并生效）');
+$('tagrow').innerHTML=`<button type="button" class="tagchip" data-tag="__fav__">☆ ${STAR}</button>`
+  +HDTAGS.map(o=>`<button type="button" class="tagchip" data-tag="${o.k}">${tagLbl(o)}</button>`).join('');
+function renderTagUI(){ for(const b of $('tagrow').children){ const t=b.dataset.tag;
+  if(t==='__fav__'){ b.classList.toggle('on',favOn); b.textContent=(favOn?'★ ':'☆ ')+STAR; }
+  else b.classList.toggle('on',selTags.has(t)); } }
+$('tagrow').onclick=e=>{ const b=e.target.closest('.tagchip'); if(!b)return; const t=b.dataset.tag;
+  if(t==='__fav__') favOn=!favOn; else (selTags.has(t)?selTags.delete(t):selTags.add(t)); renderTagUI(); };
+function applyTags(rec){ favOn=!!(rec&&rec.fav); selTags.clear(); if(rec&&Array.isArray(rec.tags)) rec.tags.forEach(t=>selTags.add(t)); renderTagUI(); }
+
 const setTz=tz=>{ selTz=tz; $('tzCustom').hidden=true; locq.value=tz; $('placeTag').textContent=''; };
 const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.day; $('h').value=i.hour; $('mi').value=i.minute; setTz(i.tz); syncSlider(); };
 
@@ -512,6 +531,7 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
     if(rec.input.place){ placeLabel=rec.input.place; locq.value=placeLabel; $('placeTag').textContent='🕐 '+rec.input.tz; }
     if(rec.gender==='M'||rec.gender==='F') setSex(rec.gender);   // 白名单：阻断历史脏数据回灌
     chartSource=rec.source||'';                       // 重开反推记录再保存仍保留标识
+    applyTags(rec);                                    // 还原星标/关系标记，再保存不丢
     $('sname').value=rec.name==='—'?'':rec.name; run(rec.name); return; }
   if(sp.get('y')&&sp.get('mo')){ // 外部带参直开：?y&mo&d&h&mi&tz&name&sex&src&place（反推页 src=solve / 名人库 src=celeb）
     const src=sp.get('src'); if(src==='solve'||src==='celeb') chartSource=src;

@@ -70,17 +70,19 @@ function match(r){
   return (r.name||'').toLowerCase().includes(s)
     || r.sum.type.toLowerCase().includes(s) || (r.sum.typeZh||'').includes(s)
     || r.sum.profile.includes(s) || (r.sum.authority||'').toLowerCase().includes(s)
-    || (r.sum.definition||'').includes(s) || (r.sum.channels||[]).some(k=>k.includes(s));
+    || (r.sum.definition||'').includes(s) || (r.sum.channels||[]).some(k=>k.includes(s))
+    || (r.tags||[]).some(t=>tagLblByKey(t).toLowerCase().includes(s)||t.includes(s));   // 关系标记可搜
 }
 function render(){
   const all=HDStore.all();
-  const rows=all.filter(r=>(f==='all'||r.fav)&&match(r));
+  const passF=r=> f==='all'?true : f==='fav'?r.fav : (r.tags||[]).includes(f);   // 全部/收藏/关系标记
+  const rows=all.filter(r=>passF(r)&&match(r));
   $('#cnt').textContent=`${rows.length} / ${all.length}`;
   $('#list').innerHTML = rows.map(r=>`
     <div class="rec" data-id="${r.id}">
       <button class="star ${r.fav?'on':''}" title="收藏">${r.fav?'★':'☆'}</button>
       <div class="meta">
-        <div class="n">${esc(r.name)||'—'}${r.gender?` <span style="font-weight:400;color:${r.gender==='M'?'#4A7BA6':'#C26A8A'}">${r.gender==='M'?'♂':'♀'}</span>`:''}${r.source==='solve'?` <span class="srcb">反推</span>`:r.source==='celeb'?` <span class="srcb">名人</span>`:''}</div>
+        <div class="n">${esc(r.name)||'—'}${r.gender?` <span style="font-weight:400;color:${r.gender==='M'?'#4A7BA6':'#C26A8A'}">${r.gender==='M'?'♂':'♀'}</span>`:''}${r.source==='solve'?` <span class="srcb">反推</span>`:r.source==='celeb'?` <span class="srcb">名人</span>`:''}${(r.tags||[]).map(t=>` <span class="tagb">${esc(tagLblByKey(t))}</span>`).join('')}</div>
         <div class="d">${fmtIn(r.input)}</div>
       </div>
       <div class="chips">
@@ -95,7 +97,7 @@ function render(){
 }
 // 合盘 / Penta 链接记录（带徽标，点开进 connect.html 重排）
 function linkRows(){
-  if(f==='fav') return [];                                  // 链接无收藏，收藏筛选时不计
+  if(f!=='all') return [];                                  // 链接无收藏/标记，仅「全部」时显示
   let list=(HDStore.linksAll&&HDStore.linksAll())||[];
   if(q){ const s=q.toLowerCase(); list=list.filter(r=>(r.name||'').toLowerCase().includes(s)||(r.members||[]).some(m=>(m.name||'').toLowerCase().includes(s))); }
   return list;
@@ -127,12 +129,18 @@ $('#filter').onclick=e=>{const t=e.target.closest('[data-f]');if(!t)return;f=t.d
 // ── 备份/恢复（防丢失安全网；也是换设备/换浏览器/换域名的迁移手段）──
 const I=window.HDI18N, EN=I&&I.lang==='en';
 const tr=zh=>EN?(I.EN[zh]||zh):I&&I.lang==='zh-Hant'?I.s2t(zh):zh;
+// 关系标记本地化 + 加入筛选栏（便于后端按分群管理）
+const HDTAGS=(window.HDStore&&HDStore.TAGS)||[];
+const tagLbl=o=>EN?o.en:(I&&I.lang==='zh-Hant'?o.tw:o.zh);
+const tagLblByKey=k=>{const o=HDTAGS.find(x=>x.k===k);return o?tagLbl(o):k;};
+(function buildTagFilters(){ const bar=$('#filter'); const sp=bar.querySelector('span[style*="flex"]');
+  HDTAGS.forEach(o=>{ const el=document.createElement('span'); el.className='tab'; el.dataset.f=o.k; el.textContent=tagLbl(o); bar.insertBefore(el, sp); }); })();
 $('#exportBtn').onclick=()=>{
   const blob=new Blob([HDStore.exportJSON()],{type:'application/json'});
   const a=document.createElement('a');
   const d=new Date(), p=n=>String(n).padStart(2,'0');
   a.href=URL.createObjectURL(blob);
-  a.download=`guanji-charts-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
+  a.download=`guanji-humandesign-charts-export-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
   a.click(); URL.revokeObjectURL(a.href);
 };
 $('#importBtn').onclick=()=>$('#importFile').click();

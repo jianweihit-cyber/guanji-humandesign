@@ -1,5 +1,5 @@
 /* hd-store.js — 命盘记录本地存储（window.HDStore，localStorage）
-   记录 = { id, name, gender, v, ts, updatedAt, fav,
+   记录 = { id, name, gender, v, ts, updatedAt, fav, tags:['self'|'family'|'friend'|'partner'|'other'],
             input:{year,month,day,hour,minute,tz,place?},
             sum:{ type, typeZh, profile, authority, definition, gates:[..], channels:[..] } }
    只存输入+摘要，打开时按输入重新排盘（引擎即真相，升级算法旧记录自动受益）。
@@ -18,12 +18,21 @@
 
   window.HDStore = {
     SCHEMA,
+    // 关系标记（可选，多选）；星标=fav 单独存。键稳定，供后端管理/定制问候分群
+    TAGS: [
+      { k: 'self', zh: '本人', tw: '本人', en: 'Self' },
+      { k: 'family', zh: '家人', tw: '家人', en: 'Family' },
+      { k: 'friend', zh: '朋友', tw: '朋友', en: 'Friend' },
+      { k: 'partner', zh: '伙伴', tw: '夥伴', en: 'Partner' },
+      { k: 'other', zh: '其他', tw: '其他', en: 'Other' },
+    ],
     all() { return read().sort((x, y) => (y.fav - x.fav) || ((y.updatedAt || y.ts) - (x.updatedAt || x.ts))); },
     get(id) { return read().find(r => r.id === id) || null; },
     add(rec) {
       const a = read();
       rec.id = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       rec.ts = Date.now(); rec.updatedAt = rec.ts; rec.v = SCHEMA; rec.fav = !!rec.fav;
+      rec.tags = Array.isArray(rec.tags) ? rec.tags : [];
       a.push(rec);
       return write(a) ? rec.id : null;     // 写失败返回 null
     },
