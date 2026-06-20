@@ -70,7 +70,7 @@ function composeGreeting(kind, lang, nick, sum, years, gender, email) {
   if (kind === 'anniversary') {
     subject = en ? ('🌟 ' + nick + ' — ' + years + (years > 1 ? ' years' : ' year') + ' with GuanJi') : ('🌟 ' + nick + '，来到观己满 ' + years + ' 年 🎉');
     eyebrow = en ? ('✦ ' + years + (years > 1 ? ' YEARS' : ' YEAR') + ' WITH GUANJI') : '✦ 观己同行纪念日';
-    headline = en ? ('Thank you for these ' + years + (years > 1 ? ' years' : ' year), ' + nick) : (nick + '，谢谢你这 ' + years + ' 年的同行');
+    headline = en ? ('Thank you for ' + (years > 1 ? ('these ' + years + ' years') : 'this past year') + ', ' + nick) : (nick + '，谢谢你这 ' + years + ' 年的同行');
     lead = en ? "You've returned, again and again, to look within — and grow. Every quiet step you've taken on this path, we've seen. That takes real courage."
               : "这一年里，你一次次回来，观照自己、向内生长。你在这条路上走过的每一步——哪怕安静无声——我们都看见了。这份坚持，本身就很了不起。";
     closing = en ? "Here's to the next chapter — may it be even more you." : "敬下一段旅程——愿它，更像你自己。";
