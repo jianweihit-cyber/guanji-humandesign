@@ -11,6 +11,7 @@ cronAdd("hd_greetings", "30 8 * * *", function () {
     var now = new Date();
     var md = (("0" + (now.getUTCMonth() + 1)).slice(-2)) + "-" + (("0" + now.getUTCDate()).slice(-2));
     var year = String(now.getUTCFullYear());
+    var TPL = ""; try { TPL = $os.getenv("GREET_TEMPLATE"); } catch (_) {} TPL = TPL || "aurora";  // 默认模板可用 Fly 环境变量 GREET_TEMPLATE 随时切(aurora|classic|minimal)
     var page = 0, per = 200;
     while (page < 100) {
       var users = $app.findRecordsByFilter("users", 'verified = true && emailOptOut = false', "created", per, page * per);
@@ -28,13 +29,13 @@ cronAdd("hd_greetings", "30 8 * * *", function () {
           var joinDays = (crStr && crStr.length >= 10) ? Math.floor((now.getTime() - new Date(crStr.slice(0, 10) + "T00:00:00Z").getTime()) / 86400000) : 0;
           if (data && data.input && data.input.month && data.input.day) {
             var bmd = (("0" + data.input.month).slice(-2)) + "-" + (("0" + data.input.day).slice(-2));
-            if (bmd === md) { var g = G.composeGreeting("birthday", lang, nick, sum, 0, gender, email, joinDays); G.sendMail($app, email, g.subject, g.html, "birthday", year, g.fromName); }
+            if (bmd === md) { var g = G.composeGreeting("birthday", lang, nick, sum, 0, gender, email, joinDays, TPL); G.sendMail($app, email, g.subject, g.html, "birthday", year, g.fromName); }
           }
           var cr = u.getString("created");
           if (cr && cr.length >= 10) {
             var cmd = cr.slice(5, 7) + "-" + cr.slice(8, 10);
             var years = now.getUTCFullYear() - parseInt(cr.slice(0, 4), 10);
-            if (cmd === md && years >= 1) { var ga = G.composeGreeting("anniversary", lang, nick, sum, years, gender, email); G.sendMail($app, email, ga.subject, ga.html, "anniversary", year, ga.fromName); }
+            if (cmd === md && years >= 1) { var ga = G.composeGreeting("anniversary", lang, nick, sum, years, gender, email, 0, TPL); G.sendMail($app, email, ga.subject, ga.html, "anniversary", year, ga.fromName); }
           }
           // 会员到期提醒：付费档(tier≠free)且有 activeTo → 到期前 30/14/7/3/1 天 + 过期，各去重
           var tier = u.getString("tier") || "free";
@@ -42,8 +43,8 @@ cronAdd("hd_greetings", "30 8 * * *", function () {
           if (tier !== "free" && atStr && atStr.length >= 10) {
             var atDate = atStr.slice(0, 10);
             var dl = Math.ceil((new Date(atDate + "T23:59:59Z").getTime() - now.getTime()) / 86400000);
-            if ([30, 14, 7, 3, 1].indexOf(dl) >= 0) { var gm = G.composeMembership(lang, nick, gender, dl, false, tier); G.sendMail($app, email, gm.subject, gm.html, "membership-expiring", "exp" + dl + "@" + atDate, gm.fromName); }
-            else if (dl <= 0) { var ge = G.composeMembership(lang, nick, gender, dl, true, tier); G.sendMail($app, email, ge.subject, ge.html, "membership-expired", "expired@" + atDate, ge.fromName); }
+            if ([30, 14, 7, 3, 1].indexOf(dl) >= 0) { var gm = G.composeMembership(lang, nick, gender, dl, false, tier, TPL); G.sendMail($app, email, gm.subject, gm.html, "membership-expiring", "exp" + dl + "@" + atDate, gm.fromName); }
+            else if (dl <= 0) { var ge = G.composeMembership(lang, nick, gender, dl, true, tier, TPL); G.sendMail($app, email, ge.subject, ge.html, "membership-expired", "expired@" + atDate, ge.fromName); }
           }
         } catch (_) {}
       }
@@ -72,12 +73,13 @@ routerAdd("POST", "/greet-test", function (e) {
     if (body.gender === "M" || body.gender === "F") gender = body.gender;   // 测试可强制性别
     if (body.nick) nick = body.nick;                                        // 测试可强制昵称
     if (!nick) nick = (lang === "en" ? "friend" : "朋友");
+    var tpl = body.template || "aurora";   // 测试可选模板：aurora|classic|minimal
     var g;
-    if (kind === "membership-expired") g = G.composeMembership(lang, nick, gender, (body.daysLeft != null ? body.daysLeft : 0), true, body.tier || "pro");
-    else if (kind === "membership-expiring") g = G.composeMembership(lang, nick, gender, (body.daysLeft != null ? body.daysLeft : 7), false, body.tier || "pro");
-    else g = G.composeGreeting(kind === "anniversary" ? "anniversary" : "birthday", lang, nick, sum, years, gender, email || "seed", (body.days != null ? body.days : 128));
+    if (kind === "membership-expired") g = G.composeMembership(lang, nick, gender, (body.daysLeft != null ? body.daysLeft : 0), true, body.tier || "pro", tpl);
+    else if (kind === "membership-expiring") g = G.composeMembership(lang, nick, gender, (body.daysLeft != null ? body.daysLeft : 7), false, body.tier || "pro", tpl);
+    else g = G.composeGreeting(kind === "anniversary" ? "anniversary" : "birthday", lang, nick, sum, years, gender, email || "seed", (body.days != null ? body.days : 128), tpl);
     var r = G.sendMail(e.app, email, g.subject, g.html, kind + "-test", "", g.fromName);
-    return e.json(200, { ok: !!r.ok, skipped: r.skipped || false, reason: r.reason || "", err: r.err || "", subject: g.subject, lang: lang, gender: gender });
+    return e.json(200, { ok: !!r.ok, skipped: r.skipped || false, reason: r.reason || "", err: r.err || "", subject: g.subject, lang: lang, gender: gender, template: tpl });
   } catch (ex) {
     return e.json(200, { ok: false, error: String((ex && ex.stack) || ex) });
   }

@@ -3,7 +3,9 @@
 // 纯 ES5；DB/邮件相关函数以 app 为参（cron 传 $app，route 传 e.app）。
 // 精美卡片模板：离目 logo + 卡片框 + 正向励志 + 名人名句 + 男女不同 accent/名句 + 中英整套 + 按 message 覆盖发件名。
 
-var LOGO = "https://humandesign.zaiyuxingzhe.com/web/logo-email-red.png";  // 红方块·奶油眼(对齐 App 图标/五行邮件格调)
+var LOGO_RED = "https://humandesign.zaiyuxingzhe.com/web/logo-email-red.png";   // 红方块·奶油眼(奶油/极简模板用)
+var LOGO_CREAM = "https://humandesign.zaiyuxingzhe.com/web/logo-email.png";     // 奶油底·红眼(经典红头模板用)
+var LOGO = LOGO_RED;   // 向后兼容
 var APP = "https://humandesign.zaiyuxingzhe.com/web/index.html";
 var SITE = "humandesign.zaiyuxingzhe.com";
 var ADMIN = "admin@zaiyuxingzhe.com";   // 会员续期联系（管理员）；改这里即可换
@@ -56,32 +58,105 @@ function pickQuote(gender, seed, lang) {
   return { text: lang === 'en' ? q.en : q.zh, author: lang === 'en' ? q.aen : q.azh };
 }
 
-// 邮件统一外壳：通透奶油卡 + 红方块 logo + 花饰头部 + 厚 footer(再遇行者/域名/标语/退订)。bodyHtml=中间 <tr> 们。
-function shell(en, accent, bodyHtml) {
-  var tagline = en ? 'Know Yourself · Self-Discovery · Inner Cultivation' : '认识自己 · 自我探索 · 观己修心 · 知行合一';
-  var foot = en ? 'You receive this because you have a GuanJi account. To stop these, open Account → System emails in the app, or simply reply to let us know.'
-                : '你收到这封信，是因为你拥有观己账号。如不想再收到此类邮件，可在 App「账号」页关闭通知，或直接回复本邮件告知。';
-  var ff = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'PingFang SC','Microsoft YaHei',sans-serif";
-  return ''
-    + '<div style="margin:0;padding:26px 12px;background:#F3EADA">'
-    + '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:0 auto;background:#FCFAF4;border-radius:18px;border-top:3px solid #B3433A;overflow:hidden;box-shadow:0 2px 16px rgba(120,70,30,.08);font-family:' + ff + '">'
+// ===== 多套邮件模板（chrome=外壳；inner=中间 <tr> 们）。新增模板：写个 chromeXxx + 注册到 CHROMES/inner。 =====
+var FF = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'PingFang SC','Microsoft YaHei',sans-serif";
+function footText(en) {
+  return en ? 'You receive this because you have a GuanJi account. To stop these, open Account → System emails in the app, or simply reply to let us know.'
+            : '你收到这封信，是因为你拥有观己账号。如不想再收到此类邮件，可在 App「账号」页关闭通知，或直接回复本邮件告知。';
+}
+function tagline(en) { return en ? 'Know Yourself · Self-Discovery · Inner Cultivation' : '认识自己 · 自我探索 · 观己修心 · 知行合一'; }
+
+// 外壳①「通透奶油」(aurora)：奶油卡+红顶边+红方块logo+花饰头部+厚footer
+function chromeAurora(en, accent, inner) {
+  return '<div style="margin:0;padding:26px 12px;background:#F3EADA">'
+    + '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:0 auto;background:#FCFAF4;border-radius:18px;border-top:3px solid #B3433A;overflow:hidden;box-shadow:0 2px 16px rgba(120,70,30,.08);font-family:' + FF + '">'
     + '<tr><td style="padding:32px 24px 4px;text-align:center">'
-    + '<img src="' + LOGO + '" width="64" height="64" alt="观己" style="display:block;margin:0 auto 12px;border:0;outline:none;border-radius:16px">'
+    + '<img src="' + LOGO_RED + '" width="64" height="64" alt="观己" style="display:block;margin:0 auto 12px;border:0;outline:none;border-radius:16px">'
     + '<div style="font-size:20px;font-weight:700;letter-spacing:3px;color:#3a3330">' + (en ? 'GUANJI' : '观　己 · 人类图') + '</div>'
     + (en ? '<div style="font-size:12px;letter-spacing:3px;color:#A99A80;margin-top:4px">HUMAN DESIGN</div>' : '')
-    + '<div style="color:' + accent + ';font-size:15px;letter-spacing:8px;margin:16px 0 0">❀&nbsp;&nbsp;❀&nbsp;&nbsp;❀</div>'
-    + '</td></tr>'
-    + bodyHtml
+    + '<div style="color:' + accent + ';font-size:15px;letter-spacing:8px;margin:16px 0 0">❀&nbsp;&nbsp;❀&nbsp;&nbsp;❀</div></td></tr>'
+    + inner
     + '<tr><td style="padding:20px 22px 26px;text-align:center;border-top:1px solid #EEE3CE">'
     + '<div style="font-size:14px;font-weight:700;color:#B3433A;letter-spacing:1px">' + (en ? 'Zai Yu Xing Zhe · GuanJi' : '再遇行者 · 观己') + '</div>'
     + '<div style="font-size:12.5px;color:#A99A80;margin-top:4px">' + SITE + '</div>'
-    + '<div style="font-size:12px;color:#C09A5E;letter-spacing:1px;margin-top:10px">' + tagline + '</div>'
-    + '<div style="font-size:11.5px;color:#B8AE9C;line-height:1.7;margin-top:12px">' + foot + '</div>'
+    + '<div style="font-size:12px;color:#C09A5E;letter-spacing:1px;margin-top:10px">' + tagline(en) + '</div>'
+    + '<div style="font-size:11.5px;color:#B8AE9C;line-height:1.7;margin-top:12px">' + footText(en) + '</div>'
     + '</td></tr></table></div>';
 }
+// 外壳②「经典红头」(classic)：红渐变头部+奶油底logo+简洁footer（旧版，保留）
+function chromeClassic(en, accent, inner) {
+  return '<div style="margin:0;padding:24px 12px;background:#F0E7D6">'
+    + '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:0 auto;background:#FCFAF4;border:1px solid #ECDDC4;border-radius:18px;overflow:hidden;font-family:' + FF + '">'
+    + '<tr><td style="background:#B3433A;background-image:linear-gradient(135deg,#B3433A,#8c2f28);padding:24px 20px;text-align:center">'
+    + '<img src="' + LOGO_CREAM + '" width="60" height="60" alt="观己" style="display:block;margin:0 auto 8px;border:0;outline:none">'
+    + '<div style="color:#fff;font-size:18px;font-weight:700;letter-spacing:1px">' + (en ? 'GuanJi · Human Design' : '观己 · 人类图') + '</div></td></tr>'
+    + inner
+    + '<tr><td style="background:#F6EFE2;padding:16px 22px;text-align:center;border-top:1px solid #ECDDC4">'
+    + '<div style="font-size:12px;color:#9b948a;line-height:1.6">' + footText(en) + '</div>'
+    + '<div style="font-size:12px;color:#C9BEA9;margin-top:6px">· ' + (en ? 'Zai Yu Xing Zhe · ' + SITE : '再遇行者 · ' + SITE) + ' ·</div></td></tr>'
+    + '</table></div>';
+}
+// 外壳③「极简」(minimal)：素白卡+小红logo+发丝线+留白+极简footer
+function chromeMinimal(en, accent, inner) {
+  return '<div style="margin:0;padding:30px 14px;background:#FBF8F1">'
+    + '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:460px;margin:0 auto;background:#FFFFFF;border:1px solid #EFE7D7;border-radius:14px;overflow:hidden;font-family:' + FF + '">'
+    + '<tr><td style="padding:30px 30px 0;text-align:center">'
+    + '<img src="' + LOGO_RED + '" width="44" height="44" alt="观己" style="display:block;margin:0 auto 10px;border:0;outline:none;border-radius:11px">'
+    + '<div style="font-size:12px;font-weight:600;letter-spacing:4px;color:#A99A80">' + (en ? 'GUANJI · HUMAN DESIGN' : '观己 · 人类图') + '</div>'
+    + '<div style="width:34px;height:2px;background:' + accent + ';margin:16px auto 0;border-radius:2px"></div></td></tr>'
+    + inner
+    + '<tr><td style="padding:22px 30px 30px;text-align:center;border-top:1px solid #F2ECDF">'
+    + '<div style="font-size:12.5px;color:#A99A80">' + (en ? 'Zai Yu Xing Zhe · ' : '再遇行者 · ') + SITE + '</div>'
+    + '<div style="font-size:11px;color:#C3BAA8;line-height:1.7;margin-top:8px">' + footText(en) + '</div>'
+    + '</td></tr></table></div>';
+}
+var CHROMES = { aurora: chromeAurora, classic: chromeClassic, minimal: chromeMinimal };
+var DEFAULT_TPL = 'aurora';
+function chromeOf(tpl) { return CHROMES[tpl] || CHROMES[DEFAULT_TPL]; }
 
-// 组装祝福：返回 {subject, html, fromName}。days=与观己相伴天数(生日用，可选)。
-function composeGreeting(kind, lang, nick, sum, years, gender, email, days) {
+// 祝福正文(inner) —— 三套排版，吃同一个 content 对象 c
+function gInnerAurora(c) {
+  var p = 'font-size:15px;line-height:1.95;color:#5a5048;margin:0;text-align:justify';
+  return ''
+    + (c.typeLabel ? '<tr><td style="padding:6px 26px 0;text-align:center"><span style="display:inline-block;border:1px solid ' + c.accent + ';color:' + c.accent + ';border-radius:999px;padding:5px 18px;font-size:13px;letter-spacing:1px">' + esc(c.typeLabel) + (c.profile ? ' · ' + esc(c.profile) : '') + '</span></td></tr>' : '')
+    + '<tr><td style="padding:14px 30px 2px;text-align:center"><div style="font-size:24px;font-weight:700;color:#3a3330;letter-spacing:1px">' + esc(c.bigTitle) + '</div>'
+    + '<div style="font-size:14px;color:#8a7c66;margin-top:9px">' + c.subline + '</div></td></tr>'
+    + '<tr><td style="padding:18px 30px 4px"><p style="' + p + '">' + esc(c.lead) + '</p></td></tr>'
+    + (c.line ? '<tr><td style="padding:10px 30px 4px"><p style="' + p + '">' + esc(c.line) + '</p></td></tr>' : '')
+    + '<tr><td style="padding:8px 30px 4px"><p style="' + p + '">' + esc(c.closing) + '</p></td></tr>'
+    + '<tr><td style="padding:8px 30px"><div style="border-top:1px solid #EEE3CE;border-bottom:1px solid #EEE3CE;padding:18px 6px;margin:8px 0;text-align:center">'
+    + '<div style="font-size:15.5px;font-style:italic;color:#6B5B43;line-height:1.7">&ldquo;' + esc(c.quote.text) + '&rdquo;</div>'
+    + '<div style="font-size:12.5px;color:#A99A80;margin-top:8px">— ' + esc(c.quote.author) + '</div></div></td></tr>'
+    + '<tr><td style="padding:2px 30px 0;text-align:center"><div style="font-size:13px;color:#8a7c66;line-height:1.6">📅 ' + esc(c.companion) + '</div></td></tr>'
+    + '<tr><td style="padding:18px 30px 28px;text-align:center"><a href="' + APP + '" style="display:inline-block;background:#B3433A;color:#fff;text-decoration:none;padding:12px 30px;border-radius:999px;font-size:15px;font-weight:600">' + esc(c.cta) + ' &rsaquo;</a></td></tr>';
+}
+function gInnerClassic(c) {
+  var typeBox = c.typeLabel ? '<tr><td style="padding:0 26px"><div style="background:#F7F0E3;border-left:4px solid ' + c.accent + ';border-radius:10px;padding:12px 14px;margin:6px 0 2px"><div style="font-size:12px;color:#9b948a;letter-spacing:.5px">' + (c.en ? 'YOUR DESIGN' : '你的人类图') + ' · ' + esc(c.typeLabel) + (c.profile ? ' · ' + esc(c.profile) : '') + '</div><div style="font-size:14.5px;color:#3a3330;line-height:1.7;margin-top:5px">' + esc(c.line) + '</div></div></td></tr>' : '';
+  return ''
+    + '<tr><td style="padding:24px 26px 4px"><div style="font-size:12px;font-weight:700;letter-spacing:2px;color:' + c.accent + '">' + esc(c.eyebrow) + '</div>'
+    + '<h1 style="font-size:21px;line-height:1.4;margin:8px 0 6px;color:#3a3330">' + esc(c.headline) + '</h1>'
+    + '<p style="font-size:15px;line-height:1.85;color:#5a5048;margin:6px 0 4px">' + esc(c.lead) + '</p></td></tr>'
+    + typeBox
+    + '<tr><td style="padding:6px 26px"><div style="border-top:1px dashed #E2D5BC;border-bottom:1px dashed #E2D5BC;padding:16px 4px;margin:14px 0;text-align:center"><div style="font-size:16px;font-style:italic;color:#6B5B43;line-height:1.7">&ldquo;' + esc(c.quote.text) + '&rdquo;</div><div style="font-size:13px;color:#A99A80;margin-top:8px">— ' + esc(c.quote.author) + '</div></div></td></tr>'
+    + '<tr><td style="padding:2px 26px 4px"><p style="font-size:15px;line-height:1.8;color:#5a5048;margin:2px 0">' + esc(c.closing) + '</p></td></tr>'
+    + '<tr><td style="padding:14px 26px 26px;text-align:center"><a href="' + APP + '" style="display:inline-block;background:#B3433A;color:#fff;text-decoration:none;padding:12px 26px;border-radius:999px;font-size:15px;font-weight:600">' + esc(c.cta) + ' &rsaquo;</a></td></tr>';
+}
+function gInnerMinimal(c) {
+  var p = 'font-size:14.5px;line-height:1.9;color:#5a5048;margin:0;text-align:center';
+  return ''
+    + '<tr><td style="padding:18px 34px 0;text-align:center">'
+    + (c.typeLabel ? '<div style="font-size:12px;letter-spacing:1px;color:' + c.accent + ';margin-bottom:8px">' + esc(c.typeLabel) + (c.profile ? ' · ' + esc(c.profile) : '') + '</div>' : '')
+    + '<div style="font-size:23px;font-weight:700;color:#2E2B26;letter-spacing:1px">' + esc(c.bigTitle) + '</div>'
+    + '<div style="font-size:13.5px;color:#9b9078;margin-top:8px">' + c.subline + '</div></td></tr>'
+    + '<tr><td style="padding:16px 34px 4px"><p style="' + p + '">' + esc(c.lead) + '</p></td></tr>'
+    + '<tr><td style="padding:14px 34px"><div style="font-size:17px;font-style:italic;color:#6B5B43;line-height:1.75;text-align:center">&ldquo;' + esc(c.quote.text) + '&rdquo;</div><div style="font-size:12.5px;color:#A99A80;margin-top:10px;text-align:center">— ' + esc(c.quote.author) + '</div></td></tr>'
+    + '<tr><td style="padding:6px 34px 0;text-align:center"><div style="font-size:12.5px;color:#9b9078">📅 ' + esc(c.companion) + '</div></td></tr>'
+    + '<tr><td style="padding:20px 34px 26px;text-align:center"><a href="' + APP + '" style="display:inline-block;border:1.5px solid ' + c.accent + ';color:' + c.accent + ';text-decoration:none;padding:10px 26px;border-radius:999px;font-size:14px;font-weight:600">' + esc(c.cta) + ' &rsaquo;</a></td></tr>';
+}
+var GINNER = { aurora: gInnerAurora, classic: gInnerClassic, minimal: gInnerMinimal };
+
+// 组装祝福：返回 {subject, html, fromName}。days=相伴天数(生日用)。template=aurora|classic|minimal(默认 aurora)。
+function composeGreeting(kind, lang, nick, sum, years, gender, email, days, template) {
   var en = (lang === 'en');
   var fromName = en ? 'GuanJi · Human Design' : '观己 · 人类图';
   var accent = (gender === 'F') ? '#C2698A' : (gender === 'M') ? '#4E7BA6' : '#B3433A';
@@ -91,10 +166,12 @@ function composeGreeting(kind, lang, nick, sum, years, gender, email, days) {
   var line = typeLine(type, lang);
   var q = pickQuote(gender, hashStr(email) + (years || 0), lang);
 
-  var subject, bigTitle, lead, closing, companion;
+  var subject, bigTitle, eyebrow, headline, lead, closing, companion;
   if (kind === 'anniversary') {
     subject = en ? ('🌟 ' + nick + ' — ' + years + (years > 1 ? ' years' : ' year') + ' with GuanJi') : ('🌟 ' + nick + '，来到观己满 ' + years + ' 年 🎉');
     bigTitle = en ? 'Happy Anniversary' : '周年快乐';
+    eyebrow = en ? ('✦ ' + years + (years > 1 ? ' YEARS' : ' YEAR') + ' WITH GUANJI') : '✦ 观己同行纪念日';
+    headline = en ? ('Thank you for ' + (years > 1 ? ('these ' + years + ' years') : 'this past year') + ', ' + nick) : (nick + '，谢谢你这 ' + years + ' 年的同行');
     lead = en ? "You've returned, again and again, to look within — and grow. Every quiet step you've taken on this path, we've seen. That takes real courage."
               : "这一年里，你一次次回来，观照自己、向内生长。你在这条路上走过的每一步——哪怕安静无声——我们都看见了。这份坚持，本身就很了不起。";
     closing = en ? "Here's to the next chapter — may it be even more you." : "敬下一段旅程——愿它，更像你自己。";
@@ -103,39 +180,27 @@ function composeGreeting(kind, lang, nick, sum, years, gender, email, days) {
   } else {
     subject = en ? ('🎂 Happy Birthday, ' + nick + ' · GuanJi') : ('🎂 ' + nick + '，生日快乐 · 观己人类图');
     bigTitle = en ? 'Happy Birthday' : '生日快乐';
+    eyebrow = en ? '✦ HAPPY BIRTHDAY' : '✦ 生日快乐';
+    headline = en ? ('Happy birthday, ' + nick + ' 🎂') : (nick + '，生日快乐 🎂');
     lead = en ? "On your day, we just want to say it plainly: the world is brighter with you in it. May this new year hold you gently, surprise you kindly — and may you be truly seen, most of all by yourself."
               : "在你生日这天，想认真地对你说一句：因为有你，这个世界更亮了一点。愿新的一岁，被温柔以待、被惊喜眷顾——也愿你，被好好看见，尤其是被你自己。";
     closing = en ? "Step into this year exactly as you are — that's more than enough." : "就以你本来的样子，走进新的一岁——这就已经足够好了。";
     companion = (days && days > 0) ? (en ? ('You and GuanJi · Human Design, ' + days + ' days together · thank you for the company') : ('你与 观己 · 人类图，已相伴 ' + days + ' 天 · 谢谢一路同行'))
                                    : (en ? 'Thank you for walking this path with us · may this year shine' : '谢谢一路同行 · 愿新的一岁闪闪发亮');
   }
-
   var subline = en ? ('GuanJi · a note for <span style="color:' + accent + '">' + esc(nick) + '</span>')
                    : ('观己 · 写给「<span style="color:' + accent + '">' + esc(nick) + '</span>」的人类图寄语');
-  var p = 'font-size:15px;line-height:1.95;color:#5a5048;margin:0;text-align:justify';
-
-  var body = ''
-    + (typeLabel ? '<tr><td style="padding:6px 26px 0;text-align:center"><span style="display:inline-block;border:1px solid ' + accent + ';color:' + accent + ';border-radius:999px;padding:5px 18px;font-size:13px;letter-spacing:1px">' + esc(typeLabel) + (profile ? ' · ' + esc(profile) : '') + '</span></td></tr>' : '')
-    + '<tr><td style="padding:14px 30px 2px;text-align:center"><div style="font-size:24px;font-weight:700;color:#3a3330;letter-spacing:1px">' + esc(bigTitle) + '</div>'
-    + '<div style="font-size:14px;color:#8a7c66;margin-top:9px">' + subline + '</div></td></tr>'
-    + '<tr><td style="padding:18px 30px 4px"><p style="' + p + '">' + esc(lead) + '</p></td></tr>'
-    + (line ? '<tr><td style="padding:10px 30px 4px"><p style="' + p + '">' + esc(line) + '</p></td></tr>' : '')
-    + '<tr><td style="padding:8px 30px 4px"><p style="' + p + '">' + esc(closing) + '</p></td></tr>'
-    + '<tr><td style="padding:8px 30px"><div style="border-top:1px solid #EEE3CE;border-bottom:1px solid #EEE3CE;padding:18px 6px;margin:8px 0;text-align:center">'
-    + '<div style="font-size:15.5px;font-style:italic;color:#6B5B43;line-height:1.7">&ldquo;' + esc(q.text) + '&rdquo;</div>'
-    + '<div style="font-size:12.5px;color:#A99A80;margin-top:8px">— ' + esc(q.author) + '</div></div></td></tr>'
-    + '<tr><td style="padding:2px 30px 0;text-align:center"><div style="font-size:13px;color:#8a7c66;line-height:1.6">📅 ' + esc(companion) + '</div></td></tr>'
-    + '<tr><td style="padding:18px 30px 28px;text-align:center"><a href="' + APP + '" style="display:inline-block;background:#B3433A;color:#fff;text-decoration:none;padding:12px 30px;border-radius:999px;font-size:15px;font-weight:600">' + esc(en ? 'Open your chart' : '看看我的人类图') + ' &rsaquo;</a></td></tr>';
-
-  return { subject: subject, html: shell(en, accent, body), fromName: fromName };
+  var c = { en: en, accent: accent, nick: nick, typeLabel: typeLabel, profile: profile, line: line, lead: lead, closing: closing, quote: q, bigTitle: bigTitle, eyebrow: eyebrow, headline: headline, subline: subline, companion: companion, cta: (en ? 'Open your chart' : '看看我的人类图') };
+  var tpl = (template && CHROMES[template]) ? template : DEFAULT_TPL;
+  var inner = (GINNER[tpl] || GINNER[DEFAULT_TPL])(c);
+  return { subject: subject, html: chromeOf(tpl)(en, accent, inner), fromName: fromName };
 }
 
-// 会员到期 / 即将到期 提醒邮件 {subject, html, fromName}
-function composeMembership(lang, nick, gender, daysLeft, expired, tier) {
+// 会员到期 / 即将到期 提醒邮件 {subject, html, fromName}。template 同 composeGreeting。
+function composeMembership(lang, nick, gender, daysLeft, expired, tier, template) {
   var en = (lang === 'en');
   var fromName = en ? 'GuanJi · Human Design' : '观己 · 人类图';
   var accent = (gender === 'F') ? '#C2698A' : (gender === 'M') ? '#4E7BA6' : '#B3433A';
-  var brand = '#B3433A';
   var tn = (tier === 'vip') ? 'VIP' : (tier === 'pro') ? 'Pro' : tier;
   var subject, eyebrow, headline, lead;
   if (expired) {
@@ -160,7 +225,8 @@ function composeMembership(lang, nick, gender, daysLeft, expired, tier) {
     + '<tr><td style="padding:16px 30px 4px"><p style="' + p + '">' + esc(lead) + '</p></td></tr>'
     + '<tr><td style="padding:18px 30px 28px;text-align:center"><a href="' + mailto + '" style="display:inline-block;background:#B3433A;color:#fff;text-decoration:none;padding:12px 30px;border-radius:999px;font-size:15px;font-weight:600">' + esc(cta) + ' &rsaquo;</a>'
     + '<div style="font-size:12px;color:#9b948a;margin-top:10px">' + esc(en ? ('or write to ' + ADMIN) : ('或来信 ' + ADMIN)) + '</div></td></tr>';
-  return { subject: subject, html: shell(en, accent, body), fromName: fromName };
+  var tpl = (template && CHROMES[template]) ? template : DEFAULT_TPL;
+  return { subject: subject, html: chromeOf(tpl)(en, accent, body), fromName: fromName };
 }
 
 // 发一封信（尊重退订 + 写 mail_log + 可去重 + 可覆盖发件名）。返回 {ok, skipped, reason, err}
