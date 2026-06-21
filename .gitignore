@@ -3,6 +3,11 @@ node_modules/
 .claude/
 *.log
 
+# 数据备份（含用户出生隐私，绝不入公开仓）
+03_Cloud_Pocketbase/backups/
+*-backup-*.zip
+guanji-hd-*.zip
+
 # 参考书籍（版权材料，绝不入公开仓/不部署）
 99_RefBooks/
 tools/.cache/
