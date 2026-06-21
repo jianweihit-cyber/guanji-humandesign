@@ -24,9 +24,11 @@ cronAdd("hd_greetings", "30 8 * * *", function () {
           var data = G.selfChart($app, u.id);
           var sum = (data && data.sum) || {};
           var gender = (data && data.gender) || '';
+          var crStr = u.getString("created");   // 与观己相伴天数(生日寄语「已相伴 N 天」)
+          var joinDays = (crStr && crStr.length >= 10) ? Math.floor((now.getTime() - new Date(crStr.slice(0, 10) + "T00:00:00Z").getTime()) / 86400000) : 0;
           if (data && data.input && data.input.month && data.input.day) {
             var bmd = (("0" + data.input.month).slice(-2)) + "-" + (("0" + data.input.day).slice(-2));
-            if (bmd === md) { var g = G.composeGreeting("birthday", lang, nick, sum, 0, gender, email); G.sendMail($app, email, g.subject, g.html, "birthday", year, g.fromName); }
+            if (bmd === md) { var g = G.composeGreeting("birthday", lang, nick, sum, 0, gender, email, joinDays); G.sendMail($app, email, g.subject, g.html, "birthday", year, g.fromName); }
           }
           var cr = u.getString("created");
           if (cr && cr.length >= 10) {
@@ -73,7 +75,7 @@ routerAdd("POST", "/greet-test", function (e) {
     var g;
     if (kind === "membership-expired") g = G.composeMembership(lang, nick, gender, (body.daysLeft != null ? body.daysLeft : 0), true, body.tier || "pro");
     else if (kind === "membership-expiring") g = G.composeMembership(lang, nick, gender, (body.daysLeft != null ? body.daysLeft : 7), false, body.tier || "pro");
-    else g = G.composeGreeting(kind === "anniversary" ? "anniversary" : "birthday", lang, nick, sum, years, gender, email || "seed");
+    else g = G.composeGreeting(kind === "anniversary" ? "anniversary" : "birthday", lang, nick, sum, years, gender, email || "seed", (body.days != null ? body.days : 128));
     var r = G.sendMail(e.app, email, g.subject, g.html, kind + "-test", "", g.fromName);
     return e.json(200, { ok: !!r.ok, skipped: r.skipped || false, reason: r.reason || "", err: r.err || "", subject: g.subject, lang: lang, gender: gender });
   } catch (ex) {
