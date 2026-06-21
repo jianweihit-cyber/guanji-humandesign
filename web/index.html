@@ -482,26 +482,33 @@ function doSave(name, overwriteId){
   if(id){ $('savemsg').textContent=(ENM?'✓ Saved as ':'✓ 已保存为 ')+name; if(!$('sname').value.trim()) $('sname').value=name; }
   else $('savemsg').textContent=ENM?'✕ Save failed: storage unavailable or full':'✕ 保存失败：浏览器存储不可用或已满';
 }
+// 点保存 → 弹出「可编辑命名」浮层（预填盘主名字；可随意改名；留空才回退时间戳；另存为副本也能自己改名）
 $('saveBtn').onclick=()=>{
   if(!lastRun) return;
-  const btn=$('saveBtn'); if(btn.disabled) return; btn.disabled=true; setTimeout(()=>btn.disabled=false,800); // 防连点重复
-  const typed=$('sname').value.trim();
-  const name = typed || autoName();
-  const dup = typed ? HDStore.all().find(r=>r.name===name) : null;   // 空名自动编号、天然不重名
-  if(dup){
+  const prefill=$('sname').value.trim();
+  const ph=ENM?'Name this chart (blank = auto)':(_lang==='zh-Hant'?'給這張盤起個名字（留空自動命名）':'给这张盘起个名字（留空自动命名）');
+  const inStyle='width:100%;padding:11px 13px;margin-top:4px;border:1px solid var(--border);border-radius:10px;font-size:16px;box-sizing:border-box;font-family:inherit;background:var(--paper)';
+  const sheet=openSheet(`
+    <h3 class="gj-h">${ENM?'Save chart':'保存此盘'}<div class="gj-sub">${ENM?'You can rename it anytime.':'名字可随时修改。'}</div></h3>
+    <input id="svName" type="text" maxlength="50" placeholder="${ph}" style="${inStyle}">
+    <div id="svWarn" class="gj-theme" style="margin:10px 0 0"></div>
+    <div class="gj-btns" style="margin-top:14px"><button class="btn" id="svDo">${ENM?'Save':'保存'}</button></div>`);
+  const nameEl=sheet.querySelector('#svName'), warn=sheet.querySelector('#svWarn');
+  nameEl.value=prefill; setTimeout(()=>{ try{ nameEl.focus(); nameEl.select(); }catch(e){} },60);
+  const finish=(name,overId)=>{ closeSheet(); $('sname').value=name; doSave(name,overId); };
+  const trySave=()=>{
+    const typed=nameEl.value.trim(), name=typed||autoName();
+    const dup=typed?HDStore.all().find(r=>r.name===name):null;   // 空名走时间戳、天然不重名
+    if(!dup){ finish(name); return; }
     const alt=uniqueName(name);
-    const sheet=openSheet(`
-      <h3 class="gj-h">${ENM?'Name already exists':'已有同名记录'}<div class="gj-sub">${escq(name)}</div></h3>
-      <p class="gj-theme">${ENM?`A saved chart named “${escq(name)}” already exists. Overwrite it, or keep both?`:`已存在名为「${escq(name)}」的记录。要覆盖它，还是两者都保留？`}</p>
-      <div class="gj-btns">
-        <button class="btn" id="dupOver">${ENM?'Overwrite':'覆盖'}</button>
-        <button class="btn ghost" id="dupNew">${ENM?`Keep both → ${escq(alt)}`:`另存为「${escq(alt)}」`}</button>
-      </div>`);
-    sheet.querySelector('#dupOver').onclick=()=>{ closeSheet(); doSave(name, dup.id); };
-    sheet.querySelector('#dupNew').onclick=()=>{ closeSheet(); doSave(alt); };
-    return;
-  }
-  doSave(name);
+    warn.innerHTML=`${ENM?`A chart named “${escq(name)}” already exists.`:`已存在名为「${escq(name)}」的记录。`}
+      <div class="gj-btns" style="margin-top:8px"><button class="btn" id="svOver">${ENM?'Overwrite':'覆盖'}</button><button class="btn ghost" id="svAlt">${ENM?`Keep both → ${escq(alt)}`:`另存为「${escq(alt)}」`}</button></div>
+      <div class="gj-sub" style="margin-top:6px">${ENM?'…or edit the name above and Save again.':'…或在上方改个名字后再点保存。'}</div>`;
+    warn.querySelector('#svOver').onclick=()=>finish(name,dup.id);
+    warn.querySelector('#svAlt').onclick=()=>finish(alt);
+  };
+  sheet.querySelector('#svDo').onclick=trySave;
+  nameEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); trySave(); } });
 };
 if(window.HDStore&&HDStore.requestPersist) HDStore.requestPersist(); // 申请持久化保护，降低被清风险
 

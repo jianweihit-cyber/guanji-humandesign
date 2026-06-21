@@ -3,6 +3,7 @@
    API: HDWheel.open({ title, cols:[{values, value}], onChange(i,vals), onDone(vals) }) */
 (function () {
   const IH = 38, VISIBLE = 5, PAD = IH * 2; // 行高/可见行/上下留白
+  const REPEAT = 7;                         // 循环列：值复制份数(奇数，中间份为基准；滚到边缘无缝回中)
   const css = `
   .whl-mask{position:fixed;inset:0;background:rgba(40,30,15,.35);z-index:999;opacity:0;transition:opacity .18s}
   .whl-mask.on{opacity:1}
@@ -35,21 +36,36 @@
     const body = sheet.querySelector('.whl-body');
     const state = []; // 每列 {el, values, idx}
 
+    const strip = (values, loop) => loop ? Array.from({ length: values.length * REPEAT }, (_, k) => values[k % values.length]) : values;
     function buildCol(ci, col) {
       const el = document.createElement('div'); el.className = 'whl-col';
-      el.innerHTML = `<div class="pad"></div>${col.values.map(v => `<div class="whl-it">${v}</div>`).join('')}<div class="pad"></div>`;
-      body.appendChild(el);
+      const loop = !!col.loop && col.values.length > 2;   // 循环列(年份不循环)
       const idx0 = Math.max(0, col.values.indexOf(col.value));
-      const s = { el, values: col.values, idx: idx0 };
+      el.innerHTML = `<div class="pad"></div>${strip(col.values, loop).map(v => `<div class="whl-it">${v}</div>`).join('')}<div class="pad"></div>`;
+      body.appendChild(el);
+      const mid = (REPEAT - 1) / 2;
+      const s = { el, values: col.values, idx: idx0, loop };
       state[ci] = s;
       const items = () => el.querySelectorAll('.whl-it');
-      const mark = () => items().forEach((it, i) => it.classList.toggle('on', i === s.idx));
-      requestAnimationFrame(() => { el.scrollTop = idx0 * IH; mark(); });
+      const markPos = (pos) => { const its = items(); for (let i = 0; i < its.length; i++) its[i].classList.toggle('on', i === pos); };
+      const startPos = loop ? (mid * col.values.length + idx0) : idx0;
+      s.pos = startPos;
+      requestAnimationFrame(() => { el.scrollTop = startPos * IH; markPos(startPos); });
       let t = null;
       el.addEventListener('scroll', () => {
-        const i = Math.max(0, Math.min(s.values.length - 1, Math.round(el.scrollTop / IH)));
-        if (i !== s.idx) { s.idx = i; vib(); mark(); if (opts.onChange) opts.onChange(ci, vals(), set); }
-        clearTimeout(t); t = setTimeout(() => { el.scrollTo({ top: s.idx * IH, behavior: 'smooth' }); }, 90);
+        const L = s.values.length;
+        const p = Math.max(0, Math.round(el.scrollTop / IH));
+        s.pos = p;
+        const realIdx = loop ? (((p % L) + L) % L) : Math.min(Math.max(0, p), L - 1);
+        markPos(p);
+        if (realIdx !== s.idx) { s.idx = realIdx; vib(); if (opts.onChange) opts.onChange(ci, vals(), set); }
+        clearTimeout(t); t = setTimeout(() => {
+          el.scrollTo({ top: p * IH, behavior: 'smooth' });
+          if (loop && (p < L || p >= L * (REPEAT - 1))) {   // 滚进首/末份 → 滚动停后无缝回中间份(同值不同份，视觉无感)
+            const newP = mid * L + realIdx;
+            setTimeout(() => { el.scrollTop = newP * IH; s.pos = newP; markPos(newP); }, 210);
+          }
+        }, 90);
       }, { passive: true });
       el.addEventListener('click', (e) => { // 点击某行直接选中
         const it = e.target.closest('.whl-it'); if (!it) return;
@@ -62,9 +78,12 @@
       const s = state[ci]; if (!s) return;
       s.values = values;
       const keep = value != null ? value : s.values[Math.min(s.idx, values.length - 1)];
-      s.el.innerHTML = `<div class="pad"></div>${values.map(v => `<div class="whl-it">${v}</div>`).join('')}<div class="pad"></div>`;
-      s.idx = Math.max(0, values.indexOf(keep));
-      requestAnimationFrame(() => { s.el.scrollTop = s.idx * IH; s.el.querySelectorAll('.whl-it').forEach((it, i) => it.classList.toggle('on', i === s.idx)); });
+      const realIdx = Math.max(0, values.indexOf(keep));
+      s.idx = realIdx;
+      s.el.innerHTML = `<div class="pad"></div>${strip(values, s.loop).map(v => `<div class="whl-it">${v}</div>`).join('')}<div class="pad"></div>`;
+      const pos = s.loop ? ((REPEAT - 1) / 2 * values.length + realIdx) : realIdx;
+      s.pos = pos;
+      requestAnimationFrame(() => { s.el.scrollTop = pos * IH; s.el.querySelectorAll('.whl-it').forEach((it, i) => it.classList.toggle('on', i === pos)); });
     };
     opts.cols.forEach((c, i) => buildCol(i, c));
 
@@ -84,11 +103,11 @@
   function openDateTime({ y, mo, d, h, mi, title, onDone }) {
     open({
       title, cols: [
-        { values: range(1900, 2035), value: +y },
-        { values: range(1, 12), value: +mo },
-        { values: range(1, dim(+y, +mo)), value: +d },
-        { values: range(0, 23), value: +h },
-        { values: range(0, 59), value: +mi },
+        { values: range(1900, 2035), value: +y },              // 年份不循环(有界范围)
+        { values: range(1, 12), value: +mo, loop: true },
+        { values: range(1, dim(+y, +mo)), value: +d, loop: true },
+        { values: range(0, 23), value: +h, loop: true },
+        { values: range(0, 59), value: +mi, loop: true },
       ],
       onChange(ci, v, set) { if (ci === 0 || ci === 1) set(2, range(1, dim(+v[0], +v[1]))); },
       onDone(v) { onDone(+v[0], +v[1], +v[2], +v[3], +v[4]); },
