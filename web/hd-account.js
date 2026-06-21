@@ -136,9 +136,9 @@
   function ensureXBorderConsent() {
     try { if (localStorage.getItem('gc_xb_consent') === '1') return true; } catch (e) {}
     var ok = confirm(T(
-      '开启云同步将把你的「邮箱 + 命盘记录（含出生日期 / 时间 / 地点等敏感个人信息）」加密上传并存储于境外（新加坡）服务器，用于备份与跨设备恢复。此为单独同意项，你可随时关闭或注销删除。确定开启？',
-      'Enabling cloud sync uploads and stores your email + chart records (including sensitive birth date/time/place) encrypted on overseas servers (Singapore) for backup and cross-device restore. This is a separate consent — you can turn it off or delete anytime. Enable now?',
-      '開啟雲同步將把你的「信箱 + 命盤記錄（含出生日期 / 時間 / 地點等敏感個人資料）」加密上傳並儲存於境外（新加坡）伺服器，用於備份與跨裝置恢復。此為單獨同意項，你可隨時關閉或登出刪除。確定開啟？'));
+      '开启云同步将把你的「邮箱 + 命盘记录（含出生日期 / 时间 / 地点等敏感个人信息）」加密上传并存储于境外（新加坡，接收方 Fly.io / Cloudflare）服务器，用于备份与跨设备恢复。此为单独同意项，你可随时关闭，或邮件申请删除。确定开启？',
+      'Enabling cloud sync uploads and stores your email + chart records (including sensitive birth date/time/place) encrypted on overseas servers (Singapore; recipients Fly.io / Cloudflare) for backup and cross-device restore. This is a separate consent — you can turn it off anytime, or email us to delete. Enable now?',
+      '開啟雲同步將把你的「信箱 + 命盤記錄（含出生日期 / 時間 / 地點等敏感個人資料）」加密上傳並儲存於境外（新加坡，接收方 Fly.io / Cloudflare）伺服器，用於備份與跨裝置恢復。此為單獨同意項，你可隨時關閉，或郵件申請刪除。確定開啟？'));
     if (ok) { try { localStorage.setItem('gc_xb_consent', '1'); } catch (e) {} }
     return ok;
   }
@@ -173,8 +173,8 @@
         toast(T('注册成功 · 验证邮件已发，请到邮箱完成验证后再开启云同步', 'Account created · check your email to verify, then enable cloud sync', '註冊成功 · 驗證郵件已發，請到信箱完成驗證後再開啟雲同步'));
         panel(); bar();
       }
-      else if (a === 'otp') { var e3 = val('ha-email'); if (!EMAIL.test(e3)) return toast(T('请先填有效邮箱', 'Enter a valid email first', '請先填有效信箱')); window._hdOtp = await GC.requestOTP(e3); document.getElementById('ha-otp').innerHTML = '<input id="ha-code" class="ha-in" type="text" inputmode="numeric" placeholder="' + T('输入邮箱收到的验证码', 'Enter the code from your email', '輸入信箱收到的驗證碼') + '"><button class="ha-btn" data-act="otplogin" style="width:100%">' + T('验证码登录', 'Sign in with code', '驗證碼登入') + '</button>'; toast(T('验证码已发到邮箱', 'Code sent to your email', '驗證碼已發到信箱')); }
-      else if (a === 'otplogin') { var c = val('ha-code'); if (!c || !window._hdOtp) return toast(T('请输入验证码', 'Enter the code', '請輸入驗證碼')); await GC.loginOTP(window._hdOtp, c); if (ensureXBorderConsent()) GC.setSync(true); toast(T('已登录', 'Signed in', '已登入')); panel(); bar(); if (GC.syncOn()) fullSync(); }
+      else if (a === 'otp') { var e3 = val('ha-email'); if (!EMAIL.test(e3)) return toast(T('请先填有效邮箱', 'Enter a valid email first', '請先填有效信箱')); window._hdOtp = await GC.requestOTP(e3); document.getElementById('ha-otp').innerHTML = '<input id="ha-code" class="ha-in" type="text" inputmode="numeric" placeholder="' + T('输入邮箱收到的验证码', 'Enter the code from your email', '輸入信箱收到的驗證碼') + '"><label class="ha-chk"><input type="checkbox" id="ha-agree-otp"><span>' + T('我已阅读并同意', 'I have read and agree to the', '我已閱讀並同意') + ' <a href="terms.html" target="_blank" rel="noopener">' + T('《用户协议》与《隐私政策》', 'Terms & Privacy Policy', '《使用者協議》與《隱私政策》') + '</a></span></label><button class="ha-btn" data-act="otplogin" style="width:100%">' + T('验证码登录', 'Sign in with code', '驗證碼登入') + '</button>'; toast(T('验证码已发到邮箱', 'Code sent to your email', '驗證碼已發到信箱')); }
+      else if (a === 'otplogin') { var c = val('ha-code'); if (!c || !window._hdOtp) return toast(T('请输入验证码', 'Enter the code', '請輸入驗證碼')); var ag = document.getElementById('ha-agree-otp'); if (!ag || !ag.checked) return toast(T('请先勾选同意《用户协议》与《隐私政策》', 'Please check the box to agree to the Terms & Privacy Policy', '請先勾選同意《使用者協議》與《隱私政策》')); await GC.loginOTP(window._hdOtp, c); if (ensureXBorderConsent()) GC.setSync(true); toast(T('已登录', 'Signed in', '已登入')); panel(); bar(); if (GC.syncOn()) fullSync(); }
       else if (a === 'sync') {
         if (!GC.syncOn()) {                               // 想开同步：先确保已验证邮箱
           if (!GC.verified()) { try { await GC.refresh(); } catch (e) {} }

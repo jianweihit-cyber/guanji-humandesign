@@ -32,7 +32,7 @@
   var lang = (window.HDI18N && window.HDI18N.lang) || 'zh-Hans';
   var L = lang==='en' ? 'en' : (lang==='zh-Hant' ? 'tw' : 'zh');
   var D = {
-    zh: { title:'用户协议与隐私政策', upd:'最近更新：2026-06-21', back:'‹ 返回',
+    zh: { title:'用户协议与隐私政策', upd:'最近更新 / 生效日期：2026-06-21', back:'‹ 返回',
       intro:'欢迎使用「观己 · 人类图」。请在使用前阅读以下《用户协议》与《隐私政策》。一旦使用本服务，即表示你已阅读、理解并同意以下内容。',
       contact:'行使权利或任何疑问，请联系：jianwei.hit@gmail.com（我们是你个人信息的处理者）。',
       parts:[
@@ -47,20 +47,20 @@
         ]],
         ['二、隐私政策',[
           ['我们是谁','本应用由个人开发者运营（联系邮箱见文末）。我们作为你个人信息的处理者，按本政策处理你的信息。'],
-          ['我们收集哪些信息','① 你主动提供：邮箱、昵称、出生日期 / 时间 / 地点、命盘记录与标记；② 自动产生：为安全与防滥用记录的访问日志（含 IP，按需短期保留），以及保存在你浏览器本地的偏好与记录（localStorage）。'],
-          ['敏感个人信息特别说明','出生日期 / 时间 / 地点及由此生成的命盘，可能被视为敏感个人信息。我们仅将其用于为你计算人类图；对这类信息的处理（尤其是上云与跨境存储）基于你的「单独同意」。你可拒绝或随时撤回，撤回后我们停止相应的云端处理。'],
-          ['信息用途','用于：排盘计算；（开启同步后）云端备份与跨设备恢复；会员服务；按你的选择发送系统邮件；保障安全与防止滥用。'],
+          ['我们收集哪些信息','① 你主动提供：邮箱、昵称、出生日期 / 时间 / 地点、命盘记录与标记；② 自动产生：为安全与防滥用记录的访问日志（含 IP，默认保留不超过 90 天后自动滚动删除），以及保存在你浏览器本地的偏好与记录（localStorage）。'],
+          ['敏感个人信息特别说明','出生日期 / 时间 / 地点及由此生成的命盘，我们按敏感个人信息从严保护，仅用于为你计算人类图；对这类信息的处理（尤其是上云与跨境存储）基于你的「单独同意」。你可拒绝或随时撤回；撤回（关闭云同步）后我们停止后续云端处理，已上传数据保留至你删除云端数据或注销账号（见下）。'],
+          ['信息用途与处理依据','用于：排盘计算；（开启同步后）云端备份与跨设备恢复；会员服务；按你的选择发送系统邮件；保障安全与防止滥用。处理依据：排盘与同步基于你的同意，安全防滥用基于我们的合法利益，会员服务基于合同履行。'],
           ['本地优先 · 数据最小化','命盘多在你的浏览器本地计算，并默认仅存本机。只有当你登录并主动开启「云同步」后，邮箱与命盘记录才会上传服务器。'],
-          ['存储位置与跨境传输','开启云同步后，数据加密存储于 Fly.io 位于新加坡的服务器（境外），并经 Cloudflare 加速与防护；数据卷静态加密、传输全程 HTTPS。向你提供服务涉及跨境存储，你开启同步时的「单独同意」即包含对该跨境存储的同意。'],
+          ['存储位置与跨境传输','开启云同步后，数据加密存储于 Fly.io（Fly.io, Inc.，机房位于新加坡）的服务器（境外），并经 Cloudflare（Cloudflare, Inc.）加速与防护；数据卷静态加密、传输全程 HTTPS。境外接收方即上述 Fly.io 与 Cloudflare，如需其隐私政策或联系方式可经文末邮箱索取。向你提供服务涉及跨境存储，你开启同步时的「单独同意」即包含对该跨境存储的同意。'],
           ['第三方与子处理者','为提供服务，我们使用：Fly.io（服务器托管）、Cloudflare（CDN 与安全防护）、Resend（发送系统邮件）。除上述必要服务商外，我们不会向任何第三方出售或分享你的个人信息。'],
-          ['保存期限','云端数据在你账号存续期间保留；你注销账号或删除云端数据后即删除。本地数据由你自行清除（清缓存 / 卸载 / 导出后删除）。'],
-          ['你的权利','你有权访问、更正、删除、导出你的数据，撤回同意，以及注销账号。多数操作可在「账号」页直接完成，其余可通过文末邮箱联系我们；你也有权向有关监管部门投诉。'],
+          ['保存期限','云端数据在你账号存续期间保留；你注销账号或删除云端数据后，我们将在 30 天内从生产环境删除，备份将在备份滚动周期内清除。安全日志（含 IP）默认保留不超过 90 天。本地数据由你自行清除（清缓存 / 卸载 / 导出后删除）。'],
+          ['你的权利','你有权访问、更正、删除、导出你的数据，撤回同意，以及注销账号。更正、撤回同意（关闭云同步）、导出可在「账号」页或本地完成；删除云端数据与注销账号请通过文末邮箱申请，我们在 30 天内处理。你也有权向有关监管部门投诉。'],
           ['Cookie 与本地存储','我们仅用浏览器 localStorage 保存你的命盘记录与偏好设置，不用于广告追踪，也不向第三方提供。'],
           ['安全措施','我们采取全站 HTTPS、数据静态加密、按用户隔离访问、接口限流、操作审计、密钥安全保管等措施保护你的信息；但请理解，没有任何系统能保证绝对安全。'],
           ['政策更新','本政策如有重大变更，将在页面显著位置或通过邮件告知。']
         ]]
       ]},
-    tw: { title:'使用者協議與隱私政策', upd:'最近更新：2026-06-21', back:'‹ 返回',
+    tw: { title:'使用者協議與隱私政策', upd:'最近更新 / 生效日期：2026-06-21', back:'‹ 返回',
       intro:'歡迎使用「觀己 · 人類圖」。請在使用前閱讀以下《使用者協議》與《隱私政策》。一旦使用本服務，即表示你已閱讀、理解並同意以下內容。',
       contact:'行使權利或任何疑問，請聯絡：jianwei.hit@gmail.com（我們是你個人資料的處理者）。',
       parts:[
@@ -75,20 +75,20 @@
         ]],
         ['二、隱私政策',[
           ['我們是誰','本應用由個人開發者營運（聯絡信箱見文末）。我們作為你個人資料的處理者，按本政策處理你的資料。'],
-          ['我們收集哪些資料','① 你主動提供：信箱、暱稱、出生日期 / 時間 / 地點、命盤記錄與標記；② 自動產生：為安全與防濫用記錄的存取日誌（含 IP，按需短期保留），以及保存在你瀏覽器本地的偏好與記錄（localStorage）。'],
-          ['敏感個人資料特別說明','出生日期 / 時間 / 地點及由此生成的命盤，可能被視為敏感個人資料。我們僅將其用於為你計算人類圖；對這類資料的處理（尤其是上雲與跨境儲存）基於你的「單獨同意」。你可拒絕或隨時撤回，撤回後我們停止相應的雲端處理。'],
-          ['資料用途','用於：排盤計算；（開啟同步後）雲端備份與跨裝置恢復；會員服務；按你的選擇發送系統郵件；保障安全與防止濫用。'],
+          ['我們收集哪些資料','① 你主動提供：信箱、暱稱、出生日期 / 時間 / 地點、命盤記錄與標記；② 自動產生：為安全與防濫用記錄的存取日誌（含 IP，預設保留不超過 90 天後自動滾動刪除），以及保存在你瀏覽器本地的偏好與記錄（localStorage）。'],
+          ['敏感個人資料特別說明','出生日期 / 時間 / 地點及由此生成的命盤，我們按敏感個人資料從嚴保護，僅用於為你計算人類圖；對這類資料的處理（尤其是上雲與跨境儲存）基於你的「單獨同意」。你可拒絕或隨時撤回；撤回（關閉雲同步）後我們停止後續雲端處理，已上傳資料保留至你刪除雲端資料或註銷帳號（見下）。'],
+          ['資料用途與處理依據','用於：排盤計算；（開啟同步後）雲端備份與跨裝置恢復；會員服務；按你的選擇發送系統郵件；保障安全與防止濫用。處理依據：排盤與同步基於你的同意，安全防濫用基於我們的合法利益，會員服務基於合約履行。'],
           ['本地優先 · 資料最小化','命盤多在你的瀏覽器本地計算，並預設僅存本機。只有當你登入並主動開啟「雲同步」後，信箱與命盤記錄才會上傳伺服器。'],
-          ['儲存位置與跨境傳輸','開啟雲同步後，資料加密儲存於 Fly.io 位於新加坡的伺服器（境外），並經 Cloudflare 加速與防護；資料卷靜態加密、傳輸全程 HTTPS。向你提供服務涉及跨境儲存，你開啟同步時的「單獨同意」即包含對該跨境儲存的同意。'],
+          ['儲存位置與跨境傳輸','開啟雲同步後，資料加密儲存於 Fly.io（Fly.io, Inc.，機房位於新加坡）的伺服器（境外），並經 Cloudflare（Cloudflare, Inc.）加速與防護；資料卷靜態加密、傳輸全程 HTTPS。境外接收方即上述 Fly.io 與 Cloudflare，如需其隱私政策或聯絡方式可經文末信箱索取。向你提供服務涉及跨境儲存，你開啟同步時的「單獨同意」即包含對該跨境儲存的同意。'],
           ['第三方與子處理者','為提供服務，我們使用：Fly.io（伺服器託管）、Cloudflare（CDN 與安全防護）、Resend（發送系統郵件）。除上述必要服務商外，我們不會向任何第三方出售或分享你的個人資料。'],
-          ['保存期限','雲端資料在你帳號存續期間保留；你登出/登出帳號或刪除雲端資料後即刪除。本地資料由你自行清除（清快取 / 解除安裝 / 匯出後刪除）。'],
-          ['你的權利','你有權存取、更正、刪除、匯出你的資料，撤回同意，以及登出帳號。多數操作可在「帳號」頁直接完成，其餘可透過文末信箱聯絡我們；你也有權向有關監管部門投訴。'],
+          ['保存期限','雲端資料在你帳號存續期間保留；你註銷帳號或刪除雲端資料後，我們將在 30 天內從生產環境刪除，備份將在備份滾動週期內清除。安全日誌（含 IP）預設保留不超過 90 天。本地資料由你自行清除（清快取 / 解除安裝 / 匯出後刪除）。'],
+          ['你的權利','你有權存取、更正、刪除、匯出你的資料，撤回同意，以及刪除/註銷帳號。更正、撤回同意（關閉雲同步）、匯出可在「帳號」頁或本地完成；刪除雲端資料與註銷帳號請透過文末信箱申請，我們在 30 天內處理。你也有權向有關監管部門投訴。'],
           ['Cookie 與本地儲存','我們僅用瀏覽器 localStorage 保存你的命盤記錄與偏好設定，不用於廣告追蹤，也不向第三方提供。'],
           ['安全措施','我們採取全站 HTTPS、資料靜態加密、按使用者隔離存取、介面限流、操作稽核、密鑰安全保管等措施保護你的資料；但請理解，沒有任何系統能保證絕對安全。'],
           ['政策更新','本政策如有重大變更，將在頁面顯著位置或透過郵件告知。']
         ]]
       ]},
-    en: { title:'Terms of Service & Privacy Policy', upd:'Last updated: 2026-06-21', back:'‹ Back',
+    en: { title:'Terms of Service & Privacy Policy', upd:'Last updated / Effective: 2026-06-21', back:'‹ Back',
       intro:'Welcome to GuanJi · Human Design. Please read these Terms of Service and Privacy Policy before use. By using the service you confirm that you have read, understood and agreed to the following.',
       contact:'To exercise your rights or for any question, contact: jianwei.hit@gmail.com (we are the controller of your personal information).',
       parts:[
@@ -98,19 +98,19 @@
           ['Account & security','Keep your email and password safe; you are responsible for losses caused by your own mishandling. Do not use the service for any unlawful purpose or to harm others.'],
           ['Membership & renewal','Membership has tiers and a validity period; you are reminded in-app and by email before expiry. Renewal is currently handled by contacting the admin. Benefits are as described in the app.'],
           ['Intellectual property','The charting engine and original interpretive content belong to the developer; the personal chart data you enter and generate belongs to you.'],
-          ['Minors','This service is not directed to children under 14. If you are under 14, please use it only with a guardian’s consent and supervision; a guardian may manage the data on your behalf.'],
+          ['Minors','This service is not directed to children under 14. If you are under 14, please use it only with a guardian’s consent and supervision; a guardian may manage the data on your behalf. In some regions the minimum age may be higher (e.g. 16 in parts of the EU).'],
           ['Changes','We may update these terms from time to time; material changes will be posted prominently or sent by email. Continued use means you accept the updated terms.']
         ]],
         ['2. Privacy Policy',[
           ['Who we are','This app is run by an individual developer (contact email below). We are the controller of your personal information and process it under this policy.'],
-          ['What we collect','(1) You provide: email, nickname, birth date / time / place, chart records and tags. (2) Automatically: access logs (including IP, kept briefly) for security and abuse prevention, plus preferences and records stored locally in your browser (localStorage).'],
-          ['Sensitive information notice','Your birth date / time / place and the chart derived from them may be treated as sensitive personal information. We use them only to compute your Human Design chart; processing of this data (especially cloud and cross-border storage) is based on your separate consent. You may refuse or withdraw at any time, after which we stop the corresponding cloud processing.'],
-          ['How we use it','To: compute charts; (once sync is on) back up and restore across devices; provide membership; send system emails per your choice; ensure security and prevent abuse.'],
+          ['What we collect','(1) You provide: email, nickname, birth date / time / place, chart records and tags. (2) Automatically: access logs (including IP, retained no more than 90 days then rolled off) for security and abuse prevention, plus preferences and records stored locally in your browser (localStorage).'],
+          ['Sensitive information notice','Your birth date / time / place and the chart derived from them are treated by us as sensitive personal information and used only to compute your Human Design chart; processing of this data (especially cloud and cross-border storage) is based on your separate consent. You may refuse or withdraw at any time; after withdrawal (turning off cloud sync) we stop further cloud processing, and already-uploaded data is kept until you delete your cloud data or close your account (see below).'],
+          ['How we use it & legal bases','To: compute charts; (once sync is on) back up and restore across devices; provide membership; send system emails per your choice; ensure security and prevent abuse. Legal bases: your consent (charting & sync), our legitimate interest (security & abuse prevention) and performance of a contract (membership).'],
           ['Local-first · data minimization','Charts are mostly computed locally in your browser and stored on your device by default. Only after you sign in and turn on “Cloud sync” are your email and chart records uploaded.'],
-          ['Storage location & cross-border transfer','With cloud sync on, data is stored encrypted on Fly.io servers in Singapore (outside your country) and accelerated/protected by Cloudflare; volumes are encrypted at rest and all traffic uses HTTPS. Providing the service involves cross-border storage; your separate consent when enabling sync includes consent to this cross-border storage.'],
+          ['Storage location & cross-border transfer','With cloud sync on, data is stored encrypted on Fly.io, Inc. servers in Singapore (outside your country) and accelerated/protected by Cloudflare, Inc.; volumes are encrypted at rest and all traffic uses HTTPS. The overseas recipients are Fly.io and Cloudflare named above; contact us at the email below for their privacy policies. Providing the service involves cross-border storage; your separate consent when enabling sync includes consent to this cross-border storage.'],
           ['Third parties & sub-processors','To run the service we use: Fly.io (hosting), Cloudflare (CDN & security), Resend (sending system emails). Apart from these necessary providers, we never sell or share your personal information with any third party.'],
-          ['Retention','Cloud data is kept while your account exists; it is deleted when you close your account or delete your cloud data. Local data is cleared by you (clearing cache / uninstalling / deleting after export).'],
-          ['Your rights','You may access, correct, delete and export your data, withdraw consent, and close your account. Most actions are available on the Account page; for the rest contact us at the email below. You also have the right to complain to the relevant regulator.'],
+          ['Retention','Cloud data is kept while your account exists; after you close your account or delete your cloud data, we remove it from production within 30 days and clear it from backups within the backup rotation period. Security logs (including IP) are kept no more than 90 days. Local data is cleared by you (clearing cache / uninstalling / deleting after export).'],
+          ['Your rights','You may access, correct, delete and export your data, withdraw consent, and close your account. Correction, consent withdrawal (turning off sync) and export are available in-app; deletion of cloud data and account closure can be requested at the email below and are handled within 30 days. You also have the right to complain to the relevant regulator.'],
           ['Cookies & local storage','We use only the browser’s localStorage to keep your chart records and preferences. We do not use it for ad tracking and do not share it with third parties.'],
           ['Security','We protect your data with site-wide HTTPS, encryption at rest, per-user access isolation, rate limiting, action auditing and secure key handling; please understand that no system can guarantee absolute security.'],
           ['Updates','If this policy changes materially, we will post it prominently or notify you by email.']
