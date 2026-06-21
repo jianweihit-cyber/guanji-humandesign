@@ -6,6 +6,7 @@
   var AUTH_KEY = 'gc_auth';   // {token, user:{id,email,verified,tier,name}}
   var st = null;
   try { st = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch(e){}
+  var cloudCids = new Set();   // 已确认存在于云端(未软删)的记录 cid 集合 → 供前端「已上云」标识
 
   function persist(){ try{ st ? localStorage.setItem(AUTH_KEY, JSON.stringify(st)) : localStorage.removeItem(AUTH_KEY); }catch(e){} }
   function token(){ return st && st.token; }
@@ -130,7 +131,7 @@
       try { var res = await req('POST', '/api/collections/users/auth-refresh', {}); var u = setAuth(res); this._ensureNick(); return u; }
       catch(e){ if(e.status===401){ this.logout(); } return null; }
     },
-    logout(){ st = null; persist(); },
+    logout(){ st = null; persist(); cloudCids = new Set(); },
 
     /* —— 云同步开关（自愿开启）—— */
     syncOn: function(){ try{ return localStorage.getItem('gc_sync')==='1' && this.loggedIn(); }catch(e){ return false; } },
@@ -157,12 +158,16 @@
       var body = {owner:this.user().id, cid:rec.id, data:rec, cupd:rec.updatedAt||Date.now(), deleted:false};
       if(id) await req('PATCH','/api/collections/charts/records/'+id, body);
       else await req('POST','/api/collections/charts/records', body);
+      cloudCids.add(rec.id);                                   // 标记已上云
     },
     async softDelete(cid){
       if(!this.syncOn() || !cid) return;
       var id = await this._findId(cid);
       if(id) await req('PATCH','/api/collections/charts/records/'+id, {deleted:true, cupd:Date.now()});
+      cloudCids.delete(cid);                                   // 取消已上云标记
     },
+    /* 某条本地记录是否已存于云端(未软删)。需开启同步并已 fullSync 一次后才准。 */
+    isSynced: function(cid){ return cloudCids.has(cid); },
     async cloudCount(){
       if(!this.loggedIn()) return 0;
       var r = await req('GET','/api/collections/charts/records?perPage=1&filter='+encodeURIComponent('owner="'+this.user().id+'" && deleted=false'));
@@ -182,7 +187,7 @@
     async fullSync(localArr){
       if(!this.syncOn()) return null;
       var server={}, srv=await this.pullAll();
-      srv.forEach(function(s){ server[s.cid]=s; });
+      cloudCids = new Set(); srv.forEach(function(s){ server[s.cid]=s; if(!s.deleted) cloudCids.add(s.cid); });  // 刷新「已上云」集合
       var localMap={}; (localArr||[]).forEach(function(r){ localMap[r.id]=r; });
       var cids={}; Object.keys(server).forEach(function(c){cids[c]=1;}); (localArr||[]).forEach(function(r){cids[r.id]=1;});
       var merged=[], toPush=[], downloaded=0, removed=0;

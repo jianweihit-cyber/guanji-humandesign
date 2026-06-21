@@ -87,12 +87,19 @@ function render(){
   const all=HDStore.all();
   const passF=r=> f==='all'?true : f==='fav'?r.fav : (r.tags||[]).includes(f);   // 全部/收藏/关系标记
   const rows=all.filter(r=>passF(r)&&match(r));
+  const L=(window.HDI18N&&HDI18N.lang)||'zh-Hans';
+  // 云端备份状态徽标：开了同步才显示——已上云(绿) / 待同步(灰)
+  const cloudBadge=r=>{
+    if(!(window.GC&&GC.loggedIn&&GC.loggedIn()&&GC.syncOn&&GC.syncOn())) return '';
+    if(GC.isSynced&&GC.isSynced(r.id)) return ` <span class="cloudb on" title="${L==='en'?'Backed up to cloud':L==='zh-Hant'?'已備份到雲端':'已备份到云端'}">☁ ${L==='en'?'Synced':L==='zh-Hant'?'已上雲':'已上云'}</span>`;
+    return ` <span class="cloudb" title="${L==='en'?'Will upload on next sync':L==='zh-Hant'?'下次同步時上傳':'下次同步时上传'}">⏳ ${L==='en'?'Pending':L==='zh-Hant'?'待同步':'待同步'}</span>`;
+  };
   $('#cnt').textContent=`${rows.length} / ${all.length}`;
   $('#list').innerHTML = rows.map(r=>`
     <div class="rec" data-id="${r.id}">
       <button class="star ${r.fav?'on':''}" title="收藏">${r.fav?'★':'☆'}</button>
       <div class="meta">
-        <div class="n">${esc(r.name)||'—'}${r.gender?` <span style="font-weight:400;color:${r.gender==='M'?'#4A7BA6':'#C26A8A'}">${r.gender==='M'?'♂':'♀'}</span>`:''}${r.source==='solve'?` <span class="srcb">反推</span>`:r.source==='celeb'?` <span class="srcb">名人</span>`:''}${(r.tags||[]).map(t=>` <span class="tagb">${esc(tagLblByKey(t))}</span>`).join('')}</div>
+        <div class="n">${esc(r.name)||'—'}${r.gender?` <span style="font-weight:400;color:${r.gender==='M'?'#4A7BA6':'#C26A8A'}">${r.gender==='M'?'♂':'♀'}</span>`:''}${r.source==='solve'?` <span class="srcb">反推</span>`:r.source==='celeb'?` <span class="srcb">名人</span>`:''}${(r.tags||[]).map(t=>` <span class="tagb">${esc(tagLblByKey(t))}</span>`).join('')}${cloudBadge(r)}</div>
         <div class="d">${fmtIn(r.input)}</div>
       </div>
       <div class="chips">

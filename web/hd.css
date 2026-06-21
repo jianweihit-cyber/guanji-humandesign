@@ -132,6 +132,8 @@ a.tag{text-decoration:none}
 a.tag:hover{color:var(--li)}
 .srcb{display:inline-block;font-size:11px;font-weight:500;color:var(--gold-d);border:1px solid var(--gold);border-radius:6px;padding:0 5px;margin-left:4px;vertical-align:1px}
 .tagb{display:inline-block;font-size:11px;font-weight:500;color:var(--li);background:#FBF3E6;border:1px solid #ECDDC4;border-radius:6px;padding:0 6px;margin-left:4px;vertical-align:1px}
+.cloudb{display:inline-block;font-size:11px;font-weight:500;border-radius:6px;padding:0 6px;margin-left:4px;vertical-align:1px;color:#9b948a;background:#F2EEE6;border:1px solid #E3DAC9}
+.cloudb.on{color:#3a7d44;background:#EAF3EC;border-color:#CDE5D2}
 .locdrop .it b{color:var(--li)}
 .locdrop .it .lb{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .locdrop .it.on{background:#F3E7CE;box-shadow:inset 3px 0 0 var(--li)}
