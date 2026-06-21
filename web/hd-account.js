@@ -9,7 +9,7 @@
   function T(zh, en, tw) { var g = (window.HDI18N && window.HDI18N.lang) || 'zh-Hans'; return g === 'en' ? en : (g === 'zh-Hant' ? (tw || zh) : zh); }
   var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;   // 基本邮箱格式校验，挡随手乱填
   var authMode = 'login';                      // 登录 / 注册 子模式
-  var ADMIN = 'jianwei.hit@gmail.com';         // 会员续期联系（管理员）；改这里即可换
+  var ADMIN = 'admin@zaiyuxingzhe.com';        // 会员续期联系（管理员）；改这里即可换
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function toast(msg) {

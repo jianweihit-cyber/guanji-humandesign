@@ -5,7 +5,7 @@
 
 var LOGO = "https://humandesign.zaiyuxingzhe.com/web/logo-email.png";
 var APP = "https://humandesign.zaiyuxingzhe.com/web/index.html";
-var ADMIN = "jianwei.hit@gmail.com";   // 会员续期联系（管理员）；改这里即可换
+var ADMIN = "admin@zaiyuxingzhe.com";   // 会员续期联系（管理员）；改这里即可换
 
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
 function hashStr(s) { var h = 0; s = String(s || ''); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
