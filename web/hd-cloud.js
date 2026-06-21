@@ -1,4 +1,4 @@
-/* 观己·人类图 云端客户端 —— Pocketbase 鉴权 + 命盘记录云同步（离线优先）。
+/* 观己·人类图 云端客户端 —— Pocketbase 鉴权 + 排盘记录云同步（离线优先）。
    纯 fetch、无外部依赖。鉴权用 Authorization 头（非 cookie），跨域安全。
    后端：自有子域 cloud-hd.zaiyuxingzhe.com（CNAME→guanji-humandesign-cloud.fly.dev，Pocketbase v0.39）。 */
 (function(){

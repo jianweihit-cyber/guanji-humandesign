@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>命盘记录 · 观己</title>
+<title>排盘记录 · 观己</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="stylesheet" href="hd.css" />
 <style>
@@ -31,7 +31,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub">命盘记录</span></div>
+    <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub">排盘记录</span></div>
   </header>
   <div class="tabs">
     <a class="tab" href="index.html?home=1">首页</a>
@@ -102,7 +102,7 @@ function render(){
       </div>
       <a class="btn-sm" href="index.html?load=${r.id}">打开</a>
       <button class="btn-sm danger del">删除</button>
-    </div>`).join('') || (linkRows().length ? '' : '<p class="muted" style="margin-top:16px">暂无记录，去排盘页生成并保存</p>');  // 命盘空但有匹配的合盘/Penta 时不显占位
+    </div>`).join('') || (linkRows().length ? '' : '<p class="muted" style="margin-top:16px">暂无记录，去排盘页生成并保存</p>');  // 排盘空但有匹配的合盘/Penta 时不显占位
   renderLinks();
   renderUpcoming();
 }

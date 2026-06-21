@@ -1,4 +1,4 @@
-// make-ref-report.js — 用 HumanDesignApp 截图反推的 gate.line 出参考案例命盘卡数据
+// make-ref-report.js — 用 HumanDesignApp 截图反推的 gate.line 出参考案例排盘卡数据
 // 用法: node test/make-ref-report.js [li|hu|chen]
 import { writeFileSync } from 'node:fs';
 import { computeChart } from '../src/hd-core.js';

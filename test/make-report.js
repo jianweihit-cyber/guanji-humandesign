@@ -1,4 +1,4 @@
-// make-report.js — 生成命盘卡数据 web/report-data.js（供 report.html 出图）
+// make-report.js — 生成排盘卡数据 web/report-data.js（供 report.html 出图）
 import { writeFileSync } from 'node:fs';
 import { generateChart } from '../src/chart.js';
 import { closeEphemeris } from '../src/ephemeris.js';

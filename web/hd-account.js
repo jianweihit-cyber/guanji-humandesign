@@ -111,7 +111,7 @@
         + '<div class="ha-row"><span>' + T('默认语言', 'Default language', '預設語言') + '</span><b><button class="ha-pick' + (dl === 'zh' ? ' on' : '') + '" data-act="lang-zh">中文</button><button class="ha-pick' + (dl === 'en' ? ' on' : '') + '" data-act="lang-en">English</button></b></div>'
         + '<div class="ha-sync"><div><b>' + T('云端同步', 'Cloud sync', '雲端同步') + '</b><i>' + syncSub + '</i></div><button class="ha-toggle' + (GC.syncOn() ? ' on' : '') + (vr ? '' : ' off-disabled') + '" data-act="sync" aria-label="sync"><span></span></button></div>'
         + '<div class="ha-sync"><div><b>' + T('系统邮件', 'System emails', '系統郵件') + '</b><i>' + (em ? T('已开 · 生日/周年祝福、重要通知', 'On · birthday & anniversary blessings, key notices', '已開 · 生日/週年祝福、重要通知') : T('已关 · 不再发送系统邮件', 'Off · no system emails', '已關 · 不再發送系統郵件')) + '</i></div><button class="ha-toggle' + (em ? ' on' : '') + '" data-act="emailtoggle" aria-label="email"><span></span></button></div>'
-        + '<p class="ha-note">' + T('开启同步即同意将「邮箱 + 命盘记录」加密存于服务器，用于备份与跨设备恢复，仅你本人可见，可随时关闭或注销。', 'Enabling sync stores your email + chart records encrypted on the server for backup and cross-device restore — visible only to you, turn off or delete anytime.', '開啟同步即同意將「信箱 + 命盤記錄」加密存於伺服器，用於備份與跨裝置恢復，僅你本人可見，可隨時關閉或登出。')
+        + '<p class="ha-note">' + T('开启同步即同意将「邮箱 + 排盘记录」加密存于服务器，用于备份与跨设备恢复，仅你本人可见，可随时关闭或注销。', 'Enabling sync stores your email + chart records encrypted on the server for backup and cross-device restore — visible only to you, turn off or delete anytime.', '開啟同步即同意將「信箱 + 排盤記錄」加密存於伺服器，用於備份與跨裝置恢復，僅你本人可見，可隨時關閉或登出。')
         + ' ' + T('提供邮箱即表示同意接收观己的定期系统邮件（生日 / 周年祝福、重要通知）；不想接收可随时关闭上方「系统邮件」开关。', 'By providing your email you agree to receive periodic GuanJi emails (birthday & anniversary blessings, key notices); turn off "System emails" above anytime.', '提供信箱即表示同意接收觀己的定期系統郵件（生日 / 週年祝福、重要通知）；不想接收可隨時關閉上方「系統郵件」開關。') + '</p>'
         + '<button class="ha-btn ghost" data-act="logout">' + T('退出登录', 'Log out', '登出') + '</button>';
     }
@@ -128,7 +128,7 @@
       + '<div id="ha-otp"><button class="ha-link" data-act="otp">' + T('用邮箱验证码登录（免密码）', 'Sign in with email code (no password)', '用信箱驗證碼登入（免密碼）') + '</button></div>'
       + '<p class="ha-note">' + (reg
         ? T('注册后请到邮箱完成验证，验证通过才能开启云同步。默认仅存本机。', 'After signing up, verify via the email we send — cloud sync unlocks only after verification. Local-only by default.', '註冊後請到信箱完成驗證，驗證通過才能開啟雲同步。預設僅存本機。')
-        : T('开启云端备份后，换设备 / 清缓存也能恢复命盘记录。默认仅存本机，登录并开启同步才上云。', 'With cloud backup on, restore records after switching devices or clearing cache. Local-only by default.', '開啟雲端備份後，換裝置 / 清快取也能恢復命盤記錄。預設僅存本機，登入並開啟同步才上雲。') + ' <a href="terms.html" target="_blank" rel="noopener" style="color:#6B5B43;text-decoration:underline">' + T('《用户协议与隐私》', 'Terms & Privacy', '《使用者協議與隱私》') + '</a>')
+        : T('开启云端备份后，换设备 / 清缓存也能恢复排盘记录。默认仅存本机，登录并开启同步才上云。', 'With cloud backup on, restore records after switching devices or clearing cache. Local-only by default.', '開啟雲端備份後，換裝置 / 清快取也能恢復排盤記錄。預設僅存本機，登入並開啟同步才上雲。') + ' <a href="terms.html" target="_blank" rel="noopener" style="color:#6B5B43;text-decoration:underline">' + T('《用户协议与隐私》', 'Terms & Privacy', '《使用者協議與隱私》') + '</a>')
         + '</p>';
   }
 
@@ -136,9 +136,9 @@
   function ensureXBorderConsent() {
     try { if (localStorage.getItem('gc_xb_consent') === '1') return true; } catch (e) {}
     var ok = confirm(T(
-      '开启云同步将把你的「邮箱 + 命盘记录（含出生日期 / 时间 / 地点等敏感个人信息）」加密上传并存储于境外（新加坡，接收方 Fly.io / Cloudflare）服务器，用于备份与跨设备恢复。此为单独同意项，你可随时关闭，或邮件申请删除。确定开启？',
+      '开启云同步将把你的「邮箱 + 排盘记录（含出生日期 / 时间 / 地点等敏感个人信息）」加密上传并存储于境外（新加坡，接收方 Fly.io / Cloudflare）服务器，用于备份与跨设备恢复。此为单独同意项，你可随时关闭，或邮件申请删除。确定开启？',
       'Enabling cloud sync uploads and stores your email + chart records (including sensitive birth date/time/place) encrypted on overseas servers (Singapore; recipients Fly.io / Cloudflare) for backup and cross-device restore. This is a separate consent — you can turn it off anytime, or email us to delete. Enable now?',
-      '開啟雲同步將把你的「信箱 + 命盤記錄（含出生日期 / 時間 / 地點等敏感個人資料）」加密上傳並儲存於境外（新加坡，接收方 Fly.io / Cloudflare）伺服器，用於備份與跨裝置恢復。此為單獨同意項，你可隨時關閉，或郵件申請刪除。確定開啟？'));
+      '開啟雲同步將把你的「信箱 + 排盤記錄（含出生日期 / 時間 / 地點等敏感個人資料）」加密上傳並儲存於境外（新加坡，接收方 Fly.io / Cloudflare）伺服器，用於備份與跨裝置恢復。此為單獨同意項，你可隨時關閉，或郵件申請刪除。確定開啟？'));
     if (ok) { try { localStorage.setItem('gc_xb_consent', '1'); } catch (e) {} }
     return ok;
   }

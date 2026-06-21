@@ -32,7 +32,7 @@ const gatesInChannels = new Set(CHANNELS.flatMap((c) => c.gates));
 check('通道覆盖闸门数 = 64', gatesInChannels.size, 64);
 
 // ── 3) 完整样例盘 ─────────────────────────────────────────
-console.log('\n=== 3) 样例命盘 ===');
+console.log('\n=== 3) 样例排盘 ===');
 const sample = { year: 1990, month: 3, day: 5, hour: 13, minute: 30, tz: 'Asia/Shanghai' };
 const c = await generateChart(sample);
 

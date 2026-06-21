@@ -95,7 +95,7 @@ let state = { cat: 'all', type: 'all', q: '' };
 $('head').innerHTML = ENM
   ? `<p class="cl-intro">A reference gallery of famous people's Human Design charts — for study and comparison. Every chart is computed by our own engine from the person's public birth data; tap any card to open the full live chart and reading.</p>
      <p class="cl-note">⚠️ Human Design is highly sensitive to birth time (minutes can change the whole chart), so this library only includes people whose recorded birth time is reliable — Rodden rating <b>AA</b> (official record) or <b>A</b> (from the person / family / news).</p>`
-  : `<p class="cl-intro">名人的人类图参考库——供学习与对照。每一张盘都由观己引擎根据其公开出生数据实时计算；点任意卡片即可打开完整命盘与解读。</p>
+  : `<p class="cl-intro">名人的人类图参考库——供学习与对照。每一张盘都由观己引擎根据其公开出生数据实时计算；点任意卡片即可打开完整排盘与解读。</p>
      <p class="cl-note">⚠️ 人类图对出生时间极敏感（差几分钟可能整盘改变），因此本库只收录出生时间可靠的人物——Rodden 评级 <b>AA</b>（官方出生记录）或 <b>A</b>（本人/家属/新闻来源）。</p>`;
 
 // 筛选栏
@@ -151,7 +151,7 @@ function render() {
 
 $('foot').textContent = ENM
   ? 'Birth data: public records from the Astro-Databank (with Rodden reliability ratings). Charts are computed by the GuanJi engine; descriptions are original. No third-party chart readings are reproduced.'
-  : '出生数据：来自公开占星数据库 Astro-Databank（含 Rodden 可靠度评级）。命盘由观己引擎计算，简介为原创撰写，不转载任何第三方解读。';
+  : '出生数据：来自公开占星数据库 Astro-Databank（含 Rodden 可靠度评级）。排盘由观己引擎计算，简介为原创撰写，不转载任何第三方解读。';
 
 buildBar();
 render();

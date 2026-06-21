@@ -102,7 +102,7 @@
   </div>
 
   <div id="nowbanner" class="nowbanner" hidden>
-    <span>⚡ 这是「此刻」的流日盘（当下天象快照），不是你的本命盘——在上方填入出生日期、时间与出生地，点「生成人类图」查看属于你的图。</span>
+    <span>⚡ 这是「此刻」的流日盘（当下天象快照），不是你本人的排盘——在上方填入出生日期、时间与出生地，点「生成人类图」查看属于你的图。</span>
     <button id="nbclose" type="button" aria-label="关闭">✕</button>
   </div>
   <div id="result" hidden></div>
@@ -546,7 +546,7 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
   let tz='Asia/Shanghai';
   try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||tz; }catch(e){}
   fillForm({year:now.getFullYear(),month:now.getMonth()+1,day:now.getDate(),hour:now.getHours(),minute:now.getMinutes(),tz});
-  run('Now', true).then(()=>{   // 自动流日盘：亮横幅、藏保存栏，防止小白把它当本命盘
+  run('Now', true).then(()=>{   // 自动流日盘：亮横幅、藏保存栏，防止小白把它当本人排盘
     const sg=$('spgraph');      // 开屏页缩略「流日人类图」：用此刻流日盘渲染
     if(sg&&curChart){ try{ HDRender.bodygraph(sg,curChart); sg.removeAttribute('hidden'); }catch(e){} }  // SVG 须 removeAttribute(hidden 非 IDL 属性)
   });

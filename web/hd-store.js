@@ -1,4 +1,4 @@
-/* hd-store.js — 命盘记录本地存储（window.HDStore，localStorage）
+/* hd-store.js — 排盘记录本地存储（window.HDStore，localStorage）
    记录 = { id, name, gender, v, ts, updatedAt, fav, tags:['self'|'family'|'friend'|'partner'|'other'],
             input:{year,month,day,hour,minute,tz,place?},
             sum:{ type, typeZh, profile, authority, definition, gates:[..], channels:[..] } }
@@ -61,7 +61,7 @@
     exportJSON() {
       return JSON.stringify({ app: 'guanji-humandesign', kind: 'charts-backup', schema: SCHEMA, exportedAt: Date.now(), records: read(), links: lread() }, null, 2);
     },
-    // 导入：命盘+链接均按 id 合并去重，已存在则取 updatedAt 较新者；写失败抛 write-failed（防谎报成功）
+    // 导入：排盘+链接均按 id 合并去重，已存在则取 updatedAt 较新者；写失败抛 write-failed（防谎报成功）
     importJSON(text) {
       let data; try { data = JSON.parse(text); } catch (e) { throw new Error('bad-json'); }
       const incoming = Array.isArray(data) ? data : (data.records || []);

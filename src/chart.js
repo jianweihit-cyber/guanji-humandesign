@@ -1,4 +1,4 @@
-// chart.js — 排盘编排：输入 → 时区/UTC → 儒略日 → 两层星历 → 推导命盘
+// chart.js — 排盘编排：输入 → 时区/UTC → 儒略日 → 两层星历 → 推导排盘
 import {
   initEphemeris, julianDayUT, allBodies, solveDesignJD,
   setEphemerisMode, setNodeType, getConfig,

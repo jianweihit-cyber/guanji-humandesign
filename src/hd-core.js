@@ -72,7 +72,7 @@ function motorToThroat(definedCenters, definedEdges) {
   return false;
 }
 
-// 主入口：个性层 + 设计层黄经 → 完整命盘
+// 主入口：个性层 + 设计层黄经 → 完整排盘
 export function computeChart({ personalityBodies, designBodies }) {
   const personality = buildActivations(personalityBodies);
   const design = buildActivations(designBodies);

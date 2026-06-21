@@ -1,5 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-// charts 集合：每用户云端命盘记录。owner 关联 users(级联删) · cid=客户端记录id · data=整条记录JSON(≤200KB) ·
+// charts 集合：每用户云端排盘记录。owner 关联 users(级联删) · cid=客户端记录id · data=整条记录JSON(≤200KB) ·
 //   cupd=客户端更新时间(ms) · deleted=软删除 · created/updated 自动时间。五条规则均「登录且 owner=自己」→ 每人只读写自己。
 //   ⚠️ 复用要点：集合务必用迁移建（别手动在后台建），否则克隆出的新后端会缺此表 → 推记录报 404。
 migrate((app) => {

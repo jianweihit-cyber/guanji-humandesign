@@ -189,7 +189,7 @@ function sendMail(app, to, subject, html, kind, dedupKey, fromName) {
   return { ok: sent, err: errMsg };
 }
 
-// 取用户「本人(self)标记」命盘 data；无则取最新一条；都没有 null
+// 取用户「本人(self)标记」排盘 data；无则取最新一条；都没有 null
 function selfChart(app, ownerId) {
   try {
     var rows = app.findRecordsByFilter("charts", 'owner = {:o} && deleted = false', "-cupd", 200, 0, { o: ownerId });

@@ -1,6 +1,6 @@
 /// <reference path="../pb_data/types.d.ts" />
 // 观己·人类图 业务邮件：生日 + 来到观己周年(365×N 天) 的「人类图定制祝福」。
-//   每日 cron 扫用户 → 取其「本人(self)标记」命盘的生日 / 账号注册周年 → 按 类型/角色 出中英双语祝福 → 发信。
+//   每日 cron 扫用户 → 取其「本人(self)标记」排盘的生日 / 账号注册周年 → 按 类型/角色 出中英双语祝福 → 发信。
 //   ⚠️ PB hook 回调是隔离 VM，访问不到本文件顶层函数 → 共享逻辑放 greet_lib.js，在每个回调内 require 注入。
 //   手动测试：POST /greet-test  头 X-Send-Key=<SEND_SECRET>  body:{email, kind:'birthday'|'anniversary', years?, lang?}
 

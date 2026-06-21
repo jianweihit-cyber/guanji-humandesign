@@ -21,8 +21,8 @@
   // ── 界面词典（简体精确串 → EN）──
   const EN = {
     '人类图排盘 · 观己': 'Human Design Chart · GuanJi', '人类图 · 知识库 · 观己': 'Human Design Knowledge Base · GuanJi',
-    '命盘卡 · 观己': 'Chart Card · GuanJi', '· 人类图': '· Human Design', '· 人类图命盘': '· Human Design Chart',
-    '命盘记录 · 观己': 'Saved Charts · GuanJi', '命盘记录': 'Saved Charts', '记录': 'Records',
+    '排盘卡 · 观己': 'Chart Card · GuanJi', '· 人类图': '· Human Design', '· 人类图排盘': '· Human Design Chart',
+    '排盘记录 · 观己': 'Saved Charts · GuanJi', '排盘记录': 'Saved Charts', '记录': 'Records',
     '盘主名字': 'Name', '如：张三 / Alex': 'e.g. Alex', '保存此盘': 'Save Chart', '✓ 已保存': '✓ Saved',
     '搜索：姓名 / 闸门号 / 类型 / 角色 / 通道…': 'Search: name / gate / type / profile / channel…',
     '全部': 'All', '★ 收藏': '★ Favorites', '收藏': 'Favorite', '打开': 'Open', '删除': 'Delete', '确定删除？': 'Delete this record?',
@@ -62,13 +62,13 @@
     '真交点': 'True Node', '平交点': 'Mean Node', '上海/北京/广州(中国)': 'Shanghai/Beijing (China)', '🇨🇳 中国 · 选省市区': '🇨🇳 China · region picker', '选择出生时间': 'Birth date & time', '选择出生地（中国）': 'Birth place (China)', '起始年': 'From year', '结束年': 'To year',
     '香港': 'Hong Kong', '台北': 'Taipei', '东京': 'Tokyo', '新加坡': 'Singapore', '曼谷': 'Bangkok', '伦敦': 'London',
     '巴黎': 'Paris', '纽约': 'New York', '洛杉矶': 'Los Angeles', '檀香山': 'Honolulu', '悉尼': 'Sydney', '— 自定义 IANA —': '— Custom IANA —',
-    '⚡ 这是「此刻」的流日盘（当下天象快照），不是你的本命盘——在上方填入出生日期、时间与出生地，点「生成人类图」查看属于你的图。': '⚡ This is the chart of right now (a transit snapshot), not YOUR chart — enter your birth date, time & place above and press "Generate Chart" to see your own design.',
+    '⚡ 这是「此刻」的流日盘（当下天象快照），不是你本人的排盘——在上方填入出生日期、时间与出生地，点「生成人类图」查看属于你的图。': '⚡ This is the chart of right now (a transit snapshot), not YOUR chart — enter your birth date, time & place above and press "Generate Chart" to see your own design.',
     '进阶 · Variables PHS / 轮回交叉': 'Advanced · Variables (PHS) & Incarnation Cross',
     '类型': 'Type', '策略': 'Strategy', '内在权威': 'Inner Authority', '人生角色': 'Profile', '定义': 'Definition',
     '签名/非己': 'Signature / Not-Self', '已定义通道': 'Defined Channels', '设计 ⊙': 'Design ⊙', '个性 ⊙': 'Personality ⊙',
     '设计 ☉': 'Design ☉', '个性 ☉': 'Personality ☉', '设计 ☊': 'Design ☊', '个性 ☊': 'Personality ☊',
     '个性·墨(意识)': 'Personality · Black (Conscious)', '设计·朱(潜意识)': 'Design · Red (Unconscious)', '两者皆有': 'Both',
-    '已定义中心': 'Defined Center', '你的解读 · 看懂自己': 'Your Reading', '观己 · 人类图命盘': 'GuanJi · Human Design Chart',
+    '已定义中心': 'Defined Center', '你的解读 · 看懂自己': 'Your Reading', '观己 · 人类图排盘': 'GuanJi · Human Design Chart',
     // 枚举值
     '生产者': 'Generator', '显化生产者': 'Manifesting Generator', '显示者': 'Manifestor', '投射者': 'Projector', '反映者': 'Reflector',
     '等待，然后回应': 'Wait to Respond', '等待回应，再告知': 'Respond, then Inform', '行动前告知': 'Inform before Acting',
