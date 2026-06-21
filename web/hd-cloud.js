@@ -6,7 +6,8 @@
   var AUTH_KEY = 'gc_auth';   // {token, user:{id,email,verified,tier,name}}
   var st = null;
   try { st = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch(e){}
-  var cloudCids = new Set();   // 已确认存在于云端(未软删)的记录 cid 集合 → 供前端「已上云」标识
+  var cloudCids = new Set();   // 已确认存在于云端(未软删)的排盘记录 cid 集合 → 供前端「已上云」标识
+  var cloudLinkIds = new Set();// 同上，合盘/Penta 链接 lid 集合
 
   function persist(){ try{ st ? localStorage.setItem(AUTH_KEY, JSON.stringify(st)) : localStorage.removeItem(AUTH_KEY); }catch(e){} }
   function token(){ return st && st.token; }
@@ -131,7 +132,7 @@
       try { var res = await req('POST', '/api/collections/users/auth-refresh', {}); var u = setAuth(res); this._ensureNick(); return u; }
       catch(e){ if(e.status===401){ this.logout(); } return null; }
     },
-    logout(){ st = null; persist(); cloudCids = new Set(); },
+    logout(){ st = null; persist(); cloudCids = new Set(); cloudLinkIds = new Set(); },
 
     /* —— 云同步开关（自愿开启）—— */
     syncOn: function(){ try{ return localStorage.getItem('gc_sync')==='1' && this.loggedIn(); }catch(e){ return false; } },
@@ -197,6 +198,54 @@
         if(S && S.deleted && stime>=lt){ if(L) removed++; return; }      // 云端删除生效
         if(S && (!L || stime>lt)){ var d=S.data||{}; d.id=cid; d.updatedAt=stime; merged.push(d); downloaded++; } // 下载较新
         else if(L){ merged.push(L); if(!S || lt>stime) toPush.push(L); }  // 保留本地；仅本地较新才待上传（人类图无五行式 denormalize 回填）
+      });
+      return {merged:merged, toPush:toPush, downloaded:downloaded, removed:removed};
+    },
+
+    /* —— 合盘 / Penta 链接 云同步（与 charts 平行；links 只存成员名+引用，不含出生数据）—— */
+    isLinkSynced: function(lid){ return cloudLinkIds.has(lid); },
+    async _findLinkId(lid){
+      var r = await req('GET','/api/collections/links/records?perPage=1&filter='+encodeURIComponent('lid="'+lid+'"'));
+      return r.items && r.items[0] ? r.items[0].id : null;
+    },
+    async pushLink(rec){
+      if(!this.syncOn() || !rec || !rec.id) return;
+      var id = await this._findLinkId(rec.id);
+      var body = {owner:this.user().id, lid:rec.id, data:rec, cupd:rec.updatedAt||rec.ts||Date.now(), deleted:false};
+      if(id) await req('PATCH','/api/collections/links/records/'+id, body);
+      else await req('POST','/api/collections/links/records', body);
+      cloudLinkIds.add(rec.id);
+    },
+    async softDeleteLink(lid){
+      if(!this.syncOn() || !lid) return;
+      var id = await this._findLinkId(lid);
+      if(id) await req('PATCH','/api/collections/links/records/'+id, {deleted:true, cupd:Date.now()});
+      cloudLinkIds.delete(lid);
+    },
+    async pullLinks(){
+      if(!this.loggedIn()) return [];
+      var page=1, out=[], guard=0;
+      while(guard++<60){
+        var r = await req('GET','/api/collections/links/records?perPage=200&sort=cupd&page='+page+'&filter='+encodeURIComponent('owner="'+this.user().id+'"'));
+        out = out.concat(r.items||[]);
+        if(!r.items || r.items.length<200) break; page++;
+      }
+      return out; // [{lid,data,cupd,deleted}]
+    },
+    /* 链接全量对账：拉云端→与本地按 id 合并(时间取新、软删生效)→本地较新者待上传。返回 {merged,toPush,downloaded,removed} */
+    async fullSyncLinks(localArr){
+      if(!this.syncOn()) return null;
+      var server={}, srv=await this.pullLinks();
+      cloudLinkIds = new Set(); srv.forEach(function(s){ server[s.lid]=s; if(!s.deleted) cloudLinkIds.add(s.lid); });
+      var localMap={}; (localArr||[]).forEach(function(r){ localMap[r.id]=r; });
+      var ids={}; Object.keys(server).forEach(function(c){ids[c]=1;}); (localArr||[]).forEach(function(r){ids[r.id]=1;});
+      var merged=[], toPush=[], downloaded=0, removed=0;
+      Object.keys(ids).forEach(function(lid){
+        var L=localMap[lid], S=server[lid];
+        var lt=L?(L.updatedAt||L.ts||0):-1, stime=S?(S.cupd||0):-1;
+        if(S && S.deleted && stime>=lt){ if(L) removed++; return; }
+        if(S && (!L || stime>lt)){ var d=S.data||{}; d.id=lid; if(!d.updatedAt) d.updatedAt=stime; merged.push(d); downloaded++; }
+        else if(L){ merged.push(L); if(!S || lt>stime) toPush.push(L); }
       });
       return {merged:merged, toPush:toPush, downloaded:downloaded, removed:removed};
     },

@@ -142,12 +142,18 @@ function linkRows(){
 }
 function renderLinks(){
   const en=window.HDI18N&&HDI18N.lang==='en';
+  const L=(window.HDI18N&&HDI18N.lang)||'zh-Hans';
+  const lCloud=r=>{
+    if(!(window.GC&&GC.loggedIn&&GC.loggedIn()&&GC.syncOn&&GC.syncOn())) return '';
+    if(GC.isLinkSynced&&GC.isLinkSynced(r.id)) return ` <span class="cloudb on" title="${L==='en'?'Backed up to cloud':L==='zh-Hant'?'已備份到雲端':'已备份到云端'}">☁ ${L==='en'?'Synced':L==='zh-Hant'?'已上雲':'已上云'}</span>`;
+    return ` <span class="cloudb" title="${L==='en'?'Will upload on next sync':L==='zh-Hant'?'下次同步時上傳':'下次同步时上传'}">⏳ ${L==='en'?'Pending':'待同步'}</span>`;
+  };
   const list=linkRows();
   $('#linklist').innerHTML = list.length
     ? `<div class="cnt">${en?'Connections / Pentas':'合盘 / Penta'} · ${list.length}</div>`+list.map(r=>`
       <div class="rec" data-lid="${r.id}">
         <div class="meta">
-          <div class="n">${esc(r.name)} <span class="srcb">${r.kind==='penta'?'Penta':(en?'Connection':'合盘')}</span></div>
+          <div class="n">${esc(r.name)} <span class="srcb">${r.kind==='penta'?'Penta':(en?'Connection':'合盘')}</span>${lCloud(r)}</div>
           <div class="d">${esc((r.members||[]).map(m=>m.name).join(' · '))}</div>
         </div>
         <a class="btn-sm" href="connect.html?openLink=${r.id}">${en?'Open':'打开'}</a>

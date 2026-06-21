@@ -30,8 +30,15 @@
       if (res) {
         if (res.downloaded || res.removed) { applying = true; try { HD.replaceAll(res.merged); } finally { applying = false; } rerender(); }
         for (var i = 0; i < res.toPush.length; i++) { try { await GC.pushChart(res.toPush[i]); } catch (e) {} }
-        if (res.downloaded) toast('☁ 已从云端恢复 / 更新 ' + res.downloaded + ' 条');
       }
+      // 合盘 / Penta 链接同步（与排盘记录并行对账）
+      var lres = (GC.fullSyncLinks && HD.linksAll) ? await GC.fullSyncLinks(HD.linksAll()) : null;
+      if (lres) {
+        if (lres.downloaded || lres.removed) { applying = true; try { HD.replaceLinks(lres.merged); } finally { applying = false; } rerender(); }
+        for (var j = 0; j < lres.toPush.length; j++) { try { await GC.pushLink(lres.toPush[j]); } catch (e) {} }
+      }
+      var dn = (res ? res.downloaded : 0) + (lres ? lres.downloaded : 0);
+      if (dn) toast('☁ 已从云端恢复 / 更新 ' + dn + ' 条');
     } catch (e) {}
     syncing = false;
   }
@@ -43,6 +50,7 @@
       var r = orig.apply(HD, arguments);
       if (!applying && GC.syncOn()) {
         if (m === 'remove') { try { GC.softDelete(arguments[0]); } catch (e) {} }
+        if (m === 'removeLink') { try { GC.softDeleteLink(arguments[0]); } catch (e) {} }
         schedule();
       }
       return r;
