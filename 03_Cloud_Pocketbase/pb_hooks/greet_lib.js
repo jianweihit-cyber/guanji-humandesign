@@ -110,7 +110,23 @@ function chromeMinimal(en, accent, inner) {
     + '<div style="font-size:11px;color:#C3BAA8;line-height:1.7;margin-top:8px">' + footText(en) + '</div>'
     + '</td></tr></table></div>';
 }
-var CHROMES = { aurora: chromeAurora, classic: chromeClassic, minimal: chromeMinimal };
+// 外壳④「岩板」(ink)：深岩石板头部+浅身+钢蓝细线+方角，沉稳硬朗（男士款）
+function chromeInk(en, accent, inner) {
+  return '<div style="margin:0;padding:26px 12px;background:#E7E9EC">'
+    + '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:0 auto;background:#FFFFFF;border:1px solid #DCE0E4;border-radius:12px;overflow:hidden;font-family:' + FF + '">'
+    + '<tr><td style="background:#2B3640;background-image:linear-gradient(135deg,#34424d,#222a31);padding:28px 24px;text-align:center">'
+    + '<img src="' + LOGO_RED + '" width="60" height="60" alt="观己" style="display:block;margin:0 auto 10px;border:0;outline:none;border-radius:14px">'
+    + '<div style="color:#EDEFF1;font-size:18px;font-weight:700;letter-spacing:3px">' + (en ? 'GUANJI' : '观　己 · 人类图') + '</div>'
+    + '<div style="color:#8FA3B0;font-size:11px;letter-spacing:3px;margin-top:5px">HUMAN DESIGN</div>'
+    + '<div style="width:40px;height:2px;background:' + accent + ';margin:16px auto 0"></div></td></tr>'
+    + inner
+    + '<tr><td style="padding:20px 24px 26px;text-align:center;background:#F6F7F8;border-top:1px solid #E6E9EC">'
+    + '<div style="font-size:13.5px;font-weight:700;color:#3A4750;letter-spacing:1px">' + (en ? 'Zai Yu Xing Zhe · GuanJi' : '再遇行者 · 观己') + '</div>'
+    + '<div style="font-size:12px;color:#8a97a0;margin-top:4px">' + SITE + '</div>'
+    + '<div style="font-size:11.5px;color:#9AA6AE;line-height:1.7;margin-top:10px">' + footText(en) + '</div>'
+    + '</td></tr></table></div>';
+}
+var CHROMES = { aurora: chromeAurora, classic: chromeClassic, minimal: chromeMinimal, ink: chromeInk };
 var DEFAULT_TPL = 'aurora';
 function chromeOf(tpl) { return CHROMES[tpl] || CHROMES[DEFAULT_TPL]; }
 
@@ -153,7 +169,20 @@ function gInnerMinimal(c) {
     + '<tr><td style="padding:6px 34px 0;text-align:center"><div style="font-size:12.5px;color:#9b9078">📅 ' + esc(c.companion) + '</div></td></tr>'
     + '<tr><td style="padding:20px 34px 26px;text-align:center"><a href="' + APP + '" style="display:inline-block;border:1.5px solid ' + c.accent + ';color:' + c.accent + ';text-decoration:none;padding:10px 26px;border-radius:999px;font-size:14px;font-weight:600">' + esc(c.cta) + ' &rsaquo;</a></td></tr>';
 }
-var GINNER = { aurora: gInnerAurora, classic: gInnerClassic, minimal: gInnerMinimal };
+function gInnerInk(c) {  // 左对齐·方角徽标·左竖线引言·方角深色按钮(男士款)
+  var p = 'font-size:15px;line-height:1.9;color:#3f4a52;margin:0';
+  return ''
+    + (c.typeLabel ? '<tr><td style="padding:22px 30px 0"><span style="display:inline-block;background:#EEF2F5;color:' + c.accent + ';border-radius:6px;padding:5px 14px;font-size:12.5px;letter-spacing:1px;font-weight:600">' + esc(c.typeLabel) + (c.profile ? ' · ' + esc(c.profile) : '') + '</span></td></tr>' : '')
+    + '<tr><td style="padding:14px 30px 0"><div style="font-size:23px;font-weight:700;color:#222b32;letter-spacing:.5px">' + esc(c.bigTitle) + '</div>'
+    + '<div style="font-size:13.5px;color:#8a97a0;margin-top:7px">' + c.subline + '</div></td></tr>'
+    + '<tr><td style="padding:16px 30px 4px"><p style="' + p + '">' + esc(c.lead) + '</p></td></tr>'
+    + (c.line ? '<tr><td style="padding:10px 30px 4px"><p style="' + p + '">' + esc(c.line) + '</p></td></tr>' : '')
+    + '<tr><td style="padding:8px 30px 4px"><p style="' + p + '">' + esc(c.closing) + '</p></td></tr>'
+    + '<tr><td style="padding:12px 30px"><div style="border-left:3px solid ' + c.accent + ';background:#F6F8F9;padding:14px 16px;border-radius:0 8px 8px 0"><div style="font-size:15px;font-style:italic;color:#3f4a52;line-height:1.7">' + esc(c.quote.text) + '</div><div style="font-size:12.5px;color:#8a97a0;margin-top:8px">— ' + esc(c.quote.author) + '</div></div></td></tr>'
+    + '<tr><td style="padding:10px 30px 0"><div style="font-size:13px;color:#8a97a0">📅 ' + esc(c.companion) + '</div></td></tr>'
+    + '<tr><td style="padding:18px 30px 28px"><a href="' + APP + '" style="display:inline-block;background:#2B3640;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:15px;font-weight:600">' + esc(c.cta) + ' &rsaquo;</a></td></tr>';
+}
+var GINNER = { aurora: gInnerAurora, classic: gInnerClassic, minimal: gInnerMinimal, ink: gInnerInk };
 
 // 组装祝福：返回 {subject, html, fromName}。days=相伴天数(生日用)。template=aurora|classic|minimal(默认 aurora)。
 function composeGreeting(kind, lang, nick, sum, years, gender, email, days, template) {

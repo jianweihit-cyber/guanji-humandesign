@@ -11,7 +11,12 @@ cronAdd("hd_greetings", "30 8 * * *", function () {
     var now = new Date();
     var md = (("0" + (now.getUTCMonth() + 1)).slice(-2)) + "-" + (("0" + now.getUTCDate()).slice(-2));
     var year = String(now.getUTCFullYear());
-    var TPL = ""; try { TPL = $os.getenv("GREET_TEMPLATE"); } catch (_) {} TPL = TPL || "aurora";  // 默认模板可用 Fly 环境变量 GREET_TEMPLATE 随时切(aurora|classic|minimal)
+    // 默认模板可用 Fly 环境变量随时切：GREET_TEMPLATE(全局) + GREET_TEMPLATE_M/_F(按性别覆盖)。值 aurora|classic|minimal|ink
+    var TPL_D = "", TPL_M = "", TPL_F = "";
+    try { TPL_D = $os.getenv("GREET_TEMPLATE"); } catch (_) {}
+    try { TPL_M = $os.getenv("GREET_TEMPLATE_M"); } catch (_) {}
+    try { TPL_F = $os.getenv("GREET_TEMPLATE_F"); } catch (_) {}
+    TPL_D = TPL_D || "aurora";
     var page = 0, per = 200;
     while (page < 100) {
       var users = $app.findRecordsByFilter("users", 'verified = true && emailOptOut = false', "created", per, page * per);
@@ -25,6 +30,7 @@ cronAdd("hd_greetings", "30 8 * * *", function () {
           var data = G.selfChart($app, u.id);
           var sum = (data && data.sum) || {};
           var gender = (data && data.gender) || '';
+          var TPL = (gender === 'M' && TPL_M) ? TPL_M : (gender === 'F' && TPL_F) ? TPL_F : TPL_D;   // 按性别选模板
           var crStr = u.getString("created");   // 与观己相伴天数(生日寄语「已相伴 N 天」)
           var joinDays = (crStr && crStr.length >= 10) ? Math.floor((now.getTime() - new Date(crStr.slice(0, 10) + "T00:00:00Z").getTime()) / 86400000) : 0;
           if (data && data.input && data.input.month && data.input.day) {
