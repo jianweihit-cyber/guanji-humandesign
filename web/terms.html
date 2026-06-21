@@ -3,16 +3,19 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>用户协议与隐私 · 观己</title>
+<title>用户协议与隐私政策 · 观己</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="stylesheet" href="hd.css" />
 <style>
   .terms{max-width:720px;margin:0 auto}
   .terms h1{font-size:20px;margin:14px 0 4px}
-  .terms .upd{font-size:12px;color:var(--sub);margin-bottom:14px}
+  .terms .upd{font-size:12px;color:var(--sub);margin-bottom:4px}
+  .terms .intro{font-size:13px;color:var(--sub);line-height:1.8;margin:6px 0 6px}
+  .terms .parth{font-size:16px;margin:22px 0 2px;color:var(--li);font-weight:700;letter-spacing:.5px}
   .terms section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:10px}
   .terms h2{font-size:15px;margin:0 0 6px;color:var(--li)}
   .terms p{font-size:13.5px;line-height:1.8;color:var(--ink);margin:0}
+  .terms .contact{font-size:13px;color:var(--ink);line-height:1.8;margin-top:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
   .terms .back{display:inline-block;margin-top:18px;font-size:13px;color:var(--li);text-decoration:none}
 </style>
 </head>
@@ -29,41 +32,100 @@
   var lang = (window.HDI18N && window.HDI18N.lang) || 'zh-Hans';
   var L = lang==='en' ? 'en' : (lang==='zh-Hant' ? 'tw' : 'zh');
   var D = {
-    zh: { title:'用户协议与隐私说明', upd:'最近更新：2026-06-17', back:'‹ 返回',
-      secs:[
-        ['本地优先存储','你的命盘记录默认只保存在你自己的浏览器中，不会上传服务器。清缓存/换设备可能丢失，建议定期「导出备份」。'],
-        ['可选云端备份','仅当你登录并主动开启「云同步」后，「邮箱 + 命盘记录」才会加密存于服务器，用于备份与跨设备恢复；仅你本人可见，可随时关闭或注销删除。'],
-        ['出生数据用途','你输入的出生日期 / 时间 / 地点仅用于计算你的人类图（多在本地完成），不作其他用途，也不会公开。'],
-        ['邮箱与系统邮件','提供邮箱即表示同意接收观己的定期系统邮件——例如生日祝福、来到观己满一年（及每周年）的祝福、重要通知等。如不想接收，可随时在「账号 → 系统邮件」开关中关闭。'],
-        ['不向第三方出售或分享','我们不会把你的个人数据出售或分享给第三方。'],
-        ['账号与注销','你可随时退出登录并删除云端数据，掌控权始终在你手中。'],
-        ['免责声明','人类图内容仅供自我了解与学习参考，不构成医疗、心理或投资建议。']
+    zh: { title:'用户协议与隐私政策', upd:'最近更新：2026-06-21', back:'‹ 返回',
+      intro:'欢迎使用「观己 · 人类图」。请在使用前阅读以下《用户协议》与《隐私政策》。一旦使用本服务，即表示你已阅读、理解并同意以下内容。',
+      contact:'行使权利或任何疑问，请联系：jianwei.hit@gmail.com（我们是你个人信息的处理者）。',
+      parts:[
+        ['一、用户协议',[
+          ['服务内容','「观己 · 人类图」是一款人类图（Human Design）排盘、学习与记录工具。人类图融合易经、占星、脉轮、卡巴拉等文化体系，属自我探索与文化学习性质的内容。'],
+          ['免责声明（请务必阅读）','本应用所有内容仅供自我了解、兴趣与学习参考，属娱乐与文化性质；不构成医疗、心理、法律、投资、婚恋等任何专业建议或决策依据，不预测吉凶祸福、不承诺改运招财，也不替代专业人士意见。请理性看待，重大决定请咨询相应领域的专业人士。'],
+          ['账号与安全','请妥善保管你的邮箱与密码；因自身保管不当造成的损失需自行承担。请勿利用本服务从事违法或侵害他人权益的行为。'],
+          ['会员与续期','会员分不同档位并设有效期，到期前会在站内与邮件提醒；续期目前通过联系管理员办理，具体权益以页面说明为准。'],
+          ['知识产权','本应用的排盘引擎与原创解读内容归开发者所有；你输入与生成的个人命盘数据归你本人。'],
+          ['未成年人','本服务不面向 14 周岁以下儿童。如你未满 14 周岁，请在监护人同意并陪同下使用，监护人可代为管理相关数据。'],
+          ['协议变更','我们可能不时更新本协议，重大变更会在页面显著位置或通过邮件告知；继续使用即表示接受更新后的条款。']
+        ]],
+        ['二、隐私政策',[
+          ['我们是谁','本应用由个人开发者运营（联系邮箱见文末）。我们作为你个人信息的处理者，按本政策处理你的信息。'],
+          ['我们收集哪些信息','① 你主动提供：邮箱、昵称、出生日期 / 时间 / 地点、命盘记录与标记；② 自动产生：为安全与防滥用记录的访问日志（含 IP，按需短期保留），以及保存在你浏览器本地的偏好与记录（localStorage）。'],
+          ['敏感个人信息特别说明','出生日期 / 时间 / 地点及由此生成的命盘，可能被视为敏感个人信息。我们仅将其用于为你计算人类图；对这类信息的处理（尤其是上云与跨境存储）基于你的「单独同意」。你可拒绝或随时撤回，撤回后我们停止相应的云端处理。'],
+          ['信息用途','用于：排盘计算；（开启同步后）云端备份与跨设备恢复；会员服务；按你的选择发送系统邮件；保障安全与防止滥用。'],
+          ['本地优先 · 数据最小化','命盘多在你的浏览器本地计算，并默认仅存本机。只有当你登录并主动开启「云同步」后，邮箱与命盘记录才会上传服务器。'],
+          ['存储位置与跨境传输','开启云同步后，数据加密存储于 Fly.io 位于新加坡的服务器（境外），并经 Cloudflare 加速与防护；数据卷静态加密、传输全程 HTTPS。向你提供服务涉及跨境存储，你开启同步时的「单独同意」即包含对该跨境存储的同意。'],
+          ['第三方与子处理者','为提供服务，我们使用：Fly.io（服务器托管）、Cloudflare（CDN 与安全防护）、Resend（发送系统邮件）。除上述必要服务商外，我们不会向任何第三方出售或分享你的个人信息。'],
+          ['保存期限','云端数据在你账号存续期间保留；你注销账号或删除云端数据后即删除。本地数据由你自行清除（清缓存 / 卸载 / 导出后删除）。'],
+          ['你的权利','你有权访问、更正、删除、导出你的数据，撤回同意，以及注销账号。多数操作可在「账号」页直接完成，其余可通过文末邮箱联系我们；你也有权向有关监管部门投诉。'],
+          ['Cookie 与本地存储','我们仅用浏览器 localStorage 保存你的命盘记录与偏好设置，不用于广告追踪，也不向第三方提供。'],
+          ['安全措施','我们采取全站 HTTPS、数据静态加密、按用户隔离访问、接口限流、操作审计、密钥安全保管等措施保护你的信息；但请理解，没有任何系统能保证绝对安全。'],
+          ['政策更新','本政策如有重大变更，将在页面显著位置或通过邮件告知。']
+        ]]
       ]},
-    tw: { title:'使用者協議與隱私說明', upd:'最近更新：2026-06-17', back:'‹ 返回',
-      secs:[
-        ['本地優先儲存','你的命盤記錄預設只儲存在你自己的瀏覽器中，不會上傳伺服器。清快取／換裝置可能遺失，建議定期「匯出備份」。'],
-        ['可選雲端備份','僅當你登入並主動開啟「雲同步」後，「信箱 + 命盤記錄」才會加密存於伺服器，用於備份與跨裝置恢復；僅你本人可見，可隨時關閉或登出刪除。'],
-        ['出生資料用途','你輸入的出生日期 / 時間 / 地點僅用於計算你的人類圖（多在本地完成），不作其他用途，也不會公開。'],
-        ['信箱與系統郵件','提供信箱即表示同意接收觀己的定期系統郵件——例如生日祝福、來到觀己滿一年（及每週年）的祝福、重要通知等。如不想接收，可隨時在「帳號 → 系統郵件」開關中關閉。'],
-        ['不向第三方出售或分享','我們不會把你的個人資料出售或分享給第三方。'],
-        ['帳號與登出','你可隨時登出並刪除雲端資料，掌控權始終在你手中。'],
-        ['免責聲明','人類圖內容僅供自我了解與學習參考，不構成醫療、心理或投資建議。']
+    tw: { title:'使用者協議與隱私政策', upd:'最近更新：2026-06-21', back:'‹ 返回',
+      intro:'歡迎使用「觀己 · 人類圖」。請在使用前閱讀以下《使用者協議》與《隱私政策》。一旦使用本服務，即表示你已閱讀、理解並同意以下內容。',
+      contact:'行使權利或任何疑問，請聯絡：jianwei.hit@gmail.com（我們是你個人資料的處理者）。',
+      parts:[
+        ['一、使用者協議',[
+          ['服務內容','「觀己 · 人類圖」是一款人類圖（Human Design）排盤、學習與記錄工具。人類圖融合易經、占星、脈輪、卡巴拉等文化體系，屬自我探索與文化學習性質的內容。'],
+          ['免責聲明（請務必閱讀）','本應用所有內容僅供自我了解、興趣與學習參考，屬娛樂與文化性質；不構成醫療、心理、法律、投資、婚戀等任何專業建議或決策依據，不預測吉凶禍福、不承諾改運招財，也不替代專業人士意見。請理性看待，重大決定請諮詢相應領域的專業人士。'],
+          ['帳號與安全','請妥善保管你的信箱與密碼；因自身保管不當造成的損失需自行承擔。請勿利用本服務從事違法或侵害他人權益的行為。'],
+          ['會員與續期','會員分不同檔位並設有效期，到期前會在站內與郵件提醒；續期目前透過聯絡管理員辦理，具體權益以頁面說明為準。'],
+          ['智慧財產權','本應用的排盤引擎與原創解讀內容歸開發者所有；你輸入與生成的個人命盤資料歸你本人。'],
+          ['未成年人','本服務不面向 14 周歲以下兒童。如你未滿 14 周歲，請在監護人同意並陪同下使用，監護人可代為管理相關資料。'],
+          ['協議變更','我們可能不時更新本協議，重大變更會在頁面顯著位置或透過郵件告知；繼續使用即表示接受更新後的條款。']
+        ]],
+        ['二、隱私政策',[
+          ['我們是誰','本應用由個人開發者營運（聯絡信箱見文末）。我們作為你個人資料的處理者，按本政策處理你的資料。'],
+          ['我們收集哪些資料','① 你主動提供：信箱、暱稱、出生日期 / 時間 / 地點、命盤記錄與標記；② 自動產生：為安全與防濫用記錄的存取日誌（含 IP，按需短期保留），以及保存在你瀏覽器本地的偏好與記錄（localStorage）。'],
+          ['敏感個人資料特別說明','出生日期 / 時間 / 地點及由此生成的命盤，可能被視為敏感個人資料。我們僅將其用於為你計算人類圖；對這類資料的處理（尤其是上雲與跨境儲存）基於你的「單獨同意」。你可拒絕或隨時撤回，撤回後我們停止相應的雲端處理。'],
+          ['資料用途','用於：排盤計算；（開啟同步後）雲端備份與跨裝置恢復；會員服務；按你的選擇發送系統郵件；保障安全與防止濫用。'],
+          ['本地優先 · 資料最小化','命盤多在你的瀏覽器本地計算，並預設僅存本機。只有當你登入並主動開啟「雲同步」後，信箱與命盤記錄才會上傳伺服器。'],
+          ['儲存位置與跨境傳輸','開啟雲同步後，資料加密儲存於 Fly.io 位於新加坡的伺服器（境外），並經 Cloudflare 加速與防護；資料卷靜態加密、傳輸全程 HTTPS。向你提供服務涉及跨境儲存，你開啟同步時的「單獨同意」即包含對該跨境儲存的同意。'],
+          ['第三方與子處理者','為提供服務，我們使用：Fly.io（伺服器託管）、Cloudflare（CDN 與安全防護）、Resend（發送系統郵件）。除上述必要服務商外，我們不會向任何第三方出售或分享你的個人資料。'],
+          ['保存期限','雲端資料在你帳號存續期間保留；你登出/登出帳號或刪除雲端資料後即刪除。本地資料由你自行清除（清快取 / 解除安裝 / 匯出後刪除）。'],
+          ['你的權利','你有權存取、更正、刪除、匯出你的資料，撤回同意，以及登出帳號。多數操作可在「帳號」頁直接完成，其餘可透過文末信箱聯絡我們；你也有權向有關監管部門投訴。'],
+          ['Cookie 與本地儲存','我們僅用瀏覽器 localStorage 保存你的命盤記錄與偏好設定，不用於廣告追蹤，也不向第三方提供。'],
+          ['安全措施','我們採取全站 HTTPS、資料靜態加密、按使用者隔離存取、介面限流、操作稽核、密鑰安全保管等措施保護你的資料；但請理解，沒有任何系統能保證絕對安全。'],
+          ['政策更新','本政策如有重大變更，將在頁面顯著位置或透過郵件告知。']
+        ]]
       ]},
-    en: { title:'Terms & Privacy', upd:'Last updated: 2026-06-17', back:'‹ Back',
-      secs:[
-        ['Local-first storage','Your chart records are stored only in your own browser by default and are not uploaded. Clearing cache or switching devices can lose them — export a backup periodically.'],
-        ['Optional cloud backup','Only when you sign in and turn on "Cloud sync" are your email + chart records stored encrypted on the server, for backup and cross-device restore. Visible only to you; turn off or delete anytime.'],
-        ['Use of birth data','The birth date / time / place you enter is used only to compute your Human Design chart (mostly on-device), for nothing else, and is never made public.'],
-        ['Email & system messages','By providing your email you agree to receive periodic GuanJi emails — e.g. birthday blessings, your 1-year (and each anniversary) "joined GuanJi" greeting, and key notices. You can turn these off anytime under Account → System emails.'],
-        ['No selling or sharing','We do not sell or share your personal data with third parties.'],
-        ['Account & deletion','You can log out and delete your cloud data anytime — you stay in control.'],
-        ['Disclaimer','Human Design content is for self-knowledge and learning only; it is not medical, psychological or financial advice.']
+    en: { title:'Terms of Service & Privacy Policy', upd:'Last updated: 2026-06-21', back:'‹ Back',
+      intro:'Welcome to GuanJi · Human Design. Please read these Terms of Service and Privacy Policy before use. By using the service you confirm that you have read, understood and agreed to the following.',
+      contact:'To exercise your rights or for any question, contact: jianwei.hit@gmail.com (we are the controller of your personal information).',
+      parts:[
+        ['1. Terms of Service',[
+          ['What this is','GuanJi · Human Design is a tool for casting, learning and recording Human Design charts. Human Design blends the I Ching, astrology, the chakras and the Kabbalah — it is cultural, self-exploration content.'],
+          ['Disclaimer (please read)','All content is for self-knowledge, interest and learning only and is entertainment / cultural in nature. It is not medical, psychological, legal, financial or relationship advice, nor a basis for any decision; it does not predict fortune or misfortune and makes no promise to change your luck, and it does not replace professional advice. Please treat it rationally and consult a qualified professional for important decisions.'],
+          ['Account & security','Keep your email and password safe; you are responsible for losses caused by your own mishandling. Do not use the service for any unlawful purpose or to harm others.'],
+          ['Membership & renewal','Membership has tiers and a validity period; you are reminded in-app and by email before expiry. Renewal is currently handled by contacting the admin. Benefits are as described in the app.'],
+          ['Intellectual property','The charting engine and original interpretive content belong to the developer; the personal chart data you enter and generate belongs to you.'],
+          ['Minors','This service is not directed to children under 14. If you are under 14, please use it only with a guardian’s consent and supervision; a guardian may manage the data on your behalf.'],
+          ['Changes','We may update these terms from time to time; material changes will be posted prominently or sent by email. Continued use means you accept the updated terms.']
+        ]],
+        ['2. Privacy Policy',[
+          ['Who we are','This app is run by an individual developer (contact email below). We are the controller of your personal information and process it under this policy.'],
+          ['What we collect','(1) You provide: email, nickname, birth date / time / place, chart records and tags. (2) Automatically: access logs (including IP, kept briefly) for security and abuse prevention, plus preferences and records stored locally in your browser (localStorage).'],
+          ['Sensitive information notice','Your birth date / time / place and the chart derived from them may be treated as sensitive personal information. We use them only to compute your Human Design chart; processing of this data (especially cloud and cross-border storage) is based on your separate consent. You may refuse or withdraw at any time, after which we stop the corresponding cloud processing.'],
+          ['How we use it','To: compute charts; (once sync is on) back up and restore across devices; provide membership; send system emails per your choice; ensure security and prevent abuse.'],
+          ['Local-first · data minimization','Charts are mostly computed locally in your browser and stored on your device by default. Only after you sign in and turn on “Cloud sync” are your email and chart records uploaded.'],
+          ['Storage location & cross-border transfer','With cloud sync on, data is stored encrypted on Fly.io servers in Singapore (outside your country) and accelerated/protected by Cloudflare; volumes are encrypted at rest and all traffic uses HTTPS. Providing the service involves cross-border storage; your separate consent when enabling sync includes consent to this cross-border storage.'],
+          ['Third parties & sub-processors','To run the service we use: Fly.io (hosting), Cloudflare (CDN & security), Resend (sending system emails). Apart from these necessary providers, we never sell or share your personal information with any third party.'],
+          ['Retention','Cloud data is kept while your account exists; it is deleted when you close your account or delete your cloud data. Local data is cleared by you (clearing cache / uninstalling / deleting after export).'],
+          ['Your rights','You may access, correct, delete and export your data, withdraw consent, and close your account. Most actions are available on the Account page; for the rest contact us at the email below. You also have the right to complain to the relevant regulator.'],
+          ['Cookies & local storage','We use only the browser’s localStorage to keep your chart records and preferences. We do not use it for ad tracking and do not share it with third parties.'],
+          ['Security','We protect your data with site-wide HTTPS, encryption at rest, per-user access isolation, rate limiting, action auditing and secure key handling; please understand that no system can guarantee absolute security.'],
+          ['Updates','If this policy changes materially, we will post it prominently or notify you by email.']
+        ]]
       ]}
   };
   var d = D[L] || D.zh;
   var esc = function(s){ return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); };
-  var html = '<h1>'+esc(d.title)+'</h1><div class="upd">'+esc(d.upd)+'</div>';
-  for (var i=0;i<d.secs.length;i++){ html += '<section><h2>'+esc(d.secs[i][0])+'</h2><p>'+esc(d.secs[i][1])+'</p></section>'; }
+  var html = '<h1>'+esc(d.title)+'</h1><div class="upd">'+esc(d.upd)+'</div><div class="intro">'+esc(d.intro)+'</div>';
+  for (var p=0;p<d.parts.length;p++){
+    html += '<div class="parth">'+esc(d.parts[p][0])+'</div>';
+    var secs = d.parts[p][1];
+    for (var i=0;i<secs.length;i++){ html += '<section><h2>'+esc(secs[i][0])+'</h2><p>'+esc(secs[i][1])+'</p></section>'; }
+  }
+  html += '<div class="contact">'+esc(d.contact)+'</div>';
   html += '<a class="back" href="history.html">'+esc(d.back)+'</a>';
   document.getElementById('terms').innerHTML = html;
   document.title = d.title + ' · ' + (L==='en'?'GuanJi':'观己');

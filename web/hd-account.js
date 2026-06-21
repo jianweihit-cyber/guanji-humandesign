@@ -122,13 +122,25 @@
       + (reg ? '<input id="ha-nick" class="ha-in" type="text" maxlength="30" placeholder="' + T('昵称（选填，留空自动取雅号）', 'Nickname (optional — auto-assigned if blank)', '暱稱（選填，留空自動取雅號）') + '">' : '')
       + '<input id="ha-pass" class="ha-in" type="password" placeholder="' + T('密码（至少 8 位）', 'Password (min 8)', '密碼（至少 8 位）') + '" autocomplete="' + (reg ? 'new-password' : 'current-password') + '">'
       + (reg ? '<input id="ha-pass2" class="ha-in" type="password" placeholder="' + T('再次输入密码', 'Confirm password', '再次輸入密碼') + '" autocomplete="new-password">' : '')
+      + (reg ? '<label class="ha-chk"><input type="checkbox" id="ha-agree"><span>' + T('我已阅读并同意', 'I have read and agree to the', '我已閱讀並同意') + ' <a href="terms.html" target="_blank" rel="noopener">' + T('《用户协议》与《隐私政策》', 'Terms & Privacy Policy', '《使用者協議》與《隱私政策》') + '</a></span></label>' : '')
       + '<button class="ha-btn" data-act="' + (reg ? 'register' : 'login') + '" style="width:100%">' + (reg ? T('注册', 'Create account', '註冊') : T('登录', 'Sign in', '登入')) + '</button>'
       + '<div class="ha-or"><span>' + T('或', 'or', '或') + '</span></div>'
       + '<div id="ha-otp"><button class="ha-link" data-act="otp">' + T('用邮箱验证码登录（免密码）', 'Sign in with email code (no password)', '用信箱驗證碼登入（免密碼）') + '</button></div>'
       + '<p class="ha-note">' + (reg
-        ? T('注册后请到邮箱完成验证，验证通过才能开启云同步。默认仅存本机。', 'After signing up, verify via the email we send — cloud sync unlocks only after verification. Local-only by default.', '註冊後請到信箱完成驗證，驗證通過才能開啟雲同步。預設僅存本機。') + ' ' + T('注册即表示你已阅读并同意', 'By signing up you agree to our', '註冊即表示你已閱讀並同意') + ' '
-        : T('开启云端备份后，换设备 / 清缓存也能恢复命盘记录。默认仅存本机，登录并开启同步才上云。', 'With cloud backup on, restore records after switching devices or clearing cache. Local-only by default.', '開啟雲端備份後，換裝置 / 清快取也能恢復命盤記錄。') + ' ')
-        + '<a href="terms.html" target="_blank" rel="noopener" style="color:#6B5B43;text-decoration:underline">' + T('《用户协议与隐私》', 'Terms & Privacy', '《使用者協議與隱私》') + '</a></p>';
+        ? T('注册后请到邮箱完成验证，验证通过才能开启云同步。默认仅存本机。', 'After signing up, verify via the email we send — cloud sync unlocks only after verification. Local-only by default.', '註冊後請到信箱完成驗證，驗證通過才能開啟雲同步。預設僅存本機。')
+        : T('开启云端备份后，换设备 / 清缓存也能恢复命盘记录。默认仅存本机，登录并开启同步才上云。', 'With cloud backup on, restore records after switching devices or clearing cache. Local-only by default.', '開啟雲端備份後，換裝置 / 清快取也能恢復命盤記錄。預設僅存本機，登入並開啟同步才上雲。') + ' <a href="terms.html" target="_blank" rel="noopener" style="color:#6B5B43;text-decoration:underline">' + T('《用户协议与隐私》', 'Terms & Privacy', '《使用者協議與隱私》') + '</a>')
+        + '</p>';
+  }
+
+  // 开启云同步前的「敏感个人信息 + 跨境存储」单独同意（PIPL）。本机记一次，已同意则静默放行。
+  function ensureXBorderConsent() {
+    try { if (localStorage.getItem('gc_xb_consent') === '1') return true; } catch (e) {}
+    var ok = confirm(T(
+      '开启云同步将把你的「邮箱 + 命盘记录（含出生日期 / 时间 / 地点等敏感个人信息）」加密上传并存储于境外（新加坡）服务器，用于备份与跨设备恢复。此为单独同意项，你可随时关闭或注销删除。确定开启？',
+      'Enabling cloud sync uploads and stores your email + chart records (including sensitive birth date/time/place) encrypted on overseas servers (Singapore) for backup and cross-device restore. This is a separate consent — you can turn it off or delete anytime. Enable now?',
+      '開啟雲同步將把你的「信箱 + 命盤記錄（含出生日期 / 時間 / 地點等敏感個人資料）」加密上傳並儲存於境外（新加坡）伺服器，用於備份與跨裝置恢復。此為單獨同意項，你可隨時關閉或登出刪除。確定開啟？'));
+    if (ok) { try { localStorage.setItem('gc_xb_consent', '1'); } catch (e) {} }
+    return ok;
   }
 
   // —— 事件委托 ——
@@ -145,7 +157,7 @@
         if (!EMAIL.test(e1)) return toast(T('请输入有效邮箱', 'Enter a valid email', '請輸入有效信箱'));
         if (!p1) return toast(T('请输入密码', 'Enter your password', '請輸入密碼'));
         await GC.login(e1, p1);
-        if (GC.verified()) GC.setSync(true);              // 仅已验证账号自动开同步
+        if (GC.verified() && ensureXBorderConsent()) GC.setSync(true);   // 已验证 + 单独同意 才自动开同步
         toast(T('已登录', 'Signed in', '已登入')); panel(); bar(); if (GC.syncOn()) fullSync();
       }
       else if (a === 'register') {
@@ -153,6 +165,8 @@
         if (!EMAIL.test(e2)) return toast(T('请输入有效邮箱', 'Enter a valid email', '請輸入有效信箱'));
         if (p2.length < 8) return toast(T('密码至少 8 位', 'Password needs 8+ characters', '密碼至少 8 位'));
         if (p2 !== p2b) return toast(T('两次密码不一致', 'Passwords do not match', '兩次密碼不一致'));
+        var agree = document.getElementById('ha-agree');
+        if (!agree || !agree.checked) return toast(T('请先勾选同意《用户协议》与《隐私政策》', 'Please check the box to agree to the Terms & Privacy Policy', '請先勾選同意《使用者協議》與《隱私政策》'));
         await GC.register(e2, p2, nk);
         if (nk) { try { await GC.setNickname(nk); } catch (e) {} }
         GC.setSync(false);                                // 关键：注册不自动开同步，验证后才能开
@@ -160,11 +174,12 @@
         panel(); bar();
       }
       else if (a === 'otp') { var e3 = val('ha-email'); if (!EMAIL.test(e3)) return toast(T('请先填有效邮箱', 'Enter a valid email first', '請先填有效信箱')); window._hdOtp = await GC.requestOTP(e3); document.getElementById('ha-otp').innerHTML = '<input id="ha-code" class="ha-in" type="text" inputmode="numeric" placeholder="' + T('输入邮箱收到的验证码', 'Enter the code from your email', '輸入信箱收到的驗證碼') + '"><button class="ha-btn" data-act="otplogin" style="width:100%">' + T('验证码登录', 'Sign in with code', '驗證碼登入') + '</button>'; toast(T('验证码已发到邮箱', 'Code sent to your email', '驗證碼已發到信箱')); }
-      else if (a === 'otplogin') { var c = val('ha-code'); if (!c || !window._hdOtp) return toast(T('请输入验证码', 'Enter the code', '請輸入驗證碼')); await GC.loginOTP(window._hdOtp, c); GC.setSync(true); toast(T('已登录', 'Signed in', '已登入')); panel(); bar(); fullSync(); }
+      else if (a === 'otplogin') { var c = val('ha-code'); if (!c || !window._hdOtp) return toast(T('请输入验证码', 'Enter the code', '請輸入驗證碼')); await GC.loginOTP(window._hdOtp, c); if (ensureXBorderConsent()) GC.setSync(true); toast(T('已登录', 'Signed in', '已登入')); panel(); bar(); if (GC.syncOn()) fullSync(); }
       else if (a === 'sync') {
         if (!GC.syncOn()) {                               // 想开同步：先确保已验证邮箱
           if (!GC.verified()) { try { await GC.refresh(); } catch (e) {} }
           if (!GC.verified()) { panel(); bar(); return toast(T('请先完成邮箱验证，再开启云同步', 'Verify your email before enabling cloud sync', '請先完成信箱驗證，再開啟雲同步')); }
+          if (!ensureXBorderConsent()) { panel(); bar(); return; }
           GC.setSync(true); panel(); bar(); fullSync();
         } else { GC.setSync(false); panel(); bar(); toast(T('已关闭云同步（记录仍在本机）', 'Cloud sync off (records stay on this device)', '已關閉雲同步（記錄仍在本機）')); }
       }
@@ -193,6 +208,7 @@
     + '.ha-or{text-align:center;color:#C9BEA9;font-size:12px;margin:12px 0;border-top:1px solid #EDE4D4;line-height:0}.ha-or span{background:#FCFAF4;padding:0 10px;position:relative;top:-6px}'
     + '.ha-sync{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px}.ha-sync b{font-size:14px;color:#3a3330}.ha-sync i{display:block;font-style:normal;font-size:12px;color:#9b948a;margin-top:2px}'
     + '.ha-toggle{width:44px;height:26px;border-radius:13px;border:none;background:#D8CFC0;position:relative;cursor:pointer;flex:none}.ha-toggle.on{background:#6B5B43}.ha-toggle span{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}.ha-toggle.on span{left:21px}'
+    + '.ha-chk{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:#6B5B43;line-height:1.5;margin:2px 0 12px;cursor:pointer}.ha-chk input{margin-top:1px;flex:none;width:16px;height:16px;accent-color:#6B5B43}.ha-chk a{color:#6B5B43;text-decoration:underline}'
     + '.ha-note{font-size:12px;color:#9b948a;line-height:1.6;margin:12px 0 0}'
     + '.ha-mem{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.55;margin:0 0 14px}.ha-mem-i{flex:none;font-size:15px;line-height:1.45}.ha-mem.warn{background:#FBF3E2;color:#8A6516;border:1px solid #F0E0BC}.ha-mem.soon{background:#FBEAD9;color:#9A4F12;border:1px solid #F1CFA8}.ha-mem.exp{background:#FBE6E3;color:#A3271B;border:1px solid #F0C2BB}.ha-mem a.ha-link{color:inherit;font-weight:700}'
     + '.ha-tabs{display:flex;gap:6px;margin-bottom:12px}.ha-tab{flex:1;padding:8px;border:1px solid #D8CFC0;border-radius:10px;background:#fff;color:#8A7A5E;font-size:14px;cursor:pointer;font-family:inherit}.ha-tab.on{background:#6B5B43;color:#fff;border-color:transparent;font-weight:600}'
