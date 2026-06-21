@@ -75,11 +75,27 @@
     if (GC.loggedIn()) {
       var u = GC.user(), vr = GC.verified(), dl = GC.defaultLang(), em = GC.emailOn(), mb = GC.membership();
       var renewLink = ' <a class="ha-link" href="mailto:' + ADMIN + '?subject=' + encodeURIComponent(T('观己会员续期', 'GuanJi membership renewal', '觀己會員續期')) + '">' + T('联系续期', 'Renew', '聯絡續期') + '</a>';
+      var paid = (mb.tier !== 'free');
+      var tn = (mb.tier === 'vip' ? 'VIP' : mb.tier === 'pro' ? 'Pro' : mb.tier);
+      var endDate = mb.activeTo ? String(mb.activeTo).slice(0, 10) : '';
+      // 会员行：始终透明显示档位 + 有效期(即使还很久也显示) + 剩余天数
       var memHtml;
-      if (mb.tier === 'free') memHtml = '<i style="font-style:normal;color:#6B5B43">' + T('免费版', 'Free', '免費版') + '</i>';
-      else { var tn = (mb.tier === 'vip' ? 'VIP' : mb.tier === 'pro' ? 'Pro' : mb.tier);
-        if (mb.expired) memHtml = '<i style="font-style:normal;color:#c0392b">' + tn + ' · ' + T('已过期', 'expired', '已過期') + '</i>' + renewLink;
-        else { memHtml = '<i style="font-style:normal;color:#3a7d44">' + tn + (mb.daysLeft != null ? ' · ' + T('剩 ' + mb.daysLeft + ' 天', mb.daysLeft + ' days left', '剩 ' + mb.daysLeft + ' 天') : '') + '</i>'; if (mb.daysLeft != null && mb.daysLeft <= 30) memHtml += renewLink; }
+      if (!paid) memHtml = '<i style="font-style:normal;color:#6B5B43">' + T('免费版', 'Free', '免費版') + '</i>';
+      else if (mb.expired) memHtml = '<i style="font-style:normal;color:#c0392b">' + tn + ' · ' + T('已过期', 'expired', '已過期') + (endDate ? '（' + endDate + '）' : '') + '</i>';
+      else {
+        var leftTxt = (mb.daysLeft != null) ? ' · ' + T('剩 ' + mb.daysLeft + ' 天', mb.daysLeft + ' days left', '剩 ' + mb.daysLeft + ' 天') : '';
+        var col = (mb.daysLeft != null && mb.daysLeft <= 30) ? '#C77B30' : '#3a7d44';
+        memHtml = '<i style="font-style:normal;color:' + col + '">' + tn + (endDate ? ' · ' + T('有效期至 ' + endDate, 'valid until ' + endDate, '有效期至 ' + endDate) : '') + leftTxt + '</i>';
+      }
+      // 临期/过期提醒横幅：付费档 ≤30天 或 已过期 时醒目展示，按 30→15→当天→已过期 升级配色
+      var memNotice = '';
+      if (paid && (mb.expired || (mb.daysLeft != null && mb.daysLeft <= 30))) {
+        var lvl, icon, msg;
+        if (mb.expired) { lvl = 'exp'; icon = '⚠️'; msg = T('您的会员已于 ' + endDate + ' 到期，当前已按免费版计。续期后即可恢复会员权益。', 'Your membership expired on ' + endDate + ' — you are now on the Free plan. Renew to restore your benefits.', '您的會員已於 ' + endDate + ' 到期，目前已按免費版計。續期後即可恢復會員權益。'); }
+        else if (mb.daysLeft <= 0) { lvl = 'exp'; icon = '⏳'; msg = T('您的会员今天到期。如需继续，请联系管理员续期。', 'Your membership expires today. Please contact the admin to renew.', '您的會員今天到期。如需繼續，請聯絡管理員續期。'); }
+        else if (mb.daysLeft <= 15) { lvl = 'soon'; icon = '⏳'; msg = T('您的会员将于 ' + endDate + ' 到期，仅剩 ' + mb.daysLeft + ' 天，建议尽快续期。', 'Your membership expires on ' + endDate + ' — only ' + mb.daysLeft + ' days left. We recommend renewing soon.', '您的會員將於 ' + endDate + ' 到期，僅剩 ' + mb.daysLeft + ' 天，建議盡快續期。'); }
+        else { lvl = 'warn'; icon = '🔔'; msg = T('您的会员将于 ' + endDate + ' 到期（剩 ' + mb.daysLeft + ' 天），可提前联系管理员续期。', 'Your membership expires on ' + endDate + ' (' + mb.daysLeft + ' days left). You can renew early via the admin.', '您的會員將於 ' + endDate + ' 到期（剩 ' + mb.daysLeft + ' 天），可提前聯絡管理員續期。'); }
+        memNotice = '<div class="ha-mem ' + lvl + '"><span class="ha-mem-i">' + icon + '</span><div>' + msg + renewLink + '</div></div>';
       }
       var syncSub = GC.syncOn() ? T('已开 · 记录自动备份、跨设备恢复', 'On · auto backup & cross-device restore', '已開 · 記錄自動備份、跨裝置恢復')
         : (vr ? T('已关 · 仅存本机', 'Off · local only', '已關 · 僅存本機') : T('需先完成邮箱验证才能开启', 'Verify your email to enable', '需先完成信箱驗證才能開啟'));
@@ -87,6 +103,7 @@
         ? '<i style="color:#3a7d44;font-style:normal">' + T('已验证 ✓', 'Verified ✓', '已驗證 ✓') + '</i>'
         : '<i style="color:#c0392b;font-style:normal">' + T('未验证', 'Not verified', '未驗證') + '</i> <button class="ha-link" data-act="resend">' + T('重发邮件', 'Resend', '重發郵件') + '</button> <button class="ha-link" data-act="recheck">' + T('我已验证', "I've verified", '我已驗證') + '</button>';
       return '<div class="ha-h">' + T('账号 · 云端备份', 'Account · Cloud backup', '帳號 · 雲端備份') + '<button class="ha-x" data-act="close">✕</button></div>'
+        + memNotice
         + '<div class="ha-row"><span>' + T('昵称', 'Nickname', '暱稱') + '</span><b>' + esc(GC.nick()) + '</b><button class="ha-link" data-act="nick">' + T('改', 'Edit', '改') + '</button></div>'
         + '<div class="ha-row"><span>' + T('邮箱', 'Email', '信箱') + '</span><b>' + esc(u.email) + '</b></div>'
         + '<div class="ha-row"><span>' + T('邮箱验证', 'Email verify', '信箱驗證') + '</span><b>' + vrow + '</b></div>'
@@ -177,6 +194,7 @@
     + '.ha-sync{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px}.ha-sync b{font-size:14px;color:#3a3330}.ha-sync i{display:block;font-style:normal;font-size:12px;color:#9b948a;margin-top:2px}'
     + '.ha-toggle{width:44px;height:26px;border-radius:13px;border:none;background:#D8CFC0;position:relative;cursor:pointer;flex:none}.ha-toggle.on{background:#6B5B43}.ha-toggle span{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}.ha-toggle.on span{left:21px}'
     + '.ha-note{font-size:12px;color:#9b948a;line-height:1.6;margin:12px 0 0}'
+    + '.ha-mem{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.55;margin:0 0 14px}.ha-mem-i{flex:none;font-size:15px;line-height:1.45}.ha-mem.warn{background:#FBF3E2;color:#8A6516;border:1px solid #F0E0BC}.ha-mem.soon{background:#FBEAD9;color:#9A4F12;border:1px solid #F1CFA8}.ha-mem.exp{background:#FBE6E3;color:#A3271B;border:1px solid #F0C2BB}.ha-mem a.ha-link{color:inherit;font-weight:700}'
     + '.ha-tabs{display:flex;gap:6px;margin-bottom:12px}.ha-tab{flex:1;padding:8px;border:1px solid #D8CFC0;border-radius:10px;background:#fff;color:#8A7A5E;font-size:14px;cursor:pointer;font-family:inherit}.ha-tab.on{background:#6B5B43;color:#fff;border-color:transparent;font-weight:600}'
     + '.ha-toggle.off-disabled{opacity:.4;cursor:not-allowed}'
     + '.ha-pick{border:1px solid #D8CFC0;background:#fff;color:#8A7A5E;border-radius:8px;padding:4px 12px;font-size:13px;cursor:pointer;font-family:inherit;margin-left:6px}.ha-pick.on{background:#6B5B43;color:#fff;border-color:transparent;font-weight:600}';

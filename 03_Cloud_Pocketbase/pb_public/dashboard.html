@@ -43,6 +43,11 @@
   .bar .fill{height:100%;border-radius:6px;}
   .bar .v{width:54px;flex:none;text-align:right;color:var(--soft);}
   .note{color:var(--soft);font-size:12px;margin-top:22px;line-height:1.7;border-top:1px solid var(--line);padding-top:14px;}
+  .alert{display:flex;align-items:center;gap:10px;background:rgba(196,154,58,.13);border:1px solid var(--gold);color:var(--ink);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px;}
+  .alert.danger{background:rgba(166,57,44,.13);border-color:var(--seal);}
+  .alert .em{color:var(--seal);font-weight:700;}
+  .alert b{font-weight:700;}
+  .alert .lk2{margin-left:auto;color:var(--soft);text-decoration:underline;background:none;border:none;font-size:13px;white-space:nowrap;}
   .hide{display:none;}
 </style>
 </head>
@@ -72,6 +77,7 @@
       </div>
       <div><button class="lk" onclick="loadAll()">刷新</button>　<button class="lk" onclick="logout()">退出</button></div>
     </div>
+    <div id="expAlert" class="alert hide"></div>
     <div class="cards" id="cards"></div>
     <div class="sec">
       <h3>会员档位分布</h3>
@@ -82,7 +88,7 @@
       <div class="cards" id="growth" style="margin:0"></div>
     </div>
     <div class="sec">
-      <h3>临期 / 已过期会员（有效期 ≤ 14 天，及时续期 / 联系）</h3>
+      <h3>临期 / 已过期会员（有效期 ≤ 30 天，及时续期 / 联系）</h3>
       <div id="expiring"></div>
     </div>
     <div class="sec">
@@ -165,9 +171,16 @@ async function loadAll(){
   }catch(e){ document.getElementById('audit').innerHTML='<div style="color:var(--soft);font-size:13px">审计读取失败</div>'; }
   // 临期/已过期会员（tier≠free 且 activeTo ≤ 今天+14天）
   try{
-    var soon=new Date(Date.now()+14*86400000).toISOString().replace('T',' ');
-    var ex=await api('/api/collections/users/records?perPage=50&sort=activeTo&filter='+encodeURIComponent('tier!="free" && activeTo!="" && activeTo<="'+soon+'"'));
+    var soon=new Date(Date.now()+30*86400000).toISOString().replace('T',' ');
+    var ex=await api('/api/collections/users/records?perPage=100&sort=activeTo&filter='+encodeURIComponent('tier!="free" && activeTo!="" && activeTo<="'+soon+'"'));
     var its=(ex&&ex.items)||[];
+    // 顶部醒目提醒：管理员一进后台即知有多少会员临期 / 已过期
+    var expdN=0; its.forEach(function(u){ var at=String(u.activeTo||'').slice(0,10); if(at && (new Date(at+'T23:59:59').getTime()-Date.now())<0) expdN++; });
+    var alertEl=document.getElementById('expAlert');
+    if(its.length){
+      alertEl.className='alert'+(expdN?' danger':'');
+      alertEl.innerHTML='<span>🔔 有 <b>'+its.length+'</b> 位会员将在 30 天内到期'+(expdN?('，其中 <span class="em">'+expdN+' 位已过期</span>'):'')+'，请及时续期 / 联系。</span><button class="lk2" onclick="var s=document.getElementById(\'expiring\');s&&s.scrollIntoView({behavior:\'smooth\',block:\'center\'});">查看名单 →</button>';
+    } else { alertEl.className='alert hide'; alertEl.innerHTML=''; }
     document.getElementById('expiring').innerHTML = its.length
       ? its.map(function(u){
           var at=String(u.activeTo||'').slice(0,10);
@@ -176,7 +189,7 @@ async function loadAll(){
           var stx=expd?'已过期':(dl+' 天');
           return '<div class="bar" style="justify-content:space-between;gap:12px"><span><span style="display:inline-block;min-width:42px;text-align:center;padding:1px 7px;border-radius:7px;background:var(--paper);color:'+col+';font-size:11.5px;margin-right:7px">'+esc(String(u.tier||'').toUpperCase())+'</span><b>'+esc(u.email||u.id)+'</b> · 至 '+esc(at)+'</span><span class="v" style="width:auto;color:'+col+'">'+stx+'</span></div>';
         }).join('')
-      : '<div style="color:var(--soft);font-size:13px">14 天内暂无临期会员 🎉</div>';
+      : '<div style="color:var(--soft);font-size:13px">30 天内暂无临期会员 🎉</div>';
   }catch(e){ document.getElementById('expiring').innerHTML='<div style="color:var(--soft);font-size:13px">临期会员读取失败（确认 users 已有 activeTo 字段）</div>'; }
 }
 function card(n,l,d){ return '<div class="card"><div class="n">'+n+'</div><div class="l">'+l+'</div>'+(d?'<div class="d">'+d+'</div>':'')+'</div>'; }
