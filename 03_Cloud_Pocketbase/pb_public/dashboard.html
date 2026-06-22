@@ -10,14 +10,18 @@
   @media (prefers-color-scheme:dark){:root{--paper:#1c1b17;--card:#262420;--ink:#ECE6D8;--soft:#9b948a;--seal:#C66A52;--line:rgba(236,230,216,.15);--ok:#7fc98a;}}
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.7 "PingFang SC","Noto Sans SC",-apple-system,system-ui,sans-serif;}
-  .wrap{max-width:840px;margin:0 auto;padding:34px 20px 80px;}
-  h1{font-size:24px;letter-spacing:2px;margin:0 0 2px;font-weight:600;}
-  .sub{color:var(--soft);font-size:13px;margin-bottom:26px;}
+  .wrap{max-width:840px;margin:0 auto;padding:34px 20px 80px;text-align:center;}
+  h1{font-size:24px;letter-spacing:2px;margin:0 0 2px;font-weight:600;text-align:center;}
+  .sub{color:var(--soft);font-size:13px;margin-bottom:26px;text-align:center;}
   .seal-dot{color:var(--seal);}
   /* 登录 */
-  .login{max-width:380px;margin:40px auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 22px;}
-  .login h2{font-size:18px;margin:0 0 4px;letter-spacing:1px;}
-  .login p{color:var(--soft);font-size:12.5px;margin:0 0 18px;}
+  .login{max-width:380px;margin:40px auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 22px;text-align:center;}
+  .login-logo{width:56px;height:56px;border-radius:14px;display:block;margin:0 auto 10px;}
+  .login-brand{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:2px;margin-bottom:2px;}
+  .login-brand .seal-dot{margin:0 2px;}
+  .login-sub{font-size:11.5px;letter-spacing:2px;color:var(--soft);margin-bottom:16px;}
+  .login h2{font-size:16px;margin:0 0 4px;letter-spacing:1px;}
+  .login p{color:var(--soft);font-size:12.5px;margin:0 0 16px;text-align:center;}
   input{width:100%;padding:11px 13px;margin-bottom:11px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:14px;font-family:inherit;}
   input:focus{outline:none;border-color:var(--seal);}
   button{font-family:inherit;cursor:pointer;}
@@ -58,6 +62,9 @@
 
   <!-- 登录 -->
   <div class="login" id="login">
+    <img class="login-logo" src="https://humandesign.zaiyuxingzhe.com/web/logo-email-red.png" alt="观己" width="56" height="56">
+    <div class="login-brand">观己 <span class="seal-dot">·</span> 人类图</div>
+    <div class="login-sub">GUANJI · HUMAN DESIGN</div>
     <h2>超管登录</h2>
     <div id="pwStep">
       <p>请输入后台超级管理员邮箱与密码（与 /_/ 后台同一账号）。</p>
