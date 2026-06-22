@@ -84,7 +84,7 @@ function match(r){
     || (r.tags||[]).some(t=>tagLblByKey(t).toLowerCase().includes(s)||t.includes(s));   // 关系标记可搜
 }
 function render(){
-  const all=HDStore.all();
+  const all=HDStore.all().filter(r=>r&&r.sum&&r.input);   // 防御：残缺记录不参与渲染/搜索，避免整页崩溃
   const passF=r=> f==='all'?true : f==='fav'?r.fav : (r.tags||[]).includes(f);   // 全部/收藏/关系标记
   const rows=all.filter(r=>passF(r)&&match(r));
   const L=(window.HDI18N&&HDI18N.lang)||'zh-Hans';

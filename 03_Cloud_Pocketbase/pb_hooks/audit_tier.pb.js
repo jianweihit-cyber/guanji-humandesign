@@ -20,7 +20,7 @@ onRecordUpdateRequest((e) => {
     var orig = rec.original ? rec.original() : null;
     if (orig) {
       var tgt = rec.getString("email") || rec.id;
-      var fields = ["tier", "verified", "email", "emailVisibility", "nickname", "emailOptOut", "activeFrom", "activeTo"];
+      var fields = ["tier", "verified", "email", "emailVisibility", "nickname", "emailOptOut", "activeFrom", "activeTo", "lang"];
       for (var i = 0; i < fields.length; i++) {
         var f = fields[i], ov = "", nv = "";
         try { ov = String(orig.get(f)); } catch (_) {}

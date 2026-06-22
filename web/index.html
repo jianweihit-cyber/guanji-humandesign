@@ -141,7 +141,7 @@ function loadGeo(){
   return geoP;
 }
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');   // 去变音：são→sao
-const escq=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const escq=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));   // 完整转义(属性/文本上下文均安全)
 // 高亮 q（去变音不区分大小写）在 name 中的命中片段
 const hl=(name,q)=>{ if(!q) return escq(name); const i=norm(name).indexOf(q); if(i<0) return escq(name);
   return escq(name.slice(0,i))+'<b>'+escq(name.slice(i,i+q.length))+'</b>'+escq(name.slice(i+q.length)); };
@@ -477,9 +477,12 @@ const autoName=()=>{ const d=new Date(), p=n=>String(n).padStart(2,'0');
   return (ENM?'Name-':'案主-')+ts; };
 const uniqueName=nm=>{ const names=new Set(HDStore.all().map(r=>r.name)); if(!names.has(nm))return nm; let n=2; while(names.has(`${nm} (${n})`)) n++; return `${nm} (${n})`; };
 function doSave(name, overwriteId){
-  if(overwriteId) HDStore.remove(overwriteId);
+  // 先存新记录、成功后再删旧（覆盖场景）：避免 add 因存储满失败时旧记录已被删除而净丢一条
   const id=HDStore.add({ name, gender:sexVal||'F', fav:favOn, ...(selTags.size?{tags:[...selTags]}:{}), ...(chartSource?{source:chartSource}:{}), input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
-  if(id){ $('savemsg').textContent=(ENM?'✓ Saved as ':'✓ 已保存为 ')+name; if(!$('sname').value.trim()) $('sname').value=name; }
+  if(id){
+    if(overwriteId && overwriteId!==id) HDStore.remove(overwriteId);   // 新记录确实写入后才删旧
+    $('savemsg').textContent=(ENM?'✓ Saved as ':'✓ 已保存为 ')+name; if(!$('sname').value.trim()) $('sname').value=name;
+  }
   else $('savemsg').textContent=ENM?'✕ Save failed: storage unavailable or full':'✕ 保存失败：浏览器存储不可用或已满';
 }
 // 点保存 → 弹出「可编辑命名」浮层（预填盘主名字；可随意改名；留空才回退时间戳；另存为副本也能自己改名）
@@ -536,7 +539,7 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
   const sp=new URLSearchParams(location.search);
   const pid=sp.get('load');
   const rec=pid&&window.HDStore?HDStore.get(pid):null;
-  if(rec){ fillForm(rec.input);
+  if(rec&&rec.input){ fillForm(rec.input);   // 守卫：?load 到残缺记录(无 input)不崩，回退即时盘
     if(rec.input.place){ placeLabel=rec.input.place; locq.value=placeLabel; $('placeTag').textContent='🕐 '+rec.input.tz; }
     if(rec.gender==='M'||rec.gender==='F') setSex(rec.gender);   // 白名单：阻断历史脏数据回灌
     chartSource=rec.source||'';                       // 重开反推记录再保存仍保留标识

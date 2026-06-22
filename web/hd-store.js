@@ -40,8 +40,9 @@
     toggleFav(id) { const a = read(); const r = a.find(x => x.id === id); if (r) { r.fav = !r.fav; r.updatedAt = Date.now(); write(a); } return r && r.fav; },
     count() { return read().length; },
     // 批量写回（云同步拉回合并后整体落地；写失败返回 false 不谎报）
-    replaceAll(arr) { return write(Array.isArray(arr) ? arr : []); },
-    replaceLinks(arr) { return lwrite(Array.isArray(arr) ? arr : []); },
+    // 落地前过滤残缺记录(缺 id/input/sum)：一条坏云端数据不会污染本地、不会让记录页 .map 崩溃白屏
+    replaceAll(arr) { return write(Array.isArray(arr) ? arr.filter(function (r) { return r && r.id && r.input && r.sum; }) : []); },
+    replaceLinks(arr) { return lwrite(Array.isArray(arr) ? arr.filter(function (r) { return r && r.id && Array.isArray(r.members); }) : []); },
     summarize(c) { // 从完整 chart 提摘要（供搜索：闸门/类型/角色/通道）
       var pl = a => `${a.gate}.${a.line}`;   // 闸门.爻
       return {

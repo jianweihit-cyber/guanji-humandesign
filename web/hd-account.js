@@ -22,24 +22,41 @@
 
   // —— 同步编排（防抖 + 拉回写本地 + 推本地较新）——
   var syncing = false, timer = null, applying = false;
+  var pendingDel = [];   // 在途软删 Promise：fullSync 先等它们落库再 pull，避免删除被云端复活
+  var tombstones = {};   // 本会话已软删的 id(charts cid / links lid)，pull 合并时兜底过滤(双保险)
   function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(fullSync, 1200); }
+  function markDeleted(id, p) { if (id) tombstones[id] = 1; if (p && p.then) pendingDel.push(p.catch(function () {})); }
+  function writeFailToast() { toast(T('本地写入失败（空间不足或隐私模式），请清理空间或先导出备份', 'Local save failed (storage full / private mode) — free up space or export a backup.', '本地寫入失敗（空間不足或隱私模式），請清理空間或先匯出備份')); }
   async function fullSync() {
     if (!GC.syncOn() || syncing) return; syncing = true;
     try {
+      if (pendingDel.length) { try { await Promise.all(pendingDel.splice(0)); } catch (e) {} }   // 先等在途删除落库
       var res = await GC.fullSync(HD.all());
       if (res) {
-        if (res.downloaded || res.removed) { applying = true; try { HD.replaceAll(res.merged); } finally { applying = false; } rerender(); }
+        var merged = res.merged.filter(function (r) { return !tombstones[r.id]; });   // 兜底：不复活本会话已删
+        if (res.downloaded || res.removed || merged.length !== res.merged.length) {
+          applying = true; var okW = HD.replaceAll(merged); applying = false;
+          if (okW === false) { writeFailToast(); rerender(); syncing = false; return; }   // 写失败不谎报成功
+          rerender();
+        }
         for (var i = 0; i < res.toPush.length; i++) { try { await GC.pushChart(res.toPush[i]); } catch (e) {} }
       }
       // 合盘 / Penta 链接同步（与排盘记录并行对账）
       var lres = (GC.fullSyncLinks && HD.linksAll) ? await GC.fullSyncLinks(HD.linksAll()) : null;
       if (lres) {
-        if (lres.downloaded || lres.removed) { applying = true; try { HD.replaceLinks(lres.merged); } finally { applying = false; } rerender(); }
+        var lmerged = lres.merged.filter(function (r) { return !tombstones[r.id]; });
+        if (lres.downloaded || lres.removed || lmerged.length !== lres.merged.length) {
+          applying = true; var okL = HD.replaceLinks(lmerged); applying = false;
+          if (okL === false) { writeFailToast(); } else { rerender(); }
+        }
         for (var j = 0; j < lres.toPush.length; j++) { try { await GC.pushLink(lres.toPush[j]); } catch (e) {} }
       }
+      rerender();   // 徽标时序：对账后无条件刷新一次(纯上传 / 零下载场景也更新 ☁ 已上云徽标)
       var dn = (res ? res.downloaded : 0) + (lres ? lres.downloaded : 0);
-      if (dn) toast('☁ 已从云端恢复 / 更新 ' + dn + ' 条');
-    } catch (e) {}
+      if (dn) toast(T('☁ 已从云端恢复 / 更新 ' + dn + ' 条', '☁ Restored / updated ' + dn + ' record(s) from cloud', '☁ 已從雲端恢復 / 更新 ' + dn + ' 條'));
+    } catch (e) {
+      if (e && e.status === 401) { try { GC.logout(); } catch (_) {} rerender(); toast(T('登录已过期，请重新登录', 'Session expired — please sign in again', '登入已過期，請重新登入')); }
+    }
     syncing = false;
   }
 
@@ -49,8 +66,8 @@
     HD[m] = function () {
       var r = orig.apply(HD, arguments);
       if (!applying && GC.syncOn()) {
-        if (m === 'remove') { try { GC.softDelete(arguments[0]); } catch (e) {} }
-        if (m === 'removeLink') { try { GC.softDeleteLink(arguments[0]); } catch (e) {} }
+        if (m === 'remove') { try { markDeleted(arguments[0], GC.softDelete(arguments[0])); } catch (e) {} }
+        else if (m === 'removeLink') { try { markDeleted(arguments[0], GC.softDeleteLink(arguments[0])); } catch (e) {} }
         schedule();
       }
       return r;

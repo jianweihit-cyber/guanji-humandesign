@@ -28,7 +28,7 @@ onRecordCreateRequest((e) => {
   if (cap > 0 && ownerId) {
     var n = 0;
     try {
-      n = e.app.countRecords("charts", $dbx.exp("owner = {:o}", { o: ownerId }));
+      n = e.app.countRecords("charts", $dbx.exp("owner = {:o} AND deleted = false", { o: ownerId }));  // 软删不占配额(否则删了也腾不出空间)
     } catch (err) {
       n = 0; // 计数失败 → 放行
     }
