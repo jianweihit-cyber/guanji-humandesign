@@ -34,8 +34,11 @@
   .seg button{padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--soft);font-size:13px;}
   .seg button.on{background:var(--seal);color:#fff;border-color:var(--seal);}
   .lk{background:none;border:none;color:var(--soft);font-size:12.5px;text-decoration:underline;padding:0;}
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:14px;margin-bottom:8px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 14px 18px;transition:box-shadow .18s ease,transform .18s ease;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:8px;}
+  /* 顶部总览固定一行 5 卡(桌面)；窄屏优雅降级为每行 2 张，不再 4+1 错行 */
+  #cards{grid-template-columns:repeat(5,minmax(0,1fr));}
+  @media(max-width:620px){ #cards{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 12px 18px;transition:box-shadow .18s ease,transform .18s ease;}
   .card:hover{box-shadow:0 6px 20px rgba(120,70,30,.09);transform:translateY(-2px);}
   .card .n{font-size:34px;font-weight:700;letter-spacing:-.5px;line-height:1.05;color:var(--ink);font-variant-numeric:tabular-nums;}
   .card .l{color:var(--soft);font-size:12px;margin-top:9px;letter-spacing:.3px;}
