@@ -191,8 +191,10 @@ async function loadAll(){
   var charts=await countOf('charts','deleted=false');
   var verified=await countOf('users','verified=true');
   var vRate=(typeof users==='number'&&users>0&&typeof verified==='number')?Math.round(verified/users*100)+'%':'—';
+  var phoneN=await countOf('users','phone!=""');
+  var phRate=(typeof users==='number'&&users>0&&typeof phoneN==='number')?Math.round(phoneN/users*100)+'%':'—';
   document.getElementById('cards').innerHTML=
-    card(users,'注册用户')+card(charts,'云端记录（条）')+card(verified,'已验证邮箱',vRate+' 验证率')+card(perUser(users,charts),'人均记录');
+    card(users,'注册用户')+card(charts,'云端记录（条）')+card(verified,'已验证邮箱',vRate+' 验证率')+card(phoneN,'已填手机号',phRate+' 填写率')+card(perUser(users,charts),'人均记录');
   // 档位分布
   var free=await countOf('users','tier="free"'), pro=await countOf('users','tier="pro"'), vip=await countOf('users','tier="vip"');
   var max=Math.max(free||0,pro||0,vip||0,1);
