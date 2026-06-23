@@ -132,6 +132,7 @@
         + '<div class="ha-row"><span>' + T('昵称', 'Nickname', '暱稱') + '</span><b>' + esc(GC.nick()) + '</b><button class="ha-link" data-act="nick">' + T('改', 'Edit', '改') + '</button></div>'
         + '<div class="ha-row"><span>' + T('邮箱', 'Email', '信箱') + '</span><b>' + esc(u.email) + '</b></div>'
         + '<div class="ha-row"><span>' + T('邮箱验证', 'Email verify', '信箱驗證') + '</span><b>' + vrow + '</b></div>'
+        + '<div class="ha-row"><span>' + T('手机号', 'Phone', '手機號') + '</span><b>' + (GC.phone() ? esc(GC.phone()) : '<i style="font-style:normal;color:#b3a892">' + T('未填', 'Not set', '未填') + '</i>') + '</b><button class="ha-link" data-act="phone">' + (GC.phone() ? T('改', 'Edit', '改') : T('填写', 'Add', '填寫')) + '</button></div>'
         + '<div class="ha-row"><span>' + T('会员', 'Membership', '會員') + '</span><b>' + memHtml + '</b></div>'
         + '<div class="ha-row"><span>' + T('默认语言', 'Default language', '預設語言') + '</span><b><button class="ha-pick' + (dl === 'zh' ? ' on' : '') + '" data-act="lang-zh">中文</button><button class="ha-pick' + (dl === 'en' ? ' on' : '') + '" data-act="lang-en">English</button></b></div>'
         + '<div class="ha-sync"><div><b>' + T('云端同步', 'Cloud sync', '雲端同步') + '</b><i>' + syncSub + '</i></div><button class="ha-toggle' + (GC.syncOn() ? ' on' : '') + (vr ? '' : ' off-disabled') + '" data-act="sync" aria-label="sync"><span></span></button></div>'
@@ -145,6 +146,7 @@
       + '<div class="ha-tabs"><button class="ha-tab' + (reg ? '' : ' on') + '" data-act="mode-login">' + T('登录', 'Sign in', '登入') + '</button><button class="ha-tab' + (reg ? ' on' : '') + '" data-act="mode-register">' + T('注册', 'Sign up', '註冊') + '</button></div>'
       + '<input id="ha-email" class="ha-in" type="email" placeholder="' + T('邮箱', 'Email', '信箱') + '" autocomplete="username" inputmode="email">'
       + (reg ? '<input id="ha-nick" class="ha-in" type="text" maxlength="30" placeholder="' + T('昵称（选填，留空自动取雅号）', 'Nickname (optional — auto-assigned if blank)', '暱稱（選填，留空自動取雅號）') + '">' : '')
+      + (reg ? '<input id="ha-phone" class="ha-in" type="tel" maxlength="30" placeholder="' + T('手机号（选填 · 用于联系 / 通知）', 'Phone (optional · for contact / notices)', '手機號（選填 · 用於聯絡 / 通知）') + '" autocomplete="tel" inputmode="tel">' : '')
       + '<input id="ha-pass" class="ha-in" type="password" placeholder="' + T('密码（至少 8 位）', 'Password (min 8)', '密碼（至少 8 位）') + '" autocomplete="' + (reg ? 'new-password' : 'current-password') + '">'
       + (reg ? '<input id="ha-pass2" class="ha-in" type="password" placeholder="' + T('再次输入密码', 'Confirm password', '再次輸入密碼') + '" autocomplete="new-password">' : '')
       + (reg ? '<label class="ha-chk"><input type="checkbox" id="ha-agree"><span>' + T('我已阅读并同意', 'I have read and agree to the', '我已閱讀並同意') + ' <a href="terms.html" target="_blank" rel="noopener">' + T('《用户协议》与《隐私政策》', 'Terms & Privacy Policy', '《使用者協議》與《隱私政策》') + '</a></span></label>' : '')
@@ -186,13 +188,14 @@
         toast(T('已登录', 'Signed in', '已登入')); panel(); bar(); if (GC.syncOn()) fullSync();
       }
       else if (a === 'register') {
-        var e2 = val('ha-email'), p2 = val('ha-pass'), p2b = val('ha-pass2'), nk = val('ha-nick');
+        var e2 = val('ha-email'), p2 = val('ha-pass'), p2b = val('ha-pass2'), nk = val('ha-nick'), ph = val('ha-phone');
         if (!EMAIL.test(e2)) return toast(T('请输入有效邮箱', 'Enter a valid email', '請輸入有效信箱'));
         if (p2.length < 8) return toast(T('密码至少 8 位', 'Password needs 8+ characters', '密碼至少 8 位'));
         if (p2 !== p2b) return toast(T('两次密码不一致', 'Passwords do not match', '兩次密碼不一致'));
+        if (ph && !/^[\d\s+\-()]{5,30}$/.test(ph)) return toast(T('手机号格式有误（可留空）', 'Invalid phone (you can leave it blank)', '手機號格式有誤（可留空）'));
         var agree = document.getElementById('ha-agree');
         if (!agree || !agree.checked) return toast(T('请先勾选同意《用户协议》与《隐私政策》', 'Please check the box to agree to the Terms & Privacy Policy', '請先勾選同意《使用者協議》與《隱私政策》'));
-        await GC.register(e2, p2, nk);
+        await GC.register(e2, p2, nk, ph);
         if (nk) { try { await GC.setNickname(nk); } catch (e) {} }
         GC.setSync(false);                                // 关键：注册不自动开同步，验证后才能开
         toast(T('注册成功 · 验证邮件已发，请到邮箱完成验证后再开启云同步', 'Account created · check your email to verify, then enable cloud sync', '註冊成功 · 驗證郵件已發，請到信箱完成驗證後再開啟雲同步'));
@@ -214,6 +217,7 @@
       else if (a === 'lang-en') { await GC.setDefaultLang('en'); try { if ((window.HDI18N && window.HDI18N.lang) !== 'en') { localStorage.setItem('hd_lang', 'en'); return location.reload(); } } catch (e) {} panel(); bar(); toast('Default language: English'); }
       else if (a === 'emailtoggle') { var enx = !GC.emailOn(); await GC.setEmailOn(enx); panel(); toast(enx ? T('已开启系统邮件', 'System emails on', '已開啟系統郵件') : T('已关闭系统邮件（生日/周年祝福等将不再发送）', 'System emails off (no more blessings or notices)', '已關閉系統郵件（生日/週年祝福等將不再發送）')); }
       else if (a === 'nick') { var cur = GC.nick(); var nv = prompt(T('改昵称（留空恢复系统雅号）', 'Edit nickname (blank = system name)', '改暱稱（留空恢復系統雅號）'), cur); if (nv != null) { await GC.setNickname(nv.trim()); panel(); bar(); } }
+      else if (a === 'phone') { var pv = prompt(T('手机号（用于联系 / 通知，留空清除）', 'Phone (for contact / notices; blank to clear)', '手機號（用於聯絡 / 通知，留空清除）'), GC.phone()); if (pv != null) { pv = pv.trim(); if (pv && !/^[\d\s+\-()]{5,30}$/.test(pv)) return toast(T('手机号格式有误', 'Invalid phone', '手機號格式有誤')); await GC.setPhone(pv); panel(); toast(pv ? T('手机号已更新', 'Phone updated', '手機號已更新') : T('手机号已清除', 'Phone cleared', '手機號已清除')); } }
       else if (a === 'logout') { if (!confirm(T('确定退出登录？退出后此设备不再自动同步。', 'Log out? This device will stop auto-syncing.', '確定登出？登出後此裝置不再自動同步。'))) return; GC.setSync(false); GC.logout(); toast(T('已退出', 'Logged out', '已登出')); panel(); bar(); }
     } catch (err) { toast(err && err.offline ? T('网络不可达，请检查网络', 'Network unreachable — check your connection', '網路不可達，請檢查網路') : (T('操作失败：', 'Failed: ', '操作失敗：') + (err && err.message || ''))); }
   });

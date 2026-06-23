@@ -12,7 +12,7 @@
   function persist(){ try{ st ? localStorage.setItem(AUTH_KEY, JSON.stringify(st)) : localStorage.removeItem(AUTH_KEY); }catch(e){} }
   function token(){ return st && st.token; }
   function user(){ return st && st.user; }
-  function slim(rec){ return rec ? {id:rec.id, email:rec.email, verified:!!rec.verified, tier:rec.tier||'free', name:rec.name||'', nickname:rec.nickname||'', lang:rec.lang||'', created:rec.created||'', emailOptOut:!!rec.emailOptOut, activeFrom:rec.activeFrom||'', activeTo:rec.activeTo||''} : null; }
+  function slim(rec){ return rec ? {id:rec.id, email:rec.email, verified:!!rec.verified, tier:rec.tier||'free', name:rec.name||'', nickname:rec.nickname||'', phone:rec.phone||'', lang:rec.lang||'', created:rec.created||'', emailOptOut:!!rec.emailOptOut, activeFrom:rec.activeFrom||'', activeTo:rec.activeTo||''} : null; }
   /* 诗意默认昵称：按邮箱确定性哈希取一个雅号(同一邮箱永远同一个、跨设备一致)。
      lang==='en' 取英文雅号池 NICKPOOL_EN，否则中文 NICKPOOL；未加载则返回空、回退邮箱前缀。 */
   function poeticNick(em, lang){ try{ var P=(lang==='en' && window.NICKPOOL_EN && window.NICKPOOL_EN.length) ? window.NICKPOOL_EN : window.NICKPOOL; if(!P||!P.length||!em) return ''; var h=0; for(var i=0;i<em.length;i++){ h=(h*31+em.charCodeAt(i))|0; } return P[Math.abs(h)%P.length]; }catch(e){ return ''; } }
@@ -101,11 +101,19 @@
     },
 
     /* —— 鉴权 —— */
-    async register(email, pass, name){
+    async register(email, pass, name, phone){
       await req('POST', '/api/collections/users/records',
-        {email:email, password:pass, passwordConfirm:pass, name:(name||''), tier:'free', emailVisibility:false}, true);
+        {email:email, password:pass, passwordConfirm:pass, name:(name||''), phone:String(phone||'').trim().slice(0,30), tier:'free', emailVisibility:false}, true);
       this.requestVerify(email);               // 异步发验证邮件，不阻塞登录
       return this.login(email, pass);          // 默认未验证也可登录，验证用于解锁/提示
+    },
+    /* 手机号（可选，联系/通知用）：本地即时 + 同步到后端 users.phone */
+    phone: function(){ var u=user(); return (u && u.phone) || ''; },
+    async setPhone(p){
+      p=String(p||'').trim().slice(0,30);
+      if(st&&st.user){ st.user.phone=p; persist(); }
+      if(token()&&user()&&user().id){ try{ await req('PATCH','/api/collections/users/records/'+user().id, {phone:p}); }catch(e){} }
+      return p;
     },
     async login(email, pass){
       var res = await req('POST', '/api/collections/users/auth-with-password', {identity:email, password:pass}, true);
