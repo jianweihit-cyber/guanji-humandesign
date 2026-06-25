@@ -14,3 +14,12 @@ tools/.cache/
 tools/.cache/alternateNamesV2.zip
 tools/.cache/alternateNames*.txt
 tools/.cache/gate-lines-src.json
+
+# 流日海报设计探索 scratch(评审变体,不入库)
+daily/_variants/
+
+# 流日内容独立私有仓库,不进公开引擎仓库
+daily/
+
+# 多语言预渲染构建产物(部署前 node tools/build-i18n.mjs 生成，不入库)
+dist/

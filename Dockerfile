@@ -6,10 +6,19 @@ COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 # 注意：每次给 nginx.conf 加关键规则，这里同步加一条 grep——断言变更本身也会击穿缓存链
 RUN grep -q "server_name guanji-humandesign.fly.dev" /etc/nginx/conf.d/default.conf \
  && grep -q "world-cities|cn-cities" /etc/nginx/conf.d/default.conf \
+ && grep -q "/cn/web/home.html" /etc/nginx/conf.d/default.conf \
  && nginx -t -c /etc/nginx/nginx.conf
 COPY web /usr/share/nginx/html/web
 COPY src /usr/share/nginx/html/src
 COPY node_modules/swisseph-wasm /usr/share/nginx/html/node_modules/swisseph-wasm
+# 多语言预渲染产物（node tools/build-i18n.mjs 生成）：/cn /en /tc 各一套已翻译静态页，资源共享 /web /src
+COPY dist/cn /usr/share/nginx/html/cn
+COPY dist/en /usr/share/nginx/html/en
+COPY dist/tc /usr/share/nginx/html/tc
+# 构建期断言：三语首页必须在场（忘跑 build-i18n 时让构建明确失败，而非静默发布缺页）
+RUN test -f /usr/share/nginx/html/cn/web/home.html \
+ && test -f /usr/share/nginx/html/en/web/home.html \
+ && test -f /usr/share/nginx/html/tc/web/home.html
 # 构建期预压缩：gzip_static 直接命中 .gz，运行时零压缩 CPU
 # 剔除 repack 备份与原始 12MB 包（线上只发 swisseph-lite.data）
 RUN rm -f /usr/share/nginx/html/node_modules/swisseph-wasm/wasm/*.orig \

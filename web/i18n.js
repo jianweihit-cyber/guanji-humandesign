@@ -9,7 +9,11 @@
   const nav = String(navigator.language || '').toLowerCase();
   const navLang = nav.startsWith('zh') ? (/^zh-(tw|hk|mo|hant)/.test(nav) ? 'zh-Hant' : 'zh-Hans') : 'en';
   let lsLang = null; try { lsLang = localStorage.getItem(LS); } catch (e) {}   // 受限隐私模式裸读会抛 SecurityError → 容错
-  const lang = (['zh-Hans', 'zh-Hant', 'en'].includes(qlang) ? qlang : null) || lsLang || navLang;
+  // 前缀模式：/cn|en|tc/ 路径下语言由【路径】决定（预渲染页，零运行时翻译；动态内容按此语言生成、切换=跳前缀）
+  const PFX = { cn: 'zh-Hans', en: 'en', tc: 'zh-Hant' }, PFX2 = { 'zh-Hans': 'cn', 'en': 'en', 'zh-Hant': 'tc' };
+  const pm = location.pathname.match(/^\/(cn|en|tc)\//);
+  const prefixLang = pm ? PFX[pm[1]] : null;
+  const lang = prefixLang || (['zh-Hans', 'zh-Hant', 'en'].includes(qlang) ? qlang : null) || lsLang || navLang;
   document.documentElement.lang = lang === 'en' ? 'en' : lang === 'zh-Hant' ? 'zh-TW' : 'zh-CN';
   // 防中文闪烁(FOUC)：非简体先隐藏整页，i18n 应用完(boot)再显示；1.2s 兜底防脚本异常卡死。简体零代价。
   if (lang !== 'zh-Hans') { try { document.documentElement.style.visibility = 'hidden'; setTimeout(function () { document.documentElement.style.visibility = ''; }, 1200); } catch (e) {} }
@@ -141,7 +145,13 @@
     const box = document.createElement('div'); box.className = 'langsw';
     for (const [code, label] of LANGS) {
       const b = document.createElement('button'); b.textContent = label; b.className = code === cur ? 'on' : '';
-      b.onclick = () => { try { localStorage.setItem(LS, code); } catch (e) {} location.reload(); };
+      b.onclick = () => {
+        try { localStorage.setItem(LS, code); } catch (e) {}
+        if (pm) {   // 前缀模式：切到对应语言的同一页面（跳前缀路径），不做运行时翻译
+          const rest = location.pathname.replace(/^\/(cn|en|tc)\//, '');
+          location.href = '/' + PFX2[code] + '/' + rest + location.search + location.hash;
+        } else { location.reload(); }
+      };
       box.appendChild(b);
     }
     head.appendChild(box);
