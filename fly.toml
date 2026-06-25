@@ -7,7 +7,10 @@ primary_region = "sin"
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "suspend"
+  # 注意：曾用 "suspend"——它会快照整个文件系统，恢复时还原旧快照而非从新镜像冷启，
+  # 导致 deploy 出的新 nginx/页面被旧快照静默盖掉（排查见 2026-06-26 多语言上线）。
+  # 必须用 "stop"：完全停机、下次请求从最新镜像冷启（静态站冷启 ~1s，可接受）。
+  auto_stop_machines = "stop"
   auto_start_machines = true
   min_machines_running = 0
 
