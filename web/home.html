@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>观己 · 人类图</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg" />
+<link rel="stylesheet" href="hd.css" />
+<style>
+  /* 独立首页/品牌落地页：轻量、无引擎、无异步跳动。视觉沿用开屏(.sp-*)语言。 */
+  body{margin:0}
+  header{display:flex;justify-content:flex-end;align-items:center;padding:14px 18px;max-width:760px;margin:0 auto;min-height:30px}
+  .home{min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 22px 60px;box-sizing:border-box}
+  .home-logo{width:78px;height:78px;animation:spbreath 2.6s ease-in-out infinite}
+  .home-t{font-size:26px;font-weight:700;letter-spacing:.08em;margin-top:14px;color:var(--ink)}
+  .home-t span{color:var(--li)}
+  .home-s{font-size:12px;color:var(--sub);letter-spacing:.24em;margin-top:7px}
+  html[lang="en"] .home-s{display:none}  /* EN 标题已含 Human Design，隐藏副标避免重复 */
+  .home-intro{font-size:13.5px;line-height:1.9;color:var(--sub);margin:18px auto 0;max-width:344px;text-align:justify}
+  .home-cta{display:inline-block;margin-top:26px;background:var(--li);color:#fff;text-decoration:none;border-radius:999px;padding:13px 34px;font-size:16px;font-weight:650;letter-spacing:.04em;box-shadow:0 8px 22px rgba(168,50,31,.28);transition:transform .15s,box-shadow .15s}
+  .home-cta:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(168,50,31,.36)}
+  .home-cta:active{transform:translateY(1px)}
+  .home-links{margin-top:18px;display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+  .home-links a{font-size:13px;color:var(--li);text-decoration:none;border-bottom:1px solid transparent}
+  .home-links a:hover{border-bottom-color:var(--li)}
+  .home-foot{margin-top:30px;font-size:11.5px;color:var(--sub);line-height:1.8}
+  .home-foot .z{color:var(--li);font-weight:600;letter-spacing:.04em}
+  .home-foot .tag{color:var(--gold,#C09A5E);letter-spacing:.04em;margin-top:5px}
+</style>
+</head>
+<body>
+<header></header>
+<div class="home" data-noi18n>
+  <img class="home-logo" src="logo.svg" alt="观己" />
+  <div class="home-t" id="hT"></div>
+  <div class="home-s">HUMAN DESIGN</div>
+  <p class="home-intro" id="hIntro"></p>
+  <a class="home-cta" id="hCta" href="index.html"></a>
+  <div class="home-links">
+    <a id="hL1" href="index.html"></a>
+    <a id="hL2" href="mandala.html"></a>
+    <a id="hL3" href="learn.html"></a>
+    <a id="hL4" href="celebs.html"></a>
+  </div>
+  <div class="home-foot">· <span class="z" id="hZ"></span> ·<div class="tag" id="hTag"></div></div>
+</div>
+<script src="i18n.js"></script>
+<script>
+(function(){
+  var L=(window.HDI18N&&HDI18N.lang)||'zh-Hans';
+  var D={
+    'zh-Hans':{ t:'观<span>己</span> · 人类图', intro:'人类图融合易经、占星、脉轮与卡巴拉，用你出生的那一刻，绘成一张专属能量蓝图——照见你天生的决策方式与生命节奏。', cta:'照见自己 ›', l:['排盘','流日','学习·知识库','名人'], z:'再遇行者 · 观己', tag:'认识自己 · 自我探索 · 观己修心 · 知行合一' },
+    'zh-Hant':{ t:'觀<span>己</span> · 人類圖', intro:'人類圖融合易經、占星、脈輪與卡巴拉，用你出生的那一刻，繪成一張專屬能量藍圖——照見你天生的決策方式與生命節奏。', cta:'照見自己 ›', l:['排盤','流日','學習·知識庫','名人'], z:'再遇行者 · 觀己', tag:'認識自己 · 自我探索 · 觀己修心 · 知行合一' },
+    'en':{ t:'GuanJi · Human Design', intro:'Human Design weaves together the I Ching, astrology, the chakras and the Kabbalah — turning the moment you were born into a personal energy blueprint that reveals how you’re built to decide and move through life.', cta:'See Yourself ›', l:['Chart','Transit','Learn','Celebrities'], z:'Zai Yu Xing Zhe · GuanJi', tag:'Know Yourself · Self-Discovery · Inner Cultivation' }
+  };
+  var d=D[L]||D['zh-Hans'];
+  document.getElementById('hT').innerHTML=d.t;
+  document.getElementById('hIntro').textContent=d.intro;
+  document.getElementById('hCta').textContent=d.cta;
+  document.getElementById('hL1').textContent=d.l[0];
+  document.getElementById('hL2').textContent=d.l[1];
+  document.getElementById('hL3').textContent=d.l[2];
+  document.getElementById('hL4').textContent=d.l[3];
+  document.getElementById('hZ').textContent=d.z;
+  document.getElementById('hTag').textContent=d.tag;
+  document.title=(L==='en'?'GuanJi · Human Design':'观己 · 人类图');
+})();
+</script>
+</body>
+</html>

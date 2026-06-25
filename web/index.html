@@ -26,35 +26,14 @@
 <link rel="preload" as="fetch" href="/node_modules/swisseph-wasm/wasm/swisseph-lite.data" />
 </head>
 <body>
-<!-- 开屏页：每会话首次进入展示品牌+当下流日人类图+介绍+CTA；为未来 App 套壳预留品牌开屏 -->
-<div id="splash">
-  <div class="sp-in">
-    <img src="logo.svg" alt="" />
-    <div class="sp-t">观<span>己</span> · 人类图</div>
-    <div class="sp-s">HUMAN DESIGN</div>
-    <svg id="spgraph" class="sp-graph" viewBox="0 0 460 665" aria-label="transit bodygraph" hidden></svg>
-    <p class="sp-intro">人类图融合易经、占星、脉轮与卡巴拉，用你出生的那一刻，绘成一张专属能量蓝图——照见你天生的决策方式与生命节奏。下面是此刻天空的「流日」人类图。</p>
-    <button class="sp-cta" id="spEnter" type="button">照见自己 ›</button>
-    <div class="sp-tip" data-noi18n>· 再遇行者 ·</div>
-  </div>
-</div>
-<script>
-(function(){var s=document.getElementById('splash');if(!s)return;
-  var force=new URLSearchParams(location.search).get('home')==='1';   // 「首页」入口强制唤出开屏（精确匹配，避免 home=10 等误命中）
-  if(!force && sessionStorage.getItem('hd_splash')){s.parentNode.removeChild(s);return;}
-  sessionStorage.setItem('hd_splash','1');
-  var hide=function(){s.classList.add('gone');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s);},600);};
-  var b=document.getElementById('spEnter'); if(b) b.addEventListener('click',hide);
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')hide();});
-})();
-</script>
+<!-- 首页/品牌落地已独立为 home.html；本页专注「排盘」工具。开屏浮层移除，消除点击首页时的跳动/闪现。 -->
 <div class="wrap">
   <header>
     <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub">Bodygraph</span></div>
     <select id="pick" class="adv" title="示例盘"><option value="">— 示例盘 —</option></select>
   </header>
   <div class="tabs">
-    <a class="tab" href="index.html?home=1">首页</a>
+    <a class="tab" href="home.html">首页</a>
     <a class="tab on" href="index.html">排盘</a>
     <a class="tab" href="mandala.html">流日</a>
     <a class="tab" href="history.html">记录</a>
@@ -558,10 +537,7 @@ const fillForm=i=>{ $('y').value=i.year; $('mo').value=i.month; $('d').value=i.d
   let tz='Asia/Shanghai';
   try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||tz; }catch(e){}
   fillForm({year:now.getFullYear(),month:now.getMonth()+1,day:now.getDate(),hour:now.getHours(),minute:now.getMinutes(),tz});
-  run('Now', true).then(()=>{   // 自动流日盘：亮横幅、藏保存栏，防止小白把它当本人排盘
-    const sg=$('spgraph');      // 开屏页缩略「流日人类图」：用此刻流日盘渲染
-    if(sg&&curChart){ try{ HDRender.bodygraph(sg,curChart); sg.removeAttribute('hidden'); }catch(e){} }  // SVG 须 removeAttribute(hidden 非 IDL 属性)
-  });
+  run('Now', true);   // 自动流日盘：亮横幅、藏保存栏，防止小白把它当本人排盘（开屏浮层已移至 home.html）
 })();
 </script>
 </body>
