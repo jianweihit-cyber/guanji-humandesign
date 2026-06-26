@@ -22,6 +22,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Repack ephemeris (12MB → 2MB lite.data)
         run: node tools/repack-swisseph-data.mjs
+      - name: Build i18n prerender (dist/{cn,en,tc} — dist 不入库，CI 必生成否则 Dockerfile 三语断言失败)
+        run: node tools/build-i18n.mjs
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy
         run: flyctl deploy --remote-only --ha=false
