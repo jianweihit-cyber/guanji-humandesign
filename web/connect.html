@@ -1,24 +1,24 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<script>/*i18n-foucguard*/(function(){try{var n=(navigator.language||"").toLowerCase(),q=new URLSearchParams(location.search).get("lang"),L=(["zh-Hans","zh-Hant","en"].indexOf(q)>=0?q:"")||localStorage.getItem("hd_lang")||(n.indexOf("zh")===0?(/^zh-(tw|hk|mo|hant)/.test(n)?"zh-Hant":"zh-Hans"):"en");if(L!=="zh-Hans"&&!/^\/(cn|en|tc)\//.test(location.pathname)){var d=document.documentElement;d.style.visibility="hidden";setTimeout(function(){d.style.visibility=""},1500);}}catch(e){}})();</script>
+<script>/*i18n-foucguard*/(function(){try{var _t=localStorage.getItem("hd_theme");if(_t)document.documentElement.setAttribute("data-theme",_t);var n=(navigator.language||"").toLowerCase(),q=new URLSearchParams(location.search).get("lang"),L=(["zh-Hans","zh-Hant","en"].indexOf(q)>=0?q:"")||localStorage.getItem("hd_lang")||(n.indexOf("zh")===0?(/^zh-(tw|hk|mo|hant)/.test(n)?"zh-Hant":"zh-Hans"):"en");if(L!=="zh-Hans"&&!/^\/(cn|en|tc)\//.test(location.pathname)){var d=document.documentElement;d.style.visibility="hidden";setTimeout(function(){d.style.visibility=""},1500);}}catch(e){}})();</script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>合盘 · Penta · 观己</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
-<link rel="stylesheet" href="hd.css" />
+<link rel="stylesheet" href="hd.css" /><script src="theme.js" defer></script>
 <style>
   .pickrow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:10px}
-  .pickrow select{padding:8px;border:1px solid #D8CFC0;border-radius:10px;min-width:180px;font-size:14px;background:#fff}
+  .pickrow select{padding:8px;border:1px solid var(--border);border-radius:10px;min-width:180px;font-size:14px;background:var(--card)}
   .plist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-  .plist label{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #EDE4D4;border-radius:10px;padding:8px 10px;font-size:14px;cursor:pointer}
+  .plist label{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:14px;cursor:pointer}
   .plist .sub{color:var(--sub);font-size:12px}
   .cat{margin-top:14px}
   .cat h4{margin:0 0 6px;font-size:14px}
   .cat .hint{font-size:12px;color:var(--sub);margin-left:6px;font-weight:400}
-  table.pg{width:100%;border-collapse:collapse;background:#fff;border:1px solid #EDE4D4;border-radius:12px;overflow:hidden;margin-top:10px}
+  table.pg{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:10px}
   .pg th,.pg td{padding:6px 8px;border-bottom:1px solid #F3ECDF;font-size:13px;text-align:left}
-  .pg th{background:#FAF5EA;color:#8A7A5E}
+  .pg th{background:var(--surface-2);color:var(--sub)}
   .pg td.gap{color:#B3433A;font-weight:700}
   .duo{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
   .duo .graph{flex:1 1 320px;min-width:280px}
@@ -27,22 +27,22 @@
   .savemsg{font-size:12.5px;color:var(--sub)}
   /* 保存模态框 */
   .modal{position:fixed;inset:0;z-index:300;background:rgba(40,26,8,.34);display:flex;align-items:center;justify-content:center;padding:18px}
-  .modal-box{background:#fff;border:1px solid var(--border);border-radius:16px;max-width:380px;width:100%;padding:18px 18px 16px;box-shadow:0 14px 40px rgba(60,38,8,.22)}
+  .modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;max-width:380px;width:100%;padding:18px 18px 16px;box-shadow:0 14px 40px rgba(60,38,8,.22)}
   .modal-box h3{margin:0 0 4px;font-size:16px}
   .modal-box .mhint{font-size:12px;color:var(--sub);margin:0 0 10px;line-height:1.5}
-  .modal-box input{width:100%;box-sizing:border-box;padding:9px 11px;font-size:16px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--ink)}
+  .modal-box input{width:100%;box-sizing:border-box;padding:9px 11px;font-size:16px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--ink)}
   .modal-box .mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
   /* Penta 成员色板 + 知识段 */
   .pcolor{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:12.5px}
   .pcolor .lg{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:3px 9px;border-radius:999px;border:1px solid transparent;user-select:none}
-  .pcolor .lg:hover{background:#fff}
-  .pcolor .lg.on{border-color:var(--li);background:#fff;font-weight:600}
+  .pcolor .lg:hover{background:var(--card)}
+  .pcolor .lg.on{border-color:var(--li);background:var(--card);font-weight:600}
   .pcolor .sw{width:22px;height:8px;border-radius:3px;display:inline-block}
   .pkb{margin-top:16px;border-top:1px solid var(--border);padding-top:12px}
   .pkb h4{margin:0 0 6px;font-size:14px}
   .pkb .intro{font-size:13px;color:var(--sub);line-height:1.7;margin:0 0 10px}
   .pkb .fns{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
-  .pkb .fn{background:#fff;border:1px solid #EDE4D4;border-radius:10px;padding:9px 11px}
+  .pkb .fn{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px}
   .pkb .fn .t{font-weight:700;font-size:13px}
   .pkb .fn .g{font-size:11.5px;color:var(--sub);margin-top:1px}
   .pkb .fn .d{font-size:12px;color:var(--ink);margin-top:4px;line-height:1.55}
@@ -274,9 +274,9 @@ $('goPenta').onclick=async()=>{
   // 画 Penta SVG；focus=成员id 时只显该成员的彩带与所承载闸门（图示↔色板联动）
   const pentaSVG=(focus)=>{
     let svg=`<svg viewBox="0 0 440 400" style="width:100%;max-width:520px;height:auto;display:block">`+defs;
-    svg+=`<rect x="92" y="28" width="256" height="58" rx="12" fill="${tD?'url(#cThroat)':'#fff'}" stroke="#D8CFC0"/>`;
-    svg+=`<rect x="92" y="126" width="256" height="128" rx="14" fill="${(tD||sD)?'url(#cG)':'#fff'}" stroke="#D8CFC0"/>`;
-    svg+=`<rect x="92" y="294" width="256" height="58" rx="12" fill="${sD?'url(#cSac)':'#fff'}" stroke="#D8CFC0"/>`;
+    svg+=`<rect x="92" y="28" width="256" height="58" rx="12" fill="${tD?'url(#cThroat)':'#fff'}" stroke="var(--border)"/>`;
+    svg+=`<rect x="92" y="126" width="256" height="128" rx="14" fill="${(tD||sD)?'url(#cG)':'#fff'}" stroke="var(--border)"/>`;
+    svg+=`<rect x="92" y="294" width="256" height="58" rx="12" fill="${sD?'url(#cSac)':'#fff'}" stroke="var(--border)"/>`;
     for(const [a,b] of PCH){ const A=PXY[a],B=PXY[b];
       svg+=L(A,B,'#E7DCC6',4);  // 浅色底轨
       let parts=members.map((m,i)=>({i,id:m.id,a:px.carriers[a].includes(m.id),b:px.carriers[b].includes(m.id)})).filter(p=>p.a||p.b);
