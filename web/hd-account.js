@@ -151,8 +151,8 @@
       + (reg ? '<input id="ha-pass2" class="ha-in" type="password" placeholder="' + T('再次输入密码', 'Confirm password', '再次輸入密碼') + '" autocomplete="new-password">' : '')
       + (reg ? '<label class="ha-chk"><input type="checkbox" id="ha-agree"><span>' + T('我已阅读并同意', 'I have read and agree to the', '我已閱讀並同意') + ' <a href="terms.html" target="_blank" rel="noopener">' + T('《用户协议》与《隐私政策》', 'Terms & Privacy Policy', '《使用者協議》與《隱私政策》') + '</a></span></label>' : '')
       + '<button class="ha-btn" data-act="' + (reg ? 'register' : 'login') + '" style="width:100%">' + (reg ? T('注册', 'Create account', '註冊') : T('登录', 'Sign in', '登入')) + '</button>'
-      + '<div class="ha-or"><span>' + T('或', 'or', '或') + '</span></div>'
-      + '<div id="ha-otp"><button class="ha-link" data-act="otp">' + T('用邮箱验证码登录（免密码）', 'Sign in with email code (no password)', '用信箱驗證碼登入（免密碼）') + '</button></div>'
+      + (reg ? '' : '<div class="ha-or"><span>' + T('或', 'or', '或') + '</span></div>'
+        + '<div id="ha-otp"><button class="ha-link" data-act="otp">' + T('用邮箱验证码登录（免密码）', 'Sign in with email code (no password)', '用信箱驗證碼登入（免密碼）') + '</button></div>')
       + '<p class="ha-note">' + (reg
         ? T('注册后请到邮箱完成验证，验证通过才能开启云同步。默认仅存本机。', 'After signing up, verify via the email we send — cloud sync unlocks only after verification. Local-only by default.', '註冊後請到信箱完成驗證，驗證通過才能開啟雲同步。預設僅存本機。')
         : T('开启云端备份后，换设备 / 清缓存也能恢复排盘记录。默认仅存本机，登录并开启同步才上云。', 'With cloud backup on, restore records after switching devices or clearing cache. Local-only by default.', '開啟雲端備份後，換裝置 / 清快取也能恢復排盤記錄。預設僅存本機，登入並開啟同步才上雲。') + ' <a href="terms.html" target="_blank" rel="noopener" style="color:#6B5B43;text-decoration:underline">' + T('《用户协议与隐私》', 'Terms & Privacy', '《使用者協議與隱私》') + '</a>')
