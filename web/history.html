@@ -27,6 +27,7 @@
   .upc-self{font-size:11px;color:var(--li);border:1px solid var(--border);border-radius:5px;padding:0 5px;margin-left:4px}
   .upc-d{color:var(--sub);font-variant-numeric:tabular-nums}
   .upc-d.soon{color:var(--li);font-weight:700}
+  .upc-date{font-variant-numeric:tabular-nums;opacity:.82}
   .rec .rnote{font-size:12px;color:var(--sub);margin-top:3px;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:2px 7px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .btn-sm.noteBtn.has{border-color:var(--gold);color:var(--gold-d);background:var(--surface-2)}
   /* 备注编辑弹窗 */
@@ -142,7 +143,8 @@ function renderUpcoming(){
     const i=r.input; if(!i||!i.month||!i.day) continue;
     let d=new Date(ty,i.month-1,i.day); if(d<t0) d=new Date(ty+1,i.month-1,i.day);
     const days=Math.round((d-t0)/86400000);
-    if(days<=30) items.push({name:r.name||'—', days, tags:r.tags||[]});
+    const mm=String(i.month).padStart(2,'0'), dd=String(i.day).padStart(2,'0');   // 具体生日(月-日)，让「N天后」也看得到日期
+    if(days<=30) items.push({name:r.name||'—', days, tags:r.tags||[], mmdd:mm+'-'+dd});
   }
   items.sort((a,b)=>a.days-b.days);
   if(!items.length){ $('#upcoming').innerHTML=''; return; }
@@ -150,7 +152,7 @@ function renderUpcoming(){
   $('#upcoming').innerHTML='<div class="upc"><div class="upc-h">🎂 '+(en?'Upcoming birthdays':'近期生日')+'</div>'
     +items.map(it=>{ const when=it.days===0?(en?'Today 🎉':'就在今天 🎉'):(it.days===1?(en?'Tomorrow':'明天'):(en?('in '+it.days+' days'):(it.days+' 天后')));
       const self=(it.tags||[]).indexOf('self')>=0?(' <span class="upc-self">'+selfTxt+'</span>'):'';
-      return '<div class="upc-row"><span class="upc-n">'+esc(it.name)+self+'</span><span class="upc-d'+(it.days<=1?' soon':'')+'">'+when+'</span></div>'; }).join('')
+      return '<div class="upc-row"><span class="upc-n">'+esc(it.name)+self+'</span><span class="upc-d'+(it.days<=1?' soon':'')+'"><span class="upc-date">'+it.mmdd+'</span> · '+when+'</span></div>'; }).join('')
     +'</div>';
 }
 // 合盘 / Penta 链接记录（带徽标，点开进 connect.html 重排）

@@ -36,7 +36,7 @@ html[data-theme="sakura"]{     /* 晨樱·绯 柔暖霞粉 */
 body{margin:0;background:var(--paper);color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif;-webkit-font-smoothing:antialiased}
 .wrap{max-width:760px;margin:0 auto;padding:18px 16px 70px}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .brand{font-weight:700;letter-spacing:.04em}.brand .li{color:var(--li)}
 .sub{color:var(--sub);font-weight:400;font-size:13px}
 a{color:var(--li)}
