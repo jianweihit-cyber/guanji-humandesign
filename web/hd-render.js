@@ -43,7 +43,7 @@
 
   function bodygraph(svg, c){
     svg.innerHTML='';
-    svg.appendChild(el('image',{href:'logo.svg',x:418,y:8,width:30,height:30,opacity:0.9}));
+    svg.appendChild(el('image',{href:'/web/logo.svg',x:418,y:8,width:30,height:30,opacity:0.9}));   // 绝对路径：多语言前缀页(/cn/web/…)下相对 logo.svg 会解析到 /cn/web/ 而 404
     const pSet=new Set(c.personality.map(a=>a.gate));
     const dSet=new Set(c.design.map(a=>a.gate));
     const defined=new Set(c.definedCenters);

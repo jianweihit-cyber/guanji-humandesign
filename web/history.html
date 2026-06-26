@@ -68,6 +68,7 @@
 <script src="nickpool.js"></script>
 <script src="hd-cloud.js"></script>
 <script src="hd-account.js"></script>
+<script src="birthday-alert.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -108,7 +109,7 @@ function render(){
         <span class="chip">${esc(r.sum.profile)}</span>
         <span class="chip">${esc(r.sum.authority)}</span>
       </div>
-      <a class="btn-sm" href="index.html?load=${r.id}">打开</a>
+      <a class="btn-sm" href="index.html?load=${r.id}">${L==='en'?'Edit':L==='zh-Hant'?'編輯':'编辑'}</a>
       <button class="btn-sm danger del">删除</button>
     </div>`).join('') || (linkRows().length ? '' : '<p class="muted" style="margin-top:16px">暂无记录，去排盘页生成并保存</p>');  // 排盘空但有匹配的合盘/Penta 时不显占位
   renderLinks();

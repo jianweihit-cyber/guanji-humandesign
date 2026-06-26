@@ -97,6 +97,7 @@
 <script src="nickpool.js"></script>
 <script src="hd-cloud.js"></script>
 <script src="hd-account.js"></script>
+<script src="birthday-alert.js"></script>
 <script type="module">
 import { generateChart } from '/src/chart.js';
 import { TYPES, AUTHORITIES, PROFILES, CENTERS_KB, GATES_KB, CHANNELS_KB } from '/src/hd-knowledge.js';
@@ -455,7 +456,7 @@ $('nbclose').onclick=()=>{ $('nowbanner').hidden=true; };
 const autoName=()=>{ const d=new Date(), p=n=>String(n).padStart(2,'0');
   const ts=`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
   return (ENM?'Name-':'案主-')+ts; };
-const uniqueName=nm=>{ const names=new Set(HDStore.all().map(r=>r.name)); if(!names.has(nm))return nm; let n=2; while(names.has(`${nm} (${n})`)) n++; return `${nm} (${n})`; };
+const uniqueName=nm=>{ const names=new Set(HDStore.all().map(r=>r.name)); if(!names.has(nm))return nm; const base=nm.replace(/\s*\(\d+\)\s*$/,'')||nm; let n=2; while(names.has(`${base} (${n})`)) n++; return `${base} (${n})`; };  // 去掉已有「(N)」再续号，避免「X (2) (2)」
 function doSave(name, overwriteId){
   // 先存新记录、成功后再删旧（覆盖场景）：避免 add 因存储满失败时旧记录已被删除而净丢一条
   const id=HDStore.add({ name, gender:sexVal||'F', fav:favOn, ...(selTags.size?{tags:[...selTags]}:{}), ...(chartSource?{source:chartSource}:{}), input:{...lastRun.input, ...(placeLabel?{place:placeLabel}:{})}, sum:HDStore.summarize(lastRun.chart) });
@@ -485,10 +486,12 @@ $('saveBtn').onclick=()=>{
     if(!dup){ finish(name); return; }
     const alt=uniqueName(name);
     warn.innerHTML=`${ENM?`A chart named “${escq(name)}” already exists.`:`已存在名为「${escq(name)}」的记录。`}
-      <div class="gj-btns" style="margin-top:8px"><button class="btn" id="svOver">${ENM?'Overwrite':'覆盖'}</button><button class="btn ghost" id="svAlt">${ENM?`Keep both → ${escq(alt)}`:`另存为「${escq(alt)}」`}</button></div>
+      <div class="gj-btns" style="margin-top:8px"><button class="btn" id="svOver">${ENM?'Overwrite':'覆盖'}</button><button class="btn ghost" id="svAlt">${ENM?'Save as a copy…':'另存为副本…'}</button></div>
       <div class="gj-sub" style="margin-top:6px">${ENM?'…or edit the name above and Save again.':'…或在上方改个名字后再点保存。'}</div>`;
     warn.querySelector('#svOver').onclick=()=>finish(name,dup.id);
-    warn.querySelector('#svAlt').onclick=()=>finish(alt);
+    // 另存为：把系统建议的不重名「副本名」填进可编辑框 + 选中，用户可直接保存或改名后保存（不再静默生成「(2)(2)」）
+    warn.querySelector('#svAlt').onclick=()=>{ nameEl.value=alt; try{ nameEl.focus(); nameEl.select(); }catch(e){}
+      warn.innerHTML=`<div class="gj-sub">${ENM?`Suggested name “${escq(alt)}” — edit if you like, then Save.`:`已填入建议名「${escq(alt)}」，可修改后点保存。`}</div>`; };
   };
   sheet.querySelector('#svDo').onclick=trySave;
   nameEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); trySave(); } });
