@@ -36,7 +36,6 @@
 
   function makeRow() {
     var row = document.createElement('span'); row.className = 'themesw';
-    var sep = document.createElement('span'); sep.className = 'tsep'; row.appendChild(sep);
     THEMES.forEach(function (o) {
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'tsw' + (cur() === o.k ? ' on' : '');
@@ -49,6 +48,7 @@
       };
       row.appendChild(b);
     });
+    var sep = document.createElement('span'); sep.className = 'tsep'; row.appendChild(sep);   // 分隔线在圈圈之后，圈圈整体在语言前面
     return row;
   }
 
@@ -56,7 +56,7 @@
     if (document.querySelector('.themesw')) return;
     ensureCss();
     var ls = document.querySelector('.langsw');
-    if (ls) { ls.appendChild(makeRow()); return true; }
+    if (ls) { ls.insertBefore(makeRow(), ls.firstChild); return true; }   // 圈圈放到语言(简/繁/EN)前面
     return false;
   }
 
