@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="stylesheet" href="hd.css" />
 <style>
-  .rec{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #EDE4D4;border-radius:12px;padding:10px 12px;margin-top:8px}
+  .rec{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid #EDE4D4;border-radius:12px;padding:10px 12px;margin-top:8px}
   .rec .star{border:none;background:none;font-size:18px;cursor:pointer;color:#D8CFC0;padding:2px}
   .rec .star.on{color:#E0A93E}
   .rec .meta{flex:1;min-width:0}
@@ -27,6 +27,21 @@
   .upc-self{font-size:11px;color:var(--li);border:1px solid #E8DCC0;border-radius:5px;padding:0 5px;margin-left:4px}
   .upc-d{color:var(--sub);font-variant-numeric:tabular-nums}
   .upc-d.soon{color:var(--li);font-weight:700}
+  .rec .rnote{font-size:12px;color:#7a6f5e;margin-top:3px;background:#FBF3E6;border:1px solid #EFE2C8;border-radius:7px;padding:2px 7px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .btn-sm.noteBtn.has{border-color:var(--gold);color:var(--gold-d);background:#FBF3E6}
+  /* 备注编辑弹窗 */
+  .nt-mask{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(40,32,24,.42);padding:18px}
+  .nt-card{width:100%;max-width:420px;background:var(--card);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.26);padding:18px;max-height:88vh;overflow:auto}
+  .nt-card h3{margin:0 0 3px;font-size:16px}
+  .nt-sub{font-size:12px;color:var(--sub);margin-bottom:10px}
+  .nt-ta{width:100%;min-height:90px;font-size:15px;padding:10px 12px;border:1px solid #DDD2BE;border-radius:10px;box-sizing:border-box;font-family:inherit;background:#fff;color:var(--ink);resize:vertical}
+  .nt-img{margin-top:12px}
+  .nt-img .lab{font-size:12px;color:var(--sub);margin-bottom:6px}
+  .nt-thumb{max-width:100%;max-height:180px;border-radius:10px;border:1px solid var(--border);display:block;margin-top:8px}
+  .nt-hint{font-size:12px;color:var(--sub);background:#F6F1E8;border:1px solid #EBE2D2;border-radius:8px;padding:8px 10px;margin-top:12px;line-height:1.5}
+  .nt-btns{display:flex;gap:10px;margin-top:16px}
+  .nt-btns .btn{flex:1}
+  .nt-x{font-size:12px;color:var(--li);cursor:pointer;background:none;border:none;text-decoration:underline;padding:0}
 </style>
 </head>
 <body>
@@ -83,6 +98,7 @@ function match(r){
     || r.sum.type.toLowerCase().includes(s) || (r.sum.typeZh||'').includes(s)
     || r.sum.profile.includes(s) || (r.sum.authority||'').toLowerCase().includes(s)
     || (r.sum.definition||'').includes(s) || (r.sum.channels||[]).some(k=>k.includes(s))
+    || (r.note||'').toLowerCase().includes(s)                                            // 备注可搜（人多时凭来历/关系找人）
     || (r.tags||[]).some(t=>tagLblByKey(t).toLowerCase().includes(s)||t.includes(s));   // 关系标记可搜
 }
 function render(){
@@ -103,12 +119,14 @@ function render(){
       <div class="meta">
         <div class="n">${esc(r.name)||'—'}${r.gender?` <span style="font-weight:400;color:${r.gender==='M'?'#4A7BA6':'#C26A8A'}">${r.gender==='M'?'♂':'♀'}</span>`:''}${r.source==='solve'?` <span class="srcb">反推</span>`:r.source==='celeb'?` <span class="srcb">名人</span>`:''}${(r.tags||[]).map(t=>` <span class="tagb">${esc(tagLblByKey(t))}</span>`).join('')}${cloudBadge(r)}</div>
         <div class="d">${fmtIn(r.input)}</div>
+        ${(r.note||r.noteImg)?`<div class="rnote">${r.noteImg?'🖼 ':''}📝 ${esc((r.note||'').slice(0,70))}${(r.note||'').length>70?'…':''}</div>`:''}
       </div>
       <div class="chips">
         <span class="chip"><b>${esc(r.sum.type)}</b></span>
         <span class="chip">${esc(r.sum.profile)}</span>
         <span class="chip">${esc(r.sum.authority)}</span>
       </div>
+      <button class="btn-sm noteBtn${(r.note||r.noteImg)?' has':''}" title="${L==='en'?'Note':L==='zh-Hant'?'備註':'备注'}">📝</button>
       <a class="btn-sm" href="index.html?load=${r.id}">${L==='en'?'Edit':L==='zh-Hant'?'編輯':'编辑'}</a>
       <button class="btn-sm danger del">删除</button>
     </div>`).join('') || (linkRows().length ? '' : '<p class="muted" style="margin-top:16px">暂无记录，去排盘页生成并保存</p>');  // 排盘空但有匹配的合盘/Penta 时不显占位
@@ -210,12 +228,69 @@ $('#importFile').onchange=async e=>{
 $('#list').onclick=e=>{
   const row=e.target.closest('.rec'); if(!row)return; const id=row.dataset.id;
   if(e.target.closest('.star')){ HDStore.toggleFav(id); render(); }
+  else if(e.target.closest('.noteBtn')){ openNote(id); }
   else if(e.target.closest('.del')){
     const I=window.HDI18N, m='确定删除？';
     const msg=I&&I.lang==='en'?(I.EN[m]||m):I&&I.lang==='zh-Hant'?I.s2t(m):m;
     if(confirm(msg)){ HDStore.remove(id); render(); }
   }
 };
+
+// ── 备注编辑（文字人人可用·随记录云同步；图片仅登录并开同步的用户·存 PocketBase）──
+function openNote(id){
+  const rec=HDStore.get(id); if(!rec) return;
+  const t=(zh,en,tw)=>EN?en:(I&&I.lang==='zh-Hant'?(tw||(I.s2t?I.s2t(zh):zh)):zh);
+  const canImg=!!(window.GC&&GC.loggedIn&&GC.loggedIn()&&GC.syncOn&&GC.syncOn());
+  const mask=document.createElement('div'); mask.className='nt-mask';
+  mask.innerHTML=
+    '<div class="nt-card">'
+    +'<h3>'+t('备注','Note','備註')+' · '+esc(rec.name||t('未命名','Unnamed','未命名'))+'</h3>'
+    +'<div class="nt-sub">'+t('给这个人记点什么，方便人多时查找（如：老王的朋友、某活动认识）','Jot something down to find this person later (e.g. Wang’s friend, met at an event)','給這個人記點什麼，方便人多時查找（如：老王的朋友、某活動認識）')+'</div>'
+    +'<textarea class="nt-ta" id="ntTa" maxlength="2000" placeholder="'+t('写点备注…','Write a note…','寫點備註…')+'"></textarea>'
+    +'<div class="nt-img">'
+      +'<div class="lab">'+t('图片（可选）','Image (optional)','圖片（可選）')+'</div>'
+      +(canImg
+        ? '<input type="file" id="ntFile" accept="image/*"><div id="ntThumbWrap"></div>'
+        : '<div class="nt-hint">'+t('登录并开启云同步后可上传图片（图片存云端，不占本机空间）','Sign in and turn on cloud sync to attach an image (stored in the cloud).','登入並開啟雲同步後可上傳圖片（圖片存雲端，不佔本機空間）')+'</div>')
+    +'</div>'
+    +'<div class="nt-btns"><button class="btn ghost" id="ntCancel">'+t('取消','Cancel','取消')+'</button><button class="btn" id="ntSave">'+t('保存','Save','保存')+'</button></div>'
+    +'<div id="ntMsg" class="nt-sub" style="margin-top:8px"></div>'
+    +'</div>';
+  document.body.appendChild(mask);
+  const $$=s=>mask.querySelector(s);
+  $$('#ntTa').value=rec.note||'';
+  let pickedFile=null, removeExisting=false;
+  const msg=(s)=>{ $$('#ntMsg').textContent=s||''; };
+  const close=()=>{ try{mask.remove();}catch(e){} };
+  mask.addEventListener('click',e=>{ if(e.target===mask) close(); });
+  $$('#ntCancel').onclick=close;
+  // 已有云端图片 → 拉取可访问 URL 显示缩略图 + 「移除图片」
+  async function showThumb(){
+    const w=$$('#ntThumbWrap'); if(!w) return; w.innerHTML='';
+    if(removeExisting) return;
+    if(rec.noteImg && canImg){
+      w.innerHTML='<div class="nt-sub">'+t('载入图片…','Loading image…','載入圖片…')+'</div>';
+      try{ const url=await GC.noteImgUrl(rec.id, rec.noteImg);
+        w.innerHTML='<img class="nt-thumb" src="'+esc(url)+'" alt=""><div style="margin-top:6px"><button class="nt-x" id="ntRmImg">'+t('移除图片','Remove image','移除圖片')+'</button></div>';
+        const rm=$$('#ntRmImg'); if(rm) rm.onclick=()=>{ removeExisting=true; pickedFile=null; if($$('#ntFile'))$$('#ntFile').value=''; showThumb(); };
+      }catch(e){ w.innerHTML='<div class="nt-sub">'+t('图片载入失败','Image failed to load','圖片載入失敗')+'</div>'; }
+    }
+  }
+  showThumb();
+  if(canImg){ const f=$$('#ntFile'); if(f) f.onchange=()=>{ pickedFile=f.files&&f.files[0]||null; removeExisting=false;
+    const w=$$('#ntThumbWrap'); if(pickedFile&&w){ const u=URL.createObjectURL(pickedFile); w.innerHTML='<img class="nt-thumb" src="'+u+'" alt="">'; } }; }
+  $$('#ntSave').onclick=async()=>{
+    const text=$$('#ntTa').value.trim();
+    $$('#ntSave').disabled=true;
+    try{
+      if(canImg && pickedFile){ msg(t('上传图片…','Uploading image…','上傳圖片…')); const fn=await GC.uploadNoteImg(rec.id, pickedFile); HDStore.setNote(id, text, fn); }
+      else if(canImg && removeExisting){ msg(t('移除图片…','Removing image…','移除圖片…')); try{ await GC.removeNoteImg(rec.id); }catch(e){} HDStore.setNote(id, text, ''); }
+      else { HDStore.setNote(id, text); }   // 仅文字（noteImg 不变）
+      close(); render();
+    }catch(e){ $$('#ntSave').disabled=false; msg((EN?'Save failed: ':'保存失败：')+((e&&e.message)||'')); }
+  };
+}
+
 window.HDRerender=render;   // 云同步拉回后让 hd-account.js 触发本页重渲染
 render();
 </script>

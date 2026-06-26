@@ -1,5 +1,6 @@
 /* hd-store.js — 排盘记录本地存储（window.HDStore，localStorage）
    记录 = { id, name, gender, v, ts, updatedAt, fav, tags:['self'|'family'|'friend'|'partner'|'other'],
+            note?:'备注文字', noteImg?:'云端图片文件名(仅登录)',
             input:{year,month,day,hour,minute,tz,place?},
             sum:{ type, typeZh, profile, authority, definition, gates:[..], channels:[..] } }
    只存输入+摘要，打开时按输入重新排盘（引擎即真相，升级算法旧记录自动受益）。
@@ -38,6 +39,8 @@
     },
     remove(id) { return write(read().filter(r => r.id !== id)); },
     toggleFav(id) { const a = read(); const r = a.find(x => x.id === id); if (r) { r.fav = !r.fav; r.updatedAt = Date.now(); write(a); } return r && r.fav; },
+    // 备注：note=文字(随 data 自动云同步)，noteImg=云端图片文件名(仅登录用户，传 undefined 则不动图片)。便于人多时查找/记来历
+    setNote(id, note, noteImg) { const a = read(); const r = a.find(x => x.id === id); if (!r) return null; r.note = (note || '').slice(0, 2000); if (noteImg !== undefined) r.noteImg = noteImg || ''; r.updatedAt = Date.now(); return write(a) ? r : null; },
     count() { return read().length; },
     // 批量写回（云同步拉回合并后整体落地；写失败返回 false 不谎报）
     // 落地前过滤残缺记录(缺 id/input/sum)：一条坏云端数据不会污染本地、不会让记录页 .map 崩溃白屏

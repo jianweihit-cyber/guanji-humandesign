@@ -61,7 +61,7 @@
   }
 
   // —— 包裹 HDStore 写操作 → 自动同步（index/history/connect 各页现有调用零改）——
-  ['add', 'remove', 'toggleFav', 'addLink', 'removeLink'].forEach(function (m) {
+  ['add', 'remove', 'toggleFav', 'setNote', 'addLink', 'removeLink'].forEach(function (m) {
     var orig = HD[m]; if (typeof orig !== 'function') return;
     HD[m] = function () {
       var r = orig.apply(HD, arguments);

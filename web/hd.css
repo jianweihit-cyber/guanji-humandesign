@@ -35,10 +35,14 @@ a{color:var(--li)}
 /* 摘要卡：桌面一行 6 张（字号收小），窄屏 3×2 两排 */
 .summary{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:14px 0 6px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 10px;min-width:0}
-.card .k{font-size:11px;color:var(--sub);margin-bottom:2px;white-space:nowrap}
-.card .v{font-size:13.5px;font-weight:650;line-height:1.35;overflow-wrap:break-word}
-.card .vs{font-size:11px;color:var(--sub);margin-top:2px;line-height:1.3}
-@media (max-width:640px){ .summary{grid-template-columns:repeat(3,1fr);gap:6px} }
+.card .k{font-size:11px;color:var(--sub);margin-bottom:2px;overflow-wrap:anywhere}
+.card .v{font-size:13.5px;font-weight:650;line-height:1.35;overflow-wrap:anywhere;hyphens:auto}   /* anywhere(非break-word)才会影响 grid 列最小宽度，长英文词(Satisfaction/Investigator)不再撑破卡片 */
+.card .vs{font-size:11px;color:var(--sub);margin-top:2px;line-height:1.3;overflow-wrap:anywhere}
+/* 英文词长，整体略缩一档并改善断行，桌面 6 张一行也不溢出 */
+html[lang="en"] .summary .card .v{font-size:12px;line-height:1.32}
+html[lang="en"] .summary .card .k{font-size:10px}
+html[lang="en"] .summary .card .vs{font-size:10px}
+@media (max-width:760px){ .summary{grid-template-columns:repeat(3,1fr);gap:7px} }   /* 中等屏(含英文长词)提前转 3×2，不挤成 6 列 */
 .stage{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;margin-top:8px}
 .graph{flex:1 1 340px;min-width:300px}
 svg.bodygraph{width:100%;height:auto;display:block}

@@ -115,9 +115,9 @@ let WORLD=null, WORLDZH=null, CNC=null, geoP=null;   // 懒加载：首次输入
 function loadGeo(){
   if(geoP) return geoP;
   geoP=Promise.all([
-    fetch('world-cities-v1.json').then(r=>r.json()),
-    fetch('world-cities-zh-v1.json').then(r=>r.ok?r.json():null).catch(()=>null),
-    fetch('cn-cities-v1.json').then(r=>r.json()),
+    fetch('/web/world-cities-v1.json').then(r=>r.json()),       // 绝对 /web/：多语言前缀页(/cn/web/…)下相对路径会 404，整库(含黄冈等区县)加载失败
+    fetch('/web/world-cities-zh-v1.json').then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch('/web/cn-cities-v1.json').then(r=>r.json()),
   ]).then(([w,wz,c])=>{ WORLD=w; WORLDZH=wz||[]; CNC=c; }).catch(()=>{ geoP=null; });
   return geoP;
 }
@@ -427,7 +427,7 @@ for(const id of ['y','mo','d','h','mi']){ const el=$(id); el.readOnly=true; el.s
 
 // 中国省市区三级滚轮（计算仍走时区 Asia/Shanghai，地名随记录保存）
 let CN=null;
-const cnData=async()=>{ if(!CN){ const r=await fetch('cn-pca.json'); CN=await r.json(); } return CN; };
+const cnData=async()=>{ if(!CN){ const r=await fetch('/web/cn-pca.json'); CN=await r.json(); } return CN; };   // 绝对 /web/：前缀页相对会 404
 async function openRegion(){
   const data=await cnData();
   const P=n=>data.find(x=>x.name===n);

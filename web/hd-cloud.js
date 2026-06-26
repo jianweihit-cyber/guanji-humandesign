@@ -175,6 +175,32 @@
       if(id) await req('PATCH','/api/collections/charts/records/'+id, {deleted:true, cupd:Date.now()});
       cloudCids.delete(cid);                                   // 取消已上云标记
     },
+    /* —— 备注图片(仅登录云端用户)：存 charts 记录的 noteImg 文件字段；charts owner 隔离，私有图片读取需短时 file token —— */
+    async uploadNoteImg(cid, file){
+      if(!this.syncOn() || !cid || !file) throw new Error('need-login');
+      var id = await this._findId(cid);
+      if(!id){ try{ await this.pushChart(window.HDStore && HDStore.get(cid)); }catch(e){} id = await this._findId(cid); }  // 还没上云先推一次拿到记录
+      if(!id) throw new Error('no-record');
+      var fd = new FormData(); fd.append('noteImg', file); fd.append('cupd', String(Date.now()));
+      var h = {}; if(token()) h['Authorization'] = token();
+      var r; try{ r = await fetch(BASE+'/api/collections/charts/records/'+id, {method:'PATCH', headers:h, body:fd}); }
+      catch(e){ var ne=new Error('网络不可达'); ne.offline=true; throw ne; }
+      var j=null; try{ j=await r.json(); }catch(e){}
+      if(!r.ok) throw new Error((j&&j.message)||('HTTP '+r.status));
+      return (j && j.noteImg) || '';   // 返回云端文件名
+    },
+    async removeNoteImg(cid){
+      if(!this.syncOn() || !cid) return;
+      var id = await this._findId(cid); if(!id) return;
+      try{ await req('PATCH','/api/collections/charts/records/'+id, {noteImg:null, cupd:Date.now()}); }catch(e){}
+    },
+    /* 私有图片可访问 URL：file token(短时有效)拼到文件路径 */
+    async noteImgUrl(cid, filename){
+      if(!cid || !filename) return '';
+      var id = await this._findId(cid); if(!id) return '';
+      var t=''; try{ var tk = await req('POST','/api/files/token'); t = tk && tk.token; }catch(e){}
+      return BASE+'/api/files/charts/'+id+'/'+encodeURIComponent(filename)+(t?('?token='+t):'');
+    },
     /* 某条本地记录是否已存于云端(未软删)。需开启同步并已 fullSync 一次后才准。 */
     isSynced: function(cid){ return cloudCids.has(cid); },
     async cloudCount(){
