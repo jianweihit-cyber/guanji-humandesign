@@ -229,9 +229,9 @@ $('goConn').onclick=async()=>{
     }).join('');
     $('out').innerHTML=`<div class="duo">
       <div class="graph"><svg class="bodygraph" viewBox="0 0 460 665"></svg>
-        <div class="legend"><span><span class="dot" style="background:var(--inkline)"></span>${esc(rA.name)}</span>
+        <div class="legend"><span><span class="dot" style="background:var(--ink-pers)"></span>${esc(rA.name)}</span>
         <span><span class="dot" style="background:var(--cinnabar)"></span>${esc(rB.name)}</span>
-        <span><span class="dot" style="background:repeating-linear-gradient(90deg,var(--inkline) 0 3px,var(--cinnabar) 3px 6px)"></span>${ENM?'Both':'双方皆有'}</span></div></div>
+        <span><span class="dot" style="background:repeating-linear-gradient(90deg,var(--ink-pers) 0 3px,var(--cinnabar) 3px 6px)"></span>${ENM?'Both':'双方皆有'}</span></div></div>
       <div class="side">
         <div class="summary" style="grid-template-columns:1fr 1fr">
           <div class="card"><div class="k">${ENM?'Defined together':'合体定义中心'}</div><div class="v">${cx.definedCenters.length} / 9</div></div>

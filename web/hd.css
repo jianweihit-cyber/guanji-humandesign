@@ -5,6 +5,7 @@
   --gold:#E0A93B; --gold-d:#9A6B1F;
   --faint:#E7DECF; --line-open:#E0D6C4; --li:#A8321F;
   --card:#fff; --border:#ECE3D2; --field-border:#DDD2BE; --surface-2:#FAF5EA;
+  --ink-pers:#23201B;   /* 「个性(墨)」当页面文字/标记色：浅色主题=黑(同盘面)，深色主题覆盖为亮色(见下)，避免深底黑字看不清 */
 }
 
 /* ===== 主题切换（html[data-theme]，theme.js 应用+持久化；默认「离卦·暖」在 :root）=====
@@ -12,7 +13,7 @@
    --inkline(个性黑)/--gold 一律不覆盖 → Bodygraph 在任何主题下配色都正确、不串色。 */
 html[data-theme="ink"]{        /* 夜·墨 深色护眼 */
   --paper:#17140F; --ink:#ECE3D2; --sub:#A0937E;
-  --card:#221D17; --border:#372F25; --field-border:#3D3329; --surface-2:#2C261D; --li:#E68A5C;
+  --card:#221D17; --border:#372F25; --field-border:#3D3329; --surface-2:#2C261D; --li:#E68A5C; --ink-pers:#ECE3D2;
 }
 html[data-theme="celadon"]{    /* 青·瓷 清新留白 */
   --paper:#E9F0EC; --ink:#243029; --sub:#6E8077;
@@ -24,7 +25,7 @@ html[data-theme="parchment"]{  /* 羊皮·古卷 复古 */
 }
 html[data-theme="cosmos"]{     /* 星河·夜 宇宙靛蓝(深色) */
   --paper:#13121E; --ink:#E7E4F2; --sub:#9C97B8;
-  --card:#1E1C2E; --border:#322E48; --field-border:#383350; --surface-2:#272341; --li:#A78BFA;
+  --card:#1E1C2E; --border:#322E48; --field-border:#383350; --surface-2:#272341; --li:#A78BFA; --ink-pers:#E7E4F2;
 }
 html[data-theme="cosmos"] body{ background:radial-gradient(1100px 680px at 72% -12%, #241F3C 0%, #13121E 58%) fixed; }
 html[data-theme="sakura"]{     /* 晨樱·绯 柔暖霞粉 */
@@ -86,7 +87,7 @@ svg.bodygraph{width:100%;height:auto;display:block}
 .pcol h4{margin:0 0 6px;font-size:12px;color:var(--sub);font-weight:600;text-align:center}
 .prow{display:flex;align-items:center;gap:7px;font-size:13px;padding:1.5px 0}
 .prow .g{font-size:15px;width:18px;text-align:center}
-.prow.dz .gl{color:var(--cinnabar);font-weight:650}.prow.pz .gl{color:var(--inkline);font-weight:650}
+.prow.dz .gl{color:var(--cinnabar);font-weight:650}.prow.pz .gl{color:var(--ink-pers);font-weight:650}   /* 个性列闸门号用主题感知色：深色主题下不再黑底黑字 */
 .gl{min-width:34px}.deg{color:var(--sub);font-size:11.5px}
 .sec{margin-top:20px}.sec h3{font-size:14px;margin:0 0 10px;color:var(--li);letter-spacing:.03em}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
