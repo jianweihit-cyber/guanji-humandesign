@@ -238,6 +238,24 @@ $('#list').onclick=e=>{
   }
 };
 
+// 上传前客户端压缩：缩到 ≤1600px、转 JPEG 0.85 —— 大 PNG(如 ChatGPT 海报常 2~5MB+)避免超 5MB 上限/上传慢/失败
+function compressImg(file){
+  return new Promise(function(resolve){
+    try{
+      if(!file || !/^image\//.test(file.type)) return resolve(file);
+      var img=new Image(), url=URL.createObjectURL(file);
+      img.onload=function(){ try{ URL.revokeObjectURL(url); }catch(e){}
+        var max=1600, w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+        if(w>max||h>max){ var s=Math.min(max/w,max/h); w=Math.round(w*s); h=Math.round(h*s); }
+        var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        var cx=cv.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,w,h); cx.drawImage(img,0,0,w,h);  // 白底：JPEG 无透明
+        cv.toBlob(function(b){ resolve(b && b.size<file.size ? new File([b],(file.name||'img').replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'}) : file); },'image/jpeg',0.85);
+      };
+      img.onerror=function(){ try{ URL.revokeObjectURL(url); }catch(e){} resolve(file); };
+      img.src=url;
+    }catch(e){ resolve(file); }
+  });
+}
 // ── 备注编辑（文字人人可用·随记录云同步；图片仅登录并开同步的用户·存 PocketBase）──
 function openNote(id){
   const rec=HDStore.get(id); if(!rec) return;
@@ -285,7 +303,8 @@ function openNote(id){
     const text=$$('#ntTa').value.trim();
     $$('#ntSave').disabled=true;
     try{
-      if(canImg && pickedFile){ msg(t('上传图片…','Uploading image…','上傳圖片…')); const fn=await GC.uploadNoteImg(rec.id, pickedFile); HDStore.setNote(id, text, fn); }
+      if(canImg && pickedFile){ msg(t('处理图片…','Processing image…','處理圖片…')); const up=await compressImg(pickedFile);
+        msg(t('上传图片…','Uploading image…','上傳圖片…')); const fn=await GC.uploadNoteImg(rec.id, up); HDStore.setNote(id, text, fn); }
       else if(canImg && removeExisting){ msg(t('移除图片…','Removing image…','移除圖片…')); try{ await GC.removeNoteImg(rec.id); }catch(e){} HDStore.setNote(id, text, ''); }
       else { HDStore.setNote(id, text); }   // 仅文字（noteImg 不变）
       close(); render();

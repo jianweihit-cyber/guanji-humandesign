@@ -186,8 +186,12 @@
       var r; try{ r = await fetch(BASE+'/api/collections/charts/records/'+id, {method:'PATCH', headers:h, body:fd}); }
       catch(e){ var ne=new Error('网络不可达'); ne.offline=true; throw ne; }
       var j=null; try{ j=await r.json(); }catch(e){}
-      if(!r.ok) throw new Error((j&&j.message)||('HTTP '+r.status));
-      return (j && j.noteImg) || '';   // 返回云端文件名
+      if(!r.ok){
+        var dm = j && j.data && Object.keys(j.data).length ? (j.data[Object.keys(j.data)[0]].message) : '';
+        throw new Error((j&&(j.message||dm))||('HTTP '+r.status));
+      }
+      if(!(j && j.noteImg)) throw new Error('上传未生效：服务器未保存图片（字段未就绪，请稍后重试）');  // 200 但无文件名 → 字段缺失等，明确报错不静默
+      return j.noteImg;   // 返回云端文件名
     },
     async removeNoteImg(cid){
       if(!this.syncOn() || !cid) return;
