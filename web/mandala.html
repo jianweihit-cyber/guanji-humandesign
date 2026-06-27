@@ -18,6 +18,18 @@
   .daily .big .gname{font-size:18px;font-weight:700}
   .daily .big .sub{font-size:12.5px;color:var(--sub);margin-top:2px}
   .daily .big .kw{margin-top:8px;line-height:1.7}
+  .daily .big .gname-en{font-size:13px;color:var(--sub);font-weight:500;margin-left:4px}
+  .dl-theme{margin-top:9px;font-size:14.5px;line-height:1.6;font-weight:650}
+  .dl-line{margin-top:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .dl-lh{font-size:13px;font-weight:700;color:var(--li)}
+  .dl-lm{margin-top:5px;line-height:1.7}
+  .dl-pol{display:flex;gap:7px;align-items:baseline;margin-top:8px;font-size:13px;line-height:1.6}
+  .dl-pol .dl-ar{font-weight:800;flex:none}
+  .dl-pol.up .dl-ar{color:#3a8a4e}.dl-pol.dn .dl-ar{color:var(--cinnabar)}
+  .dl-pol .dl-pp{font-weight:650;flex:none;color:var(--sub)}
+  .dl-deep{margin-top:13px}
+  .dl-deep .dl-dh{font-size:13px;font-weight:700;color:var(--li);margin-bottom:4px}
+  .dl-deep p{margin:0;line-height:1.78;color:var(--ink);font-size:13.5px}
   .ptable{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:13px}
   .ptable th,.ptable td{padding:5px 8px;border-bottom:1px solid #F3ECDF;text-align:left}
   .ptable th{background:var(--surface-2);color:var(--sub);font-weight:600}
@@ -240,14 +252,29 @@ function drawDaily(c, label){
   const rows=c.personality.map((p,idx)=>{ const gv=GATES_KB[p.gate]||{};
     return `<tr><td data-planet="${idx}">${p.glyph} ${esc(ENM?(p.en||p.planet):p.zh)}</td><td data-gate="${p.gate}"><a href="learn.html#gate:${p.gate}" target="_blank" rel="noopener">${p.gate}</a> <span class="pl">.${p.line}</span></td><td>${esc(ENM?(gv.nameEn||''):(gv.name||''))}</td></tr>`;
   }).join('');
+  // —— 丰富版：闸门元信息 + 今日爻线(含义+▲曜升/▼曜落极性) + (英文)闸门深读 ——
+  const gd=GATE_DETAIL[sun.gate]||{}, ln=(GATE_LINES[sun.gate]&&GATE_LINES[sun.gate][sun.line])||{};
+  const meta=[ ENM?((v.hex?v.hex+' ':'')+(v.iching||'')):((v.hex?v.hex+'卦':'')+(v.iching?' · '+v.iching:'')),
+               ENM?(v.center||''):(v.centerZh||''), (v.circuit||'') ].filter(Boolean).join(' · ');
+  const theme=ENM?(v.keynote||''):(v.theme||v.keynote||'');
+  const lTitle=ENM?(ln.te||lk):(ln.tz||lk), lMean=ENM?(ln.me||lmz):(ln.mz||lmz);
+  const PLZH={Sun:'太阳',Moon:'月亮',Mercury:'水星',Venus:'金星',Mars:'火星',Jupiter:'木星',Saturn:'土星',Uranus:'天王星',Neptune:'海王星',Pluto:'冥王星',Earth:'地球','North Node':'北交点','South Node':'南交点'};
+  const polHtml=(ln.pol||[]).map(po=>{ const up=po.t==='exalted', pl=ENM?po.p:(PLZH[po.p]||po.p);
+    return `<div class="dl-pol ${up?'up':'dn'}"><span class="dl-ar">${up?'▲':'▼'}</span><span class="dl-pp">${esc(pl)}</span><span>${esc(ENM?po.e:po.z)}</span></div>`; }).join('');
+  const deep=ENM?(gd.en||''):'';   // 深度正文目前仅英文；中文用主题+爻线+极性已足够丰富
   $('daily').innerHTML=`
     <div class="big">
       <div class="sub">${esc(label)}</div>
-      <div style="margin-top:4px"><span class="glyph">${v.glyph||'☉'}</span><span class="gname">${ENM?'Gate':'闸门'} ${sun.gate}.${sun.line} · ${esc(nm)}</span></div>
-      <div class="sub">${esc(ENM?(v.iching||''):((v.hex?v.hex+'卦 · ':'')+(v.iching||'')))}${lk?' · '+(ENM?'Line ':'')+sun.line+(ENM?' ':' 爻 · ')+esc(lk):''}</div>
-      <div class="kw">${esc(ENM?(v.keynote||''):(v.theme||v.keynote||''))}</div>
-      ${lmz?`<div class="kw" style="color:var(--sub)">${ENM?'Line '+sun.line:'第'+sun.line+'爻'}：${esc(lmz)}</div>`:''}
-      <div class="muted" style="margin-top:8px">${ENM?'☉ Sun gate sets the day’s collective theme. Other planets color the field.':'☉ 太阳所在闸门是今日的集体主题，其余行星为今日能量场染色。'}</div>
+      <div style="margin-top:5px"><span class="glyph">${v.glyph||'☉'}</span><span class="gname">${ENM?'Gate':'闸门'} ${sun.gate}.${sun.line} · ${esc(nm)}</span>${(ENM?'':v.nameEn)?` <span class="gname-en">${esc(v.nameEn)}</span>`:''}</div>
+      ${meta?`<div class="sub">${esc(meta)}</div>`:''}
+      ${theme?`<div class="dl-theme">${esc(theme)}</div>`:''}
+      <div class="dl-line">
+        <div class="dl-lh">${ENM?'Today’s line · Line '+sun.line:'今日爻线 · 第'+sun.line+'爻'}${lTitle?'「'+esc(lTitle)+'」':''}</div>
+        ${lMean?`<div class="dl-lm">${esc(lMean)}</div>`:''}
+        ${polHtml}
+      </div>
+      ${deep?`<div class="dl-deep"><div class="dl-dh">${ENM?'Gate in depth':'闸门深读'}</div><p>${esc(deep)}</p></div>`:''}
+      <div class="muted" style="margin-top:10px">${ENM?'☉ Sun gate sets the day’s collective theme. Other planets color the field.':'☉ 太阳所在闸门是今日的集体主题，其余行星为今日能量场染色。'}</div>
     </div>`;
   $('dailyTable').innerHTML=`
     <table class="ptable"><tr><th>${ENM?'Planet':'行星'}</th><th>${ENM?'Gate.Line':'闸门.爻'}</th><th>${ENM?'Gate name':'闸门名'}</th></tr>${rows}</table>
