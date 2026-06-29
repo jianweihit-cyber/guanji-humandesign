@@ -7,6 +7,8 @@
 <title>名人人类图 · 观己</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="stylesheet" href="hd.css" /><script src="theme.js" defer></script>
+<script type="importmap">{ "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }</script><!-- 后台 famous 名人前端实时算盘需懒加载引擎 -->
+
 <style>
   .cl-intro{margin:10px 2px 0;font-size:13px;line-height:1.7;color:var(--sub)}
   .cl-note{margin:6px 2px 0;font-size:12px;line-height:1.6;color:var(--sub);opacity:.92}
@@ -62,6 +64,7 @@
 <script src="i18n.js"></script>
 <script type="module">
 import { CELEBS } from '/src/hd-celebs.js';
+let ALL = CELEBS.slice();   // 静态库 + 后台 famous(实时算盘后并入)，渲染/筛选/计数都用 ALL
 const ENM = window.HDI18N && window.HDI18N.lang === 'en';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -101,7 +104,7 @@ $('head').innerHTML = ENM
 
 // 筛选栏
 function buildBar() {
-  const cats = CATS.map(c => `<span class="chip cat${state.cat === c.k ? ' on' : ''}" data-cat="${c.k}">${ENM ? c.en : c.zh}${c.k !== 'all' ? ` <span style="opacity:.7">${CELEBS.filter(x => x.cat === c.k).length}</span>` : ''}</span>`).join('');
+  const cats = CATS.map(c => `<span class="chip cat${state.cat === c.k ? ' on' : ''}" data-cat="${c.k}">${ENM ? c.en : c.zh}${c.k !== 'all' ? ` <span style="opacity:.7">${ALL.filter(x => x.cat === c.k).length}</span>` : ''}</span>`).join('');
   const tsel = `<select class="cl-tsel" id="tsel">${TYPES.map(t => `<option value="${esc(t.k)}"${state.type === t.k ? ' selected' : ''}>${ENM ? t.en : t.zh}</option>`).join('')}</select>`;
   const search = `<input class="cl-search" id="q" placeholder="${ENM ? 'Search name…' : '搜索姓名…'}" value="${esc(state.q)}" />`;
   $('bar').innerHTML = cats + tsel + search;
@@ -139,12 +142,12 @@ function card(c) {
 
 function render() {
   const q = state.q.trim().toLowerCase();
-  const list = CELEBS.filter(c =>
+  const list = ALL.filter(c =>
     (state.cat === 'all' || c.cat === state.cat) &&
     (state.type === 'all' || c.sum.type === state.type) &&
     (!q || (c.zh || '').toLowerCase().includes(q) || (c.en || '').toLowerCase().includes(q))
   );
-  $('count').textContent = ENM ? `${list.length} of ${CELEBS.length} people` : `共 ${list.length} / ${CELEBS.length} 位`;
+  $('count').textContent = ENM ? `${list.length} of ${ALL.length} people` : `共 ${list.length} / ${ALL.length} 位`;
   $('grid').innerHTML = list.length
     ? list.map(card).join('')
     : `<div class="cl-empty">${ENM ? 'No matches.' : '没有匹配的名人。'}</div>`;
@@ -156,6 +159,40 @@ $('foot').textContent = ENM
 
 buildBar();
 render();
+
+// —— 后台维护的名人(famous 集合，公开只读)：拉取后用引擎实时算盘，并入静态库一起展示 ——
+// 用户只能看(无任何编辑入口)；增删改一律在 PocketBase 后台 /_/ 由超管完成 → 前后端统一、防误操作。
+(async () => {
+  const API = 'https://cloud-hd.zaiyuxingzhe.com/api/collections/famous/records?perPage=500&sort=sort,zh';
+  let recs = [];
+  try { const r = await fetch(API); if (!r.ok) return; recs = (await r.json()).items || []; } catch (e) { return; }
+  const have = new Set(CELEBS.flatMap(c => [c.zh, c.en].filter(Boolean)));   // 与静态库同名则跳过(静态已精算)
+  const fresh = recs.filter(r => r && r.input && !have.has(r.zh) && (!r.en || !have.has(r.en)));
+  if (!fresh.length) return;
+  let gen;
+  try { gen = (await import('/src/chart.js')).generateChart; } catch (e) { return; }
+  let added = 0;
+  for (const r of fresh) {
+    try {
+      const c = await gen(r.input);
+      ALL.push({
+        id: 'fb_' + r.id, zh: r.zh, en: r.en || '', cat: r.cat || 'arts',
+        placeZh: r.placeZh || '', placeEn: r.placeEn || '', rodden: r.rodden || '', source: r.source || '',
+        blurbZh: r.blurbZh || '', blurbEn: r.blurbEn || '', input: r.input,
+        sum: {
+          type: c.type, typeZh: c.typeZh, authority: c.authority, authorityZh: c.authorityZh || '',
+          profile: c.profile.str, profileZh: c.profile.zh, definition: c.definitionZh, definitionZh: c.definitionZh,
+          cross: (c.incarnationCross && (c.incarnationCross.enName || c.incarnationCross.name)) || '',
+          crossZh: (c.incarnationCross && c.incarnationCross.zhName) || '',
+          gates: [...new Set([...c.personality, ...c.design].map(a => a.gate))].sort((x, y) => x - y),
+          channels: c.definedChannels.map(x => x.key),
+        },
+      });
+      added++;
+    } catch (e) { /* 算不出的条目跳过，不影响整页 */ }
+  }
+  if (added) { buildBar(); render(); }
+})();
 </script>
 </body>
 </html>
