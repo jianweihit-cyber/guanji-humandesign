@@ -60,6 +60,7 @@
   <div class="home-links">
     <a id="hL1" href="index.html"></a>
     <a id="hL2" href="mandala.html"></a>
+    <a id="hL5" href="dream.html"></a>
     <a id="hL3" href="learn.html"></a>
     <a id="hL4" href="celebs.html"></a>
   </div>
@@ -71,9 +72,9 @@
 (function(){
   var L=(window.HDI18N&&HDI18N.lang)||'zh-Hans';
   var D={
-    'zh-Hans':{ t:'观<span>己</span> · 人类图', glabel:'此刻流日 · 人类图', intro:'人类图融合易经、占星、脉轮与卡巴拉，用你出生的那一刻，绘成一张专属能量蓝图——照见你天生的决策方式与生命节奏。', cta:'照见自己 ›', l:['排盘','流日','学习·知识库','名人'], z:'再遇行者 · 观己', tag:'认识自己 · 自我探索 · 观己修心 · 知行合一', load:'正在绘制此刻的天象…' },
-    'zh-Hant':{ t:'觀<span>己</span> · 人類圖', glabel:'此刻流日 · 人類圖', intro:'人類圖融合易經、占星、脈輪與卡巴拉，用你出生的那一刻，繪成一張專屬能量藍圖——照見你天生的決策方式與生命節奏。', cta:'照見自己 ›', l:['排盤','流日','學習·知識庫','名人'], z:'再遇行者 · 觀己', tag:'認識自己 · 自我探索 · 觀己修心 · 知行合一', load:'正在繪製此刻的天象…' },
-    'en':{ t:'GuanJi · Human Design', glabel:'TODAY’S TRANSIT · HUMAN DESIGN', intro:'Human Design weaves together the I Ching, astrology, the chakras and the Kabbalah — turning the moment you were born into a personal energy blueprint that reveals how you’re built to decide and move through life.', cta:'See Yourself ›', l:['Chart','Transit','Learn','Celebrities'], z:'Zai Yu Xing Zhe · GuanJi', tag:'Know Yourself · Self-Discovery · Inner Cultivation', load:'Drawing the current sky…' }
+    'zh-Hans':{ t:'观<span>己</span> · 人类图', glabel:'此刻流日 · 人类图', intro:'人类图融合易经、占星、脉轮与卡巴拉，用你出生的那一刻，绘成一张专属能量蓝图——照见你天生的决策方式与生命节奏。', cta:'照见自己 ›', l:['排盘','流日','梦图','学习·知识库','名人'], z:'再遇行者 · 观己', tag:'认识自己 · 自我探索 · 观己修心 · 知行合一', load:'正在绘制此刻的天象…' },
+    'zh-Hant':{ t:'觀<span>己</span> · 人類圖', glabel:'此刻流日 · 人類圖', intro:'人類圖融合易經、占星、脈輪與卡巴拉，用你出生的那一刻，繪成一張專屬能量藍圖——照見你天生的決策方式與生命節奏。', cta:'照見自己 ›', l:['排盤','流日','夢圖','學習·知識庫','名人'], z:'再遇行者 · 觀己', tag:'認識自己 · 自我探索 · 觀己修心 · 知行合一', load:'正在繪製此刻的天象…' },
+    'en':{ t:'GuanJi · Human Design', glabel:'TODAY’S TRANSIT · HUMAN DESIGN', intro:'Human Design weaves together the I Ching, astrology, the chakras and the Kabbalah — turning the moment you were born into a personal energy blueprint that reveals how you’re built to decide and move through life.', cta:'See Yourself ›', l:['Chart','Transit','Dream','Learn','Celebrities'], z:'Zai Yu Xing Zhe · GuanJi', tag:'Know Yourself · Self-Discovery · Inner Cultivation', load:'Drawing the current sky…' }
   };
   var d=D[L]||D['zh-Hans'];
   document.getElementById('hT').innerHTML=d.t;
@@ -83,8 +84,9 @@
   document.getElementById('hCta').textContent=d.cta;
   document.getElementById('hL1').textContent=d.l[0];
   document.getElementById('hL2').textContent=d.l[1];
-  document.getElementById('hL3').textContent=d.l[2];
-  document.getElementById('hL4').textContent=d.l[3];
+  document.getElementById('hL5').textContent=d.l[2];   // 梦图(新)
+  document.getElementById('hL3').textContent=d.l[3];
+  document.getElementById('hL4').textContent=d.l[4];
   document.getElementById('hZ').textContent=d.z;
   document.getElementById('hTag').textContent=d.tag;
   document.title=(L==='en'?'GuanJi · Human Design':L==='zh-Hant'?'觀己 · 人類圖':'观己 · 人类图');

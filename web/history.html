@@ -57,6 +57,7 @@
     <a class="tab on" href="history.html">记录</a>
     <a class="tab" href="solve.html">反推</a>
     <a class="tab" href="connect.html">合盘</a>
+    <a class="tab" href="dream.html">梦图</a>
     <a class="tab" href="learn.html">学习 · 知识库</a>
     <a class="tab" href="celebs.html">名人</a>
   </div>
@@ -128,6 +129,7 @@ function render(){
         <span class="chip">${esc(r.sum.authority)}</span>
       </div>
       <button class="btn-sm noteBtn${(r.note||r.noteImg)?' has':''}" title="${L==='en'?'Note':L==='zh-Hant'?'備註':'备注'}">📝</button>
+      <a class="btn-sm" href="dream.html?load=${r.id}" title="${L==='en'?'DreamRave':L==='zh-Hant'?'夢圖':'梦图'}">🌙</a>
       <a class="btn-sm" href="index.html?load=${r.id}">${L==='en'?'Edit':L==='zh-Hant'?'編輯':'编辑'}</a>
       <button class="btn-sm danger del">删除</button>
     </div>`).join('') || (linkRows().length ? '' : '<p class="muted" style="margin-top:16px">暂无记录，去排盘页生成并保存</p>');  // 排盘空但有匹配的合盘/Penta 时不显占位

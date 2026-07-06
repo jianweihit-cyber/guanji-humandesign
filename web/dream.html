@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<script>/*i18n-foucguard*/(function(){try{var _t=localStorage.getItem("hd_theme");if(_t)document.documentElement.setAttribute("data-theme",_t);var n=(navigator.language||"").toLowerCase(),q=new URLSearchParams(location.search).get("lang"),L=(["zh-Hans","zh-Hant","en"].indexOf(q)>=0?q:"")||localStorage.getItem("hd_lang")||(n.indexOf("zh")===0?(/^zh-(tw|hk|mo|hant)/.test(n)?"zh-Hant":"zh-Hans"):"en");if(L!=="zh-Hans"&&!/^\/(cn|en|tc)\//.test(location.pathname)){var d=document.documentElement;d.style.visibility="hidden";setTimeout(function(){d.style.visibility=""},1500);}}catch(e){}})();</script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>梦图 · 观己</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg" />
+<link rel="stylesheet" href="hd.css" /><script src="theme.js" defer></script>
+<script type="importmap">
+{ "imports": { "swisseph-wasm": "/node_modules/swisseph-wasm/src/swisseph.js" } }
+</script>
+<link rel="modulepreload" href="/src/chart.js" />
+<link rel="modulepreload" href="/src/hd-dream.js" />
+<link rel="modulepreload" href="/src/ephemeris.js" />
+<link rel="modulepreload" href="/src/hd-core.js" />
+<link rel="modulepreload" href="/src/hd-data.js" />
+<style>
+  .dr-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-top:14px}
+  .dr-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .dr-head h2{margin:0;font-size:20px}
+  .dr-type{font-size:14.5px;color:var(--sub)}
+  .dr-type b{color:var(--li)}
+  .dr-type .arr{margin:0 6px;color:var(--gold-d)}
+  svg.dreamgraph{width:100%;max-width:560px;height:auto;display:block;margin:14px auto 4px}
+  .fieldbox{margin-top:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .fieldbox .fh{background:var(--surface-2);padding:8px 13px;font-weight:700;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+  .fieldbox .fh .fe{font-weight:400;font-size:12px;color:var(--sub)}
+  .fieldbox .fb{padding:6px 13px 10px}
+  .fieldbox .fr{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:14.5px;font-variant-numeric:tabular-nums}
+  .fieldbox .fr .gl{min-width:44px;font-weight:700}
+  .fieldbox .fr.dz .gl{color:var(--cinnabar)}
+  .fieldbox .fr.pz .gl{color:var(--ink-pers)}
+  .fieldbox .fr .pn{color:var(--sub);font-size:13px}
+  .fieldbox .fr .gn{flex:1;text-align:right;color:var(--sub);font-size:12.5px}
+  .fieldbox .empty{color:var(--sub);font-size:12.5px;padding:6px 0 8px}
+  .dr-meta{font-size:12.5px;color:var(--sub);margin-top:10px;line-height:1.7}
+  .dr-intro{font-size:13px;color:var(--sub);line-height:1.8;margin-top:8px}
+  .dr-chan{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .pickrow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:8px}
+  .pickrow select{font-size:15px;padding:8px 10px;border:1px solid var(--field-border);border-radius:10px;background:var(--card);color:var(--ink);max-width:100%}
+  .disc{font-size:11.5px;color:var(--sub);opacity:.85;margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="logo.svg" class="brandlogo" alt="" />观<span class="li">己</span> · 人类图 <span class="sub" data-noi18n id="subT"></span></div>
+  </header>
+  <div class="tabs">
+    <a class="tab" href="home.html">首页</a>
+    <a class="tab" href="index.html">排盘</a>
+    <a class="tab" href="mandala.html">流日</a>
+    <a class="tab" href="history.html">记录</a>
+    <a class="tab" href="solve.html">反推</a>
+    <a class="tab" href="connect.html">合盘</a>
+    <a class="tab on" href="dream.html">梦图</a>
+    <a class="tab" href="learn.html">学习 · 知识库</a>
+    <a class="tab" href="celebs.html">名人</a>
+  </div>
+
+  <div class="form" data-noi18n>
+    <div id="drIntro" class="dr-intro"></div>
+    <div class="pickrow">
+      <div class="field" style="min-width:210px;flex:1;max-width:340px"><label id="pickLb"></label><select id="recPick"></select></div>
+      <span id="orLb" class="muted" style="font-size:12.5px"></span>
+    </div>
+    <div class="frow" style="margin-top:10px;align-items:flex-end">
+      <div class="field yr"><label id="lbY"></label><input id="y" type="number" value="1990" /></div>
+      <div class="field in"><label id="lbMo"></label><input id="mo" type="number" min="1" max="12" value="3" /></div>
+      <div class="field in"><label id="lbD"></label><input id="d" type="number" min="1" max="31" value="5" /></div>
+      <div class="field in"><label id="lbH"></label><input id="h" type="number" min="0" max="23" value="13" /></div>
+      <div class="field in"><label id="lbMi"></label><input id="mi" type="number" min="0" max="59" value="30" /></div>
+      <div class="field" style="min-width:180px"><label id="lbTz"></label><input id="tz" value="Asia/Shanghai" /></div>
+    </div>
+    <div class="frow" style="margin-top:12px;align-items:center;gap:10px">
+      <button class="btn" id="go"></button>
+      <span class="status" id="status" style="margin:0"></span>
+    </div>
+  </div>
+
+  <div id="result" hidden data-noi18n>
+    <div class="dr-card">
+      <div class="dr-head"><h2 id="rName"></h2><span class="dr-type" id="rType"></span></div>
+      <svg class="dreamgraph" id="dg" viewBox="0 0 560 330" aria-label="dream bodygraph"></svg>
+      <div class="dr-chan" id="rChan"></div>
+      <div id="rFields"></div>
+      <div class="dr-meta" id="rMeta"></div>
+    </div>
+    <div class="disc" id="rDisc"></div>
+  </div>
+</div>
+
+<script src="hd-render.js"></script>
+<script src="hd-store.js"></script>
+<script src="i18n.js"></script>
+<script type="module">
+import { generateChart } from '/src/chart.js';
+import { generateDreamChart, DREAM_FIELDS, DREAM_CHANNELS } from '/src/hd-dream.js';
+import { GATES_KB } from '/src/hd-knowledge.js';
+
+const $=id=>document.getElementById(id);
+const I=window.HDI18N, L=(I&&I.lang)||'zh-Hans';
+const T=(zh,en,tw)=>L==='en'?en:L==='zh-Hant'?(tw||(I&&I.s2t?I.s2t(zh):zh)):zh;
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// —— 静态文案（本页动态渲染，data-noi18n 防运行时二次翻译）——
+$('subT').textContent=T('梦图 DreamRave','DreamRave','夢圖 DreamRave');
+$('drIntro').innerHTML=T(
+  '🌙 <b>梦图</b>：入睡后，你的能量场切换到一张更简化的「梦境图」——仅 5 个中心、15 个闸门在场，分属 <b>光之场 · 地球平面 · 魔域</b> 三个梦境场域。它揭示你睡眠中如何接收与被环境制约。个性取出生时刻，设计取出生前「月亮回退 88°」（约 5.9 天）——经官方参考盘逐项校准。',
+  '🌙 <b>DreamRave</b>: in sleep your energy field collapses into a simplified dream chart — only 5 centers and 15 gates, grouped into the <b>Light Field · Earth Plane · Demon Realm</b>. Personality = birth moment; Design = the Moon 88° before birth (~5.9 days) — calibrated item-by-item against official reference charts.',
+  '🌙 <b>夢圖</b>：入睡後，你的能量場切換到一張更簡化的「夢境圖」——僅 5 個中心、15 個閘門在場，分屬 <b>光之場 · 地球平面 · 魔域</b> 三個夢境場域。它揭示你睡眠中如何接收與被環境制約。個性取出生時刻，設計取出生前「月亮回退 88°」（約 5.9 天）——經官方參考盤逐項校準。');
+$('pickLb').textContent=T('从记录选择','From records','從記錄選擇');
+$('orLb').textContent=T('…或在下方手动输入出生信息','…or enter birth data below','…或在下方手動輸入出生資訊');
+$('lbY').textContent=T('年','Year','年'); $('lbMo').textContent=T('月','Month','月'); $('lbD').textContent=T('日','Day','日');
+$('lbH').textContent=T('时','Hr','時'); $('lbMi').textContent=T('分','Min','分');
+$('lbTz').textContent=T('时区(IANA)','Timezone (IANA)','時區(IANA)');
+$('go').textContent=T('生成梦图','Generate DreamRave','生成夢圖');
+
+// —— 记录下拉 ——
+const recs=(window.HDStore&&HDStore.all&&HDStore.all())||[];
+const pick=$('recPick');
+pick.innerHTML='<option value="">'+T('— 选择已保存的人 —','— pick a saved person —','— 選擇已保存的人 —')+'</option>'
+  +recs.map(r=>`<option value="${esc(r.id)}">${esc(r.name||'—')} · ${r.input.year}-${String(r.input.month).padStart(2,'0')}-${String(r.input.day).padStart(2,'0')}</option>`).join('');
+pick.onchange=()=>{ const r=recs.find(x=>x.id===pick.value); if(!r)return;
+  $('y').value=r.input.year; $('mo').value=r.input.month; $('d').value=r.input.day;
+  $('h').value=r.input.hour; $('mi').value=r.input.minute; $('tz').value=r.input.tz||'Asia/Shanghai';
+  curName=r.name||''; run(); };
+let curName='';
+
+// —— 梦境 bodygraph（横向官方风格：脾▽顶部 · 根□ 荐骨○ G◇ 喉□ 横排）——
+const POS={ Spleen:{cx:265,cy:70}, Root:{cx:88,cy:225}, Sacral:{cx:205,cy:225}, G:{cx:330,cy:225}, Throat:{cx:462,cy:225} };
+const GATE_AT={ 28:[238,52],57:[292,52],50:[265,92], 38:[62,196],53:[114,196],19:[88,258], 27:[182,203],42:[228,203],5:[205,252], 15:[330,196],1:[330,252], 20:[436,196],62:[488,196],8:[436,256],12:[488,256] };
+const CH_PATH={ '1-8':[[352,238],[440,242]], '5-15':[[227,242],[308,232]], '20-57':[[440,188],[300,60]], '27-50':[[192,196],[252,100]], '28-38':[[232,60],[70,188]], '42-53':[[228,196],[122,204]] };
+function drawDream(c){
+  const svg=$('dg'); svg.innerHTML='';
+  const NS='http://www.w3.org/2000/svg';
+  const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const pSet=new Set(c.personality.map(a=>a.gate)), dSet=new Set(c.design.map(a=>a.gate));
+  const src=g=>{const p=pSet.has(g),d=dSet.has(g);return p&&d?'both':p?'per':d?'des':null;};
+  const CINN='var(--cinnabar)', INK='var(--inkline)', BASE='#EFE7D8';
+  // 通道（白底粗线 + 两端半段按激活染色）
+  for(const [key,[[x1,y1],[x2,y2]]] of Object.entries(CH_PATH)){
+    const [gA,gB]=key.split('-').map(Number);
+    svg.appendChild(el('line',{x1,y1,x2,y2,stroke:BASE,'stroke-width':11,'stroke-linecap':'round'}));
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
+    const seg=(xa,ya,xb,yb,g)=>{ const s=src(g); if(!s)return;
+      if(s==='both'){ svg.appendChild(el('line',{x1:xa,y1:ya,x2:xb,y2:yb,stroke:INK,'stroke-width':7,'stroke-linecap':'round'}));
+        svg.appendChild(el('line',{x1:xa,y1:ya,x2:xb,y2:yb,stroke:CINN,'stroke-width':7,'stroke-linecap':'round','stroke-dasharray':'6 6'})); }
+      else svg.appendChild(el('line',{x1:xa,y1:ya,x2:xb,y2:yb,stroke:s==='per'?INK:CINN,'stroke-width':7,'stroke-linecap':'round'})); };
+    seg(x1,y1,mx,my,gA); seg(mx,my,x2,y2,gB);
+  }
+  // 中心形状（定义=填色，未定义=白）
+  const defd=new Set(c.definedCenters);
+  const fill=k=>defd.has(k)?({Throat:'#C9A24B',G:'#F7F1E2',Sacral:'#B8452F',Spleen:'#B08B57',Root:'#B08B57'}[k]):'var(--card)';
+  svg.appendChild(el('polygon',{points:'215,38 315,38 265,112',fill:fill('Spleen'),stroke:'var(--line-open)','stroke-width':2}));   // 脾▽
+  svg.appendChild(el('rect',{x:40,y:182,width:96,height:86,rx:10,fill:fill('Root'),stroke:'var(--line-open)','stroke-width':2}));   // 根□
+  svg.appendChild(el('circle',{cx:205,cy:225,r:46,fill:fill('Sacral'),stroke:'var(--line-open)','stroke-width':2}));                 // 荐骨○
+  svg.appendChild(el('polygon',{points:'330,180 376,225 330,270 284,225',fill:fill('G'),stroke:'var(--line-open)','stroke-width':2}));// G◇
+  svg.appendChild(el('rect',{x:414,y:182,width:96,height:86,rx:10,fill:fill('Throat'),stroke:'var(--line-open)','stroke-width':2})); // 喉□
+  // 闸门号 + 激活徽标
+  for(const [g,[x,y]] of Object.entries(GATE_AT)){
+    const s=src(+g);
+    if(s){ const c1=el('circle',{cx:x,cy:y,r:9.5,fill:s==='per'?INK:s==='des'?CINN:INK}); svg.appendChild(c1);
+      if(s==='both') svg.appendChild(el('path',{d:`M ${x} ${y-9.5} A 9.5 9.5 0 0 1 ${x} ${y+9.5} Z`,fill:CINN}));
+      const tx=el('text',{x,y:y+3.5,'text-anchor':'middle','font-size':10,fill:'#fff','font-weight':'700'}); tx.textContent=g; svg.appendChild(tx);
+    } else { const tx=el('text',{x,y:y+3.5,'text-anchor':'middle','font-size':10.5,fill:'var(--sub)'}); tx.textContent=g; svg.appendChild(tx); }
+  }
+  // 中心小标签
+  const CN={Spleen:T('脾','Spleen','脾'),Root:T('根','Root','根'),Sacral:T('荐骨','Sacral','薦骨'),G:'G',Throat:T('喉','Throat','喉')};
+  for(const [k,p] of Object.entries(POS)){ const t=el('text',{x:p.cx,y:k==='Spleen'?26:296,'text-anchor':'middle','font-size':10.5,fill:'var(--sub)'}); t.textContent=CN[k]; svg.appendChild(t); }
+}
+
+// —— 生成 ——
+const TYPE_ZH={Generator:'生产者',Projector:'投射者',Manifestor:'显示者',Reflector:'反映者','Manifesting Generator':'显示生产者'};
+const TYPE_TW={Generator:'生產者',Projector:'投射者',Manifestor:'顯示者',Reflector:'反映者','Manifesting Generator':'顯示生產者'};
+async function run(){
+  const input={ year:+$('y').value, month:+$('mo').value, day:+$('d').value, hour:+$('h').value, minute:+$('mi').value, tz:$('tz').value.trim()||'Asia/Shanghai' };
+  if(!(input.year>1700&&input.year<2200)) return $('status').textContent=T('请检查年份','Check the year','請檢查年份');
+  $('status').textContent=T('计算中…','Calculating…','計算中…');
+  try{
+    const [wake,dream]=await Promise.all([generateChart(input), generateDreamChart(input)]);
+    render(wake,dream);
+    $('status').textContent='';
+  }catch(e){ $('status').textContent=T('计算失败：','Failed: ','計算失敗：')+((e&&e.message)||''); }
+}
+function render(wake,dream){
+  $('result').hidden=false;
+  $('rName').textContent=curName?curName+' (Dream)':T('梦图 · Dream','DreamRave','夢圖 · Dream');
+  const wt=L==='en'?wake.type:(L==='zh-Hant'?TYPE_TW[wake.type]:TYPE_ZH[wake.type])||wake.type;
+  const dt=L==='en'?dream.type:(L==='zh-Hant'?TYPE_TW[dream.type]:TYPE_ZH[dream.type])||dream.type;
+  $('rType').innerHTML=`${esc(wt)}<span class="arr">→</span><b>${esc(dt)}</b>`;
+  drawDream(dream);
+  // 成立的梦境通道
+  $('rChan').innerHTML=dream.channels.length
+    ? dream.channels.map(ch=>`<span class="chip"><b>${ch.gates[0]}-${ch.gates[1]}</b> ${esc(L==='en'?(ch.en||''):(L==='zh-Hant'&&I.s2t?I.s2t(ch.zh||''):(ch.zh||'')))}</span>`).join('')
+    : `<span class="muted">${T('无成立的梦境通道（全开放 · 反映者式睡眠）','No defined dream channels (fully open — reflector-like sleep)','無成立的夢境通道（全開放 · 反映者式睡眠）')}</span>`;
+  // 三场分组
+  const gname=g=>{ const kb=GATES_KB&&GATES_KB[g]; if(!kb)return''; return L==='en'?(kb.nameEn||''):(L==='zh-Hant'&&I.s2t?I.s2t(kb.name||''):(kb.name||'')); };
+  $('rFields').innerHTML=dream.fields.map(f=>{
+    const nm=L==='en'?f.en:L==='zh-Hant'?f.tw:f.zh;
+    const rows=f.acts.map(a=>`<div class="fr ${a.side==='P'?'pz':'dz'}"><span class="gl">${a.gate}.${a.line}</span><span class="pn">${a.glyph} ${esc(L==='en'?a.en:a.zh)}${a.side==='D'?T('（设计）',' (Design)','（設計）'):T('（个性）',' (Personality)','（個性）')}</span><span class="gn">${esc(gname(a.gate))}</span></div>`).join('');
+    return `<div class="fieldbox"><div class="fh"><span>${esc(nm)}</span><span class="fe">${T('闸门','Gates','閘門')} ${f.gates.join('·')}</span></div><div class="fb">${rows||`<div class="empty">${T('此场无激活','No activations in this field','此場無激活')}</div>`}</div></div>`;
+  }).join('');
+  const dd=dream.designDaysBefore.toFixed(1);
+  $('rMeta').textContent=T(`梦图设计时刻 = 出生前 ${dd} 天（月亮回退 88°）· 个性 = 出生时刻 · 权威：`,`Dream design = ${dd} days before birth (Moon −88°) · Personality = birth moment · Authority: `,`夢圖設計時刻 = 出生前 ${dd} 天（月亮回退 88°）· 個性 = 出生時刻 · 權威：`)
+    +(L==='en'?dream.authority:dream.authorityZh)+' · '+T('定义：','Definition: ','定義：')+(L==='en'?dream.definition:dream.definitionZh);
+  $('rDisc').textContent=T('本内容仅供自我探索与娱乐参考，不构成预测、医疗或任何专业建议。梦图算法经官方参考盘逐项校准。','For self-exploration & entertainment only — not prediction, medical or any professional advice. DreamRave algorithm calibrated item-by-item against official reference charts.','本內容僅供自我探索與娛樂參考，不構成預測、醫療或任何專業建議。夢圖算法經官方參考盤逐項校準。');
+}
+$('go').onclick=run;
+// ?load=cid 从记录页带入
+const q=new URLSearchParams(location.search), loadId=q.get('load');
+if(loadId){ const r=recs.find(x=>x.id===loadId); if(r){ pick.value=r.id; pick.onchange(); } }
+</script>
+</body>
+</html>

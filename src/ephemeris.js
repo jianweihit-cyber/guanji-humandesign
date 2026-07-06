@@ -19,11 +19,13 @@ export function setEphemerisMode(mode) { MODE = mode; }
 export function setNodeType(t) { NODE = t; }
 export function getConfig() { return { mode: MODE, node: NODE }; }
 
+let sweP = null;   // 初始化 Promise 缓存：并发调用共享同一次 init（否则第二个调用拿到未就绪实例 → ccall undefined）
 export async function initEphemeris() {
-  if (swe) return swe;
-  swe = new SwissEph();
-  await swe.initSwissEph();
-  return swe;
+  if (!sweP) {
+    sweP = (async () => { const s = new SwissEph(); await s.initSwissEph(); swe = s; return s; })()
+      .catch((e) => { sweP = null; throw e; });   // 失败允许重试
+  }
+  return sweP;
 }
 
 export function degnorm(x) { return ((x % 360) + 360) % 360; }
