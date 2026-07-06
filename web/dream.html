@@ -22,6 +22,8 @@
   .dr-type{font-size:14.5px;color:var(--sub)}
   .dr-type b{color:var(--li)}
   .dr-type .arr{margin:0 6px;color:var(--gold-d)}
+  .sharebtn{margin-left:auto;font-size:12.5px;padding:6px 12px;border-radius:9px;border:1px solid var(--field-border);background:var(--card);color:var(--li);cursor:pointer;white-space:nowrap}
+  .sharebtn:active{transform:translateY(1px)}
   svg.dreamgraph{width:100%;max-width:560px;height:auto;display:block;margin:14px auto 4px}
   .fieldbox{margin-top:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
   .fieldbox .fh{background:var(--surface-2);padding:8px 13px;font-weight:700;font-size:14px;display:flex;justify-content:space-between;align-items:center}
@@ -97,7 +99,7 @@
 
   <div id="result" hidden data-noi18n>
     <div class="dr-card">
-      <div class="dr-head"><h2 id="rName"></h2><span class="dr-type" id="rType"></span></div>
+      <div class="dr-head"><h2 id="rName"></h2><span class="dr-type" id="rType"></span><button class="btn-sm sharebtn" id="shareBtn" hidden></button></div>
       <svg class="dreamgraph" id="dg" viewBox="0 0 560 330" aria-label="dream bodygraph"></svg>
       <div class="dr-chan" id="rChan"></div>
       <div id="rFields"></div>
@@ -204,6 +206,8 @@ async function run(){
 }
 function render(wake,dream){
   $('result').hidden=false;
+  lastWake=wake; lastDream=dream;
+  const sb=$('shareBtn'); sb.hidden=false; sb.textContent=T('⤓ 保存图片','⤓ Save image','⤓ 儲存圖片');
   $('rName').textContent=curName?curName+' (Dream)':T('梦图 · Dream','DreamRave','夢圖 · Dream');
   const wt=L==='en'?wake.type:(L==='zh-Hant'?TYPE_TW[wake.type]:TYPE_ZH[wake.type])||wake.type;
   const dt=L==='en'?dream.type:(L==='zh-Hant'?TYPE_TW[dream.type]:TYPE_ZH[dream.type])||dream.type;
@@ -238,6 +242,86 @@ function render(wake,dream){
   $('rDisc').textContent=T('本内容仅供自我探索与娱乐参考，不构成预测、医疗或任何专业建议。梦图算法经官方参考盘逐项校准。','For self-exploration & entertainment only — not prediction, medical or any professional advice. DreamRave algorithm calibrated item-by-item against official reference charts.','本內容僅供自我探索與娛樂參考，不構成預測、醫療或任何專業建議。夢圖算法經官方參考盤逐項校準。');
 }
 $('go').onclick=run;
+
+// —— 梦图分享卡（canvas 出 PNG：品牌头 + 类型转变 + 盘面 + 三场 keynote；iOS 走系统分享）——
+let lastDream=null, lastWake=null;
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+async function svgToImg(){
+  const svg=$('dg').cloneNode(true);
+  // SVG 内 var(--x) 脱离页面后失效 → 解析成实际色值
+  const walk=n=>{ if(n.nodeType!==1) return; for(const at of ['fill','stroke']){ const v=n.getAttribute&&n.getAttribute(at); if(v&&v.startsWith('var(')){ n.setAttribute(at, cssVar(v.slice(4,-1))||'#999'); } } for(const c of n.childNodes) walk(c); };
+  walk(svg);
+  svg.setAttribute('width','1120'); svg.setAttribute('height','660');
+  const blob=new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml'});
+  const url=URL.createObjectURL(blob);
+  const img=new Image();
+  await new Promise((ok,no)=>{ img.onload=ok; img.onerror=no; img.src=url; });
+  URL.revokeObjectURL(url);
+  return img;
+}
+async function shareDream(){
+  if(!lastDream) return;
+  const W=1000, pad=56; const c=document.createElement('canvas');
+  // 预算高度：头部 210 + 盘面 590 + 通道行 + 三场行高 + 底部
+  const fieldRows=lastDream.fields.reduce((n,f)=>n+Math.max(f.acts.length,1),0);
+  const H=210+590+70+lastDream.fields.length*64+fieldRows*44+150;
+  c.width=W; c.height=H;
+  const x=c.getContext('2d');
+  // 底色（固定离卦暖，分享卡统一品牌观感）
+  x.fillStyle='#FBF6EE'; x.fillRect(0,0,W,H);
+  x.fillStyle='#A8321F'; x.fillRect(0,0,W,10);
+  const zhF='-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif';
+  // 头部
+  x.fillStyle='#2B2620'; x.font='700 44px '+zhF; x.textAlign='center';
+  x.fillText((curName?curName+' · ':'')+T('梦图','DreamRave','夢圖'),W/2,96);
+  const wt=L==='en'?lastWake.type:(L==='zh-Hant'?TYPE_TW[lastWake.type]:TYPE_ZH[lastWake.type])||lastWake.type;
+  const dt=L==='en'?lastDream.type:(L==='zh-Hant'?TYPE_TW[lastDream.type]:TYPE_ZH[lastDream.type])||lastDream.type;
+  x.font='400 30px '+zhF; x.fillStyle='#8A7F70';
+  x.fillText(wt+'  →  '+dt+'   ·   '+T('睡眠中的能量蓝图','Your energy blueprint in sleep','睡眠中的能量藍圖'),W/2,150);
+  x.strokeStyle='#ECE3D2'; x.beginPath(); x.moveTo(pad,182); x.lineTo(W-pad,182); x.stroke();
+  // 盘面
+  try{ const img=await svgToImg(); x.drawImage(img,(W-940)/2,210,940,553); }catch(e){}
+  let y=210+590;
+  // 通道
+  x.font='600 26px '+zhF; x.fillStyle='#A8321F'; x.textAlign='left';
+  const chs=lastDream.channels.map(ch=>ch.gates[0]+'-'+ch.gates[1]).join(' · ');
+  x.fillText(T('梦境通道：','Dream channels: ','夢境通道：')+(chs||T('无（全开放）','none (fully open)','無（全開放）')),pad,y); y+=56;
+  // 三场
+  const zt2=s=>L==='zh-Hant'&&I.s2t?I.s2t(s):s;
+  for(const f of lastDream.fields){
+    x.font='700 28px '+zhF; x.fillStyle='#2B2620';
+    x.fillText((L==='en'?f.en:L==='zh-Hant'?f.tw:f.zh),pad,y+14); y+=58;
+    if(!f.acts.length){ x.font='400 24px '+zhF; x.fillStyle='#B9AE9A'; x.fillText(T('此场无激活','No activations','此場無激活'),pad+24,y); y+=44; }
+    for(const a of f.acts){
+      const g=DREAM_GATE_KB[a.gate]||{}, l=DREAM_LINE_KB[a.line]||{};
+      x.font='700 26px '+zhF; x.fillStyle=a.side==='D'?'#C0392B':'#23201B';
+      x.fillText(a.gate+'.'+a.line,pad+24,y);
+      x.font='600 26px '+zhF; x.fillStyle='#9A6B1F';
+      x.fillText(L==='en'?`${g.ke||''}·${l.ke||''}`:zt2(`${g.k||''}·${l.k||''}`),pad+130,y);
+      x.font='400 24px '+zhF; x.fillStyle='#8A7F70';
+      x.fillText(a.glyph+' '+(L==='en'?a.en:zt2(a.zh))+(a.side==='D'?T('（设计）',' (Design)','（設計）'):T('（个性）',' (Personality)','（個性）')),pad+400,y);
+      y+=44;
+    }
+    y+=6;
+  }
+  // 底部落款
+  x.strokeStyle='#ECE3D2'; x.beginPath(); x.moveTo(pad,y+10); x.lineTo(W-pad,y+10); x.stroke();
+  x.textAlign='center'; x.font='600 26px '+zhF; x.fillStyle='#A8321F';
+  x.fillText(T('观己 · 人类图','GuanJi · Human Design','觀己 · 人類圖'),W/2,y+62);
+  x.font='400 22px '+zhF; x.fillStyle='#B9AE9A';
+  x.fillText('humandesign.zaiyuxingzhe.com',W/2,y+100);
+  // 导出：iOS 优先系统分享(文件)，否则下载
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  const fname='guanji-dreamrave-'+(curName||'chart')+'.png';
+  try{
+    const file=new File([blob],fname,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; }
+  }catch(e){ if(e&&e.name==='AbortError') return; }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+$('shareBtn').onclick=()=>{ shareDream().catch(()=>{ $('status').textContent=T('出图失败，请重试','Export failed, try again','出圖失敗，請重試'); }); };
+
 // ?load=cid 从记录页带入
 const q=new URLSearchParams(location.search), loadId=q.get('load');
 if(loadId){ const r=recs.find(x=>x.id===loadId); if(r){ pick.value=r.id; pick.onchange(); } }
