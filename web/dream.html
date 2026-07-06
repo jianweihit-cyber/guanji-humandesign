@@ -33,6 +33,22 @@
   .fieldbox .fr.pz .gl{color:var(--ink-pers)}
   .fieldbox .fr .pn{color:var(--sub);font-size:13px}
   .fieldbox .fr .gn{flex:1;text-align:right;color:var(--sub);font-size:12.5px}
+  .fieldbox .fr .kn{font-weight:650;color:var(--gold-d)}
+  .fieldbox .fdesc{padding:8px 13px 0;font-size:12.5px;color:var(--sub);line-height:1.65}
+  .fscan{border-top:1px dashed var(--border);padding:6px 13px 10px}
+  .fscan summary{cursor:pointer;font-size:12.5px;color:var(--li);padding:4px 0;user-select:none}
+  .sg{padding:7px 0 5px;border-bottom:1px dashed var(--border)}
+  .sg:last-child{border-bottom:none}
+  .sg-h{font-size:13.5px}
+  .sg-h b{font-variant-numeric:tabular-nums;color:var(--ink-pers)}
+  .sg.on .sg-h b{color:var(--li)}
+  .sg-on{margin-left:6px;font-size:11px;color:var(--li);border:1px solid var(--li);border-radius:5px;padding:0 5px;vertical-align:1px}
+  .portal{margin-left:6px;font-size:11px;color:var(--gold-d);border:1px solid var(--gold);border-radius:5px;padding:0 5px;vertical-align:1px;cursor:help}
+  .sg-d{font-size:12.5px;color:var(--sub);line-height:1.6;margin-top:2px}
+  #rTips{margin-top:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
+  #rTips .fh{background:var(--surface-2);padding:8px 13px;font-weight:700;font-size:14px}
+  #rTips .tip{padding:5px 13px;font-size:12.5px;color:var(--sub);line-height:1.7}
+  #rTips .tip:last-child{padding-bottom:11px}
   .fieldbox .empty{color:var(--sub);font-size:12.5px;padding:6px 0 8px}
   .dr-meta{font-size:12.5px;color:var(--sub);margin-top:10px;line-height:1.7}
   .dr-intro{font-size:13px;color:var(--sub);line-height:1.8;margin-top:8px}
@@ -87,6 +103,7 @@
       <div id="rFields"></div>
       <div class="dr-meta" id="rMeta"></div>
     </div>
+    <div id="rTips"></div>
     <div class="disc" id="rDisc"></div>
   </div>
 </div>
@@ -98,6 +115,7 @@
 import { generateChart } from '/src/chart.js';
 import { generateDreamChart, DREAM_FIELDS, DREAM_CHANNELS } from '/src/hd-dream.js';
 import { GATES_KB } from '/src/hd-knowledge.js';
+import { DREAM_GATE_KB, DREAM_LINE_KB, DREAM_FIELD_KB, DREAM_PORTALS, DREAM_TIPS } from '/src/hd-dream-kb.js';
 
 const $=id=>document.getElementById(id);
 const I=window.HDI18N, L=(I&&I.lang)||'zh-Hans';
@@ -195,13 +213,25 @@ function render(wake,dream){
   $('rChan').innerHTML=dream.channels.length
     ? dream.channels.map(ch=>`<span class="chip"><b>${ch.gates[0]}-${ch.gates[1]}</b> ${esc(L==='en'?(ch.en||''):(L==='zh-Hant'&&I.s2t?I.s2t(ch.zh||''):(ch.zh||'')))}</span>`).join('')
     : `<span class="muted">${T('无成立的梦境通道（全开放 · 反映者式睡眠）','No defined dream channels (fully open — reflector-like sleep)','無成立的夢境通道（全開放 · 反映者式睡眠）')}</span>`;
-  // 三场分组
-  const gname=g=>{ const kb=GATES_KB&&GATES_KB[g]; if(!kb)return''; return L==='en'?(kb.nameEn||''):(L==='zh-Hant'&&I.s2t?I.s2t(kb.name||''):(kb.name||'')); };
+  // 三场分组（官方 keynote 组合「门·爻」+ 场解说 + 场内 15 门速览，内容库 hd-dream-kb 原创改写）
+  const zt=s=>L==='zh-Hant'&&I.s2t?I.s2t(s):s;                       // 简→繁
+  const gkb=g=>DREAM_GATE_KB[g]||{}, lkb=l=>DREAM_LINE_KB[l]||{};
+  const kn=(g,l)=>L==='en'?`${gkb(g).ke||''}·${lkb(l).ke||''}`:zt(`${gkb(g).k||''}·${lkb(l).k||''}`);   // 恐惧·秘密 / Fear·Secrets
+  const actGates=new Set([...dream.personality.map(a=>a.gate),...dream.design.map(a=>a.gate)]);
   $('rFields').innerHTML=dream.fields.map(f=>{
     const nm=L==='en'?f.en:L==='zh-Hant'?f.tw:f.zh;
-    const rows=f.acts.map(a=>`<div class="fr ${a.side==='P'?'pz':'dz'}"><span class="gl">${a.gate}.${a.line}</span><span class="pn">${a.glyph} ${esc(L==='en'?a.en:a.zh)}${a.side==='D'?T('（设计）',' (Design)','（設計）'):T('（个性）',' (Personality)','（個性）')}</span><span class="gn">${esc(gname(a.gate))}</span></div>`).join('');
-    return `<div class="fieldbox"><div class="fh"><span>${esc(nm)}</span><span class="fe">${T('闸门','Gates','閘門')} ${f.gates.join('·')}</span></div><div class="fb">${rows||`<div class="empty">${T('此场无激活','No activations in this field','此場無激活')}</div>`}</div></div>`;
+    const fd=DREAM_FIELD_KB[f.k]; const fdesc=fd?(L==='en'?fd.en:zt(fd.zh)):'';
+    const rows=f.acts.map(a=>`<div class="fr ${a.side==='P'?'pz':'dz'}"><span class="gl">${a.gate}.${a.line}</span><span class="kn">${esc(kn(a.gate,a.line))}</span><span class="pn">${a.glyph} ${esc(L==='en'?a.en:a.zh)}${a.side==='D'?T('（设计）',' (Design)','（設計）'):T('（个性）',' (Personality)','（個性）')}</span></div>`).join('');
+    const scan=f.gates.map(g=>{ const kb=gkb(g); const on=actGates.has(g); const portal=DREAM_PORTALS[g];
+      return `<div class="sg${on?' on':''}"><div class="sg-h"><b>${g}</b> ${esc(L==='en'?kb.ke:zt(kb.k))}${portal?` <span class="portal" title="${T('梦桥门：夜间印象经此桥入清醒端 '+portal+' 门','Portal bridge — night impressions cross here to waking gate '+portal,'夢橋門：夜間印象經此橋入清醒端 '+portal+' 門')}">⌘${T('梦桥','bridge','夢橋')}</span>`:''}${on?`<span class="sg-on">${T('激活','active','激活')}</span>`:''}</div><div class="sg-d">${esc(L==='en'?kb.en:zt(kb.zh))}</div></div>`; }).join('');
+    return `<div class="fieldbox"><div class="fh"><span>${esc(nm)}</span><span class="fe">${T('闸门','Gates','閘門')} ${f.gates.join('·')}</span></div>
+      ${fdesc?`<div class="fdesc">${esc(fdesc)}</div>`:''}
+      <div class="fb">${rows||`<div class="empty">${T('此场无激活','No activations in this field','此場無激活')}</div>`}</div>
+      <details class="fscan"><summary>${T('这一场的 5 个梦境门','The 5 dream gates of this field','這一場的 5 個夢境門')}</summary>${scan}</details></div>`;
   }).join('');
+  // 睡眠小贴士（官方机制的观己转写）
+  $('rTips').innerHTML=`<div class="fh"><span>🌙 ${T('睡眠小贴士','Sleep notes','睡眠小貼士')}</span></div>`
+    +DREAM_TIPS.map(t=>`<div class="tip">· ${esc(L==='en'?t.en:zt(t.zh))}</div>`).join('');
   const dd=dream.designDaysBefore.toFixed(1);
   $('rMeta').textContent=T(`梦图设计时刻 = 出生前 ${dd} 天（月亮回退 88°）· 个性 = 出生时刻 · 权威：`,`Dream design = ${dd} days before birth (Moon −88°) · Personality = birth moment · Authority: `,`夢圖設計時刻 = 出生前 ${dd} 天（月亮回退 88°）· 個性 = 出生時刻 · 權威：`)
     +(L==='en'?dream.authority:dream.authorityZh)+' · '+T('定义：','Definition: ','定義：')+(L==='en'?dream.definition:dream.definitionZh);
