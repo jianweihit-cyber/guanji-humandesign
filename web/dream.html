@@ -47,6 +47,13 @@
   .sg-on{margin-left:6px;font-size:11px;color:var(--li);border:1px solid var(--li);border-radius:5px;padding:0 5px;vertical-align:1px}
   .portal{margin-left:6px;font-size:11px;color:var(--gold-d);border:1px solid var(--gold);border-radius:5px;padding:0 5px;vertical-align:1px;cursor:help}
   .sg-d{font-size:12.5px;color:var(--sub);line-height:1.6;margin-top:2px}
+  .ins{margin-top:12px;border:1px solid var(--border);border-radius:12px;background:var(--card);overflow:hidden}
+  .ins-h{background:var(--surface-2);padding:8px 13px;font-weight:700;font-size:14px}
+  .ins-b{padding:9px 13px 11px;font-size:13px;color:var(--sub);line-height:1.7}
+  .ins-b p{margin:0 0 6px}.ins-b p:last-child{margin-bottom:0}.ins-b b{color:var(--ink)}
+  .wk{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+  .wk-g{font-size:12.5px;background:var(--surface-2);border:1px solid var(--gold);border-radius:7px;padding:2px 9px;color:var(--gold-d)}
+  .wk-g b{color:var(--li);font-variant-numeric:tabular-nums}
   #rTips{margin-top:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
   #rTips .fh{background:var(--surface-2);padding:8px 13px;font-weight:700;font-size:14px}
   #rTips .tip{padding:5px 13px;font-size:12.5px;color:var(--sub);line-height:1.7}
@@ -105,6 +112,7 @@
       <div id="rFields"></div>
       <div class="dr-meta" id="rMeta"></div>
     </div>
+    <div id="rInsight"></div>
     <div id="rTips"></div>
     <div class="disc" id="rDisc"></div>
   </div>
@@ -117,7 +125,7 @@
 import { generateChart } from '/src/chart.js';
 import { generateDreamChart, DREAM_FIELDS, DREAM_CHANNELS } from '/src/hd-dream.js';
 import { GATES_KB } from '/src/hd-knowledge.js';
-import { DREAM_GATE_KB, DREAM_LINE_KB, DREAM_FIELD_KB, DREAM_PORTALS, DREAM_TIPS } from '/src/hd-dream-kb.js';
+import { DREAM_GATE_KB, DREAM_LINE_KB, DREAM_FIELD_KB, DREAM_PORTALS, DREAM_TIPS, DREAM_PERSONA, DREAM_SIGNATURE, DREAM_WEAKPOINT, DREAM_STATS } from '/src/hd-dream-kb.js';
 
 const $=id=>document.getElementById(id);
 const I=window.HDI18N, L=(I&&I.lang)||'zh-Hans';
@@ -225,7 +233,8 @@ function render(wake,dream){
   $('rFields').innerHTML=dream.fields.map(f=>{
     const nm=L==='en'?f.en:L==='zh-Hant'?f.tw:f.zh;
     const fd=DREAM_FIELD_KB[f.k]; const fdesc=fd?(L==='en'?fd.en:zt(fd.zh)):'';
-    const rows=f.acts.map(a=>`<div class="fr ${a.side==='P'?'pz':'dz'}"><span class="gl">${a.gate}.${a.line}</span><span class="kn">${esc(kn(a.gate,a.line))}</span><span class="pn">${a.glyph} ${esc(L==='en'?a.en:a.zh)}${a.side==='D'?T('（设计）',' (Design)','（設計）'):T('（个性）',' (Personality)','（個性）')}</span></div>`).join('');
+    const rows=f.acts.map(a=>{ const lr=lkb(a.line); const role=L==='en'?lr.roleEn:zt(lr.role||'');
+      return `<div class="fr ${a.side==='P'?'pz':'dz'}"><span class="gl">${a.gate}.${a.line}</span><span class="kn" title="${T('爻 '+a.line+' 角色：','Line '+a.line+' role: ','爻 '+a.line+' 角色：')}${esc(role)}">${esc(kn(a.gate,a.line))}</span><span class="pn">${a.glyph} ${esc(L==='en'?a.en:a.zh)}${a.side==='D'?T('（设计）',' (Design)','（設計）'):T('（个性）',' (Personality)','（個性）')}</span></div>`; }).join('');
     const scan=f.gates.map(g=>{ const kb=gkb(g); const on=actGates.has(g); const portal=DREAM_PORTALS[g];
       return `<div class="sg${on?' on':''}"><div class="sg-h"><b>${g}</b> ${esc(L==='en'?kb.ke:zt(kb.k))}${portal?` <span class="portal" title="${T('梦桥门：夜间印象经此桥入清醒端 '+portal+' 门','Portal bridge — night impressions cross here to waking gate '+portal,'夢橋門：夜間印象經此橋入清醒端 '+portal+' 門')}">⌘${T('梦桥','bridge','夢橋')}</span>`:''}${on?`<span class="sg-on">${T('激活','active','激活')}</span>`:''}</div><div class="sg-d">${esc(L==='en'?kb.en:zt(kb.zh))}</div></div>`; }).join('');
     return `<div class="fieldbox"><div class="fh"><span>${esc(nm)}</span><span class="fe">${T('闸门','Gates','閘門')} ${f.gates.join('·')}</span></div>
@@ -233,9 +242,26 @@ function render(wake,dream){
       <div class="fb">${rows||`<div class="empty">${T('此场无激活','No activations in this field','此場無激活')}</div>`}</div>
       <details class="fscan"><summary>${T('这一场的 5 个梦境门','The 5 dream gates of this field','這一場的 5 個夢境門')}</summary>${scan}</details></div>`;
   }).join('');
+  // —— 梦境洞见：弱点 + 签名场景 + 角色 Persona（官方概念 · hd-dream-kb 原创改写）——
+  const wakeGates=new Set([...wake.personality.map(a=>a.gate),...wake.design.map(a=>a.gate)]);
+  const weak=[...actGates].filter(g=>!wakeGates.has(g)&&DREAM_GATE_KB[g]).sort((a,b)=>a-b);   // 梦里点亮、清醒盘却没有的门
+  const sigT=DREAM_SIGNATURE[dream.type]||DREAM_SIGNATURE.Reflector;
+  const dtName=L==='en'?dream.type:(L==='zh-Hant'?TYPE_TW[dream.type]:TYPE_ZH[dream.type])||dream.type;
+  const sig=L==='en'?sigT.sigEn:zt(sigT.sig), nonself=L==='en'?sigT.nonselfEn:zt(sigT.nonself);
+  const card=(icon,title,body)=>`<div class="ins"><div class="ins-h">${icon} ${esc(title)}</div><div class="ins-b">${body}</div></div>`;
+  const weakBody = weak.length
+    ? `<p>${esc(L==='en'?DREAM_WEAKPOINT.en:zt(DREAM_WEAKPOINT.zh))}</p><div class="wk">${weak.map(g=>{const kb=DREAM_GATE_KB[g];return `<span class="wk-g"><b>${g}</b> ${esc(L==='en'?kb.ke:zt(kb.k))}</span>`;}).join('')}</div>`
+    : `<p>${esc(L==='en'?DREAM_WEAKPOINT.en:zt(DREAM_WEAKPOINT.zh))}</p><div class="muted">${T('这张盘里，梦境激活的门在你清醒盘中也都在——夜间没有额外拽你的「外来弱点」。','Every gate lit in this dream is also in your waking chart — no extra foreign weak point pulling at you in sleep.','這張盤裡，夢境激活的門在你清醒盤中也都在——夜間沒有額外拽你的「外來弱點」。')}</div>`;
+  $('rInsight').innerHTML=$('rInsight').dataset.hid?'':(
+    card('🔎', T('你的梦境弱点','Your dream weak point','你的夢境弱點'), weakBody)
+    +card('🎭', T('签名与场景','Signature & Scene','簽名與場景'),
+      `<p>${T('你的梦境类型是 ','Your dream type is ','你的夢境類型是 ')}<b>${esc(dtName)}</b>${T('，签名是 ',' · signature ','，簽名是 ')}<b style="color:var(--li)">${esc(sig)}</b>${T('，非己主题是 ',' · not-self ','，非己主題是 ')}<b style="color:var(--cinnabar)">${esc(nonself)}</b>${T('。','.','。')}</p><p>${esc(L==='en'?DREAM_SIGNATURE.note.en:zt(DREAM_SIGNATURE.note.zh))}</p>`)
+    +card('👤', T('梦里的角色','Your dream persona','夢裡的角色'), `<p>${esc(L==='en'?DREAM_PERSONA.en:zt(DREAM_PERSONA.zh))}</p>`)
+  );
   // 睡眠小贴士（官方机制的观己转写）
   $('rTips').innerHTML=`<div class="fh"><span>🌙 ${T('睡眠小贴士','Sleep notes','睡眠小貼士')}</span></div>`
-    +DREAM_TIPS.map(t=>`<div class="tip">· ${esc(L==='en'?t.en:zt(t.zh))}</div>`).join('');
+    +DREAM_TIPS.map(t=>`<div class="tip">· ${esc(L==='en'?t.en:zt(t.zh))}</div>`).join('')
+    +`<div class="tip" style="border-top:1px dashed var(--border);margin-top:2px;padding-top:8px">📊 ${esc(L==='en'?DREAM_STATS.note.en:zt(DREAM_STATS.note.zh))}</div>`;
   const dd=dream.designDaysBefore.toFixed(1);
   $('rMeta').textContent=T(`梦图设计时刻 = 出生前 ${dd} 天（月亮回退 88°）· 个性 = 出生时刻 · 权威：`,`Dream design = ${dd} days before birth (Moon −88°) · Personality = birth moment · Authority: `,`夢圖設計時刻 = 出生前 ${dd} 天（月亮回退 88°）· 個性 = 出生時刻 · 權威：`)
     +(L==='en'?dream.authority:dream.authorityZh)+' · '+T('定义：','Definition: ','定義：')+(L==='en'?dream.definition:dream.definitionZh);
