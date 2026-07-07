@@ -105,3 +105,11 @@ swisseph 黄经 → 标准 64 闸门 Rave Mandala 管线，叠加：①设计侧
 - 已用 node 脚本(scratchpad/dream.mjs)验证;CL birthSun=234.581。
 
 **待用户**：梦图页版面参考样式(三场分组 光场/地球平面/魔域 + 缩减盘)。给了即可落地成页面。
+
+---
+## 2026-06-29 梦图 bodygraph 画法校正（据官方书《DreamRave Introduction》）
+- **官方定义：DreamRave = "the Design of the horizontal being"（横向存在的设计）**。官方图=标准 9 中心盘**躺倒成横向**、只保留 5 中心 15 门（书中「Mammals 横躺图 ← Human 直立图」）。
+- 校正 dream.html drawDream 为官方横向布局：脾▽在顶(28/57/50)·喉□在右[头部端,20/62/8/12]·G◇与荐骨○居中(1/15·5/27/42)·根□在左(38/53/19)。
+- 通道端点直接由闸门坐标算(不再硬编码错位)：6 条 1-8/5-15/20-57/27-50/28-38/42-53。
+- **灰度回退闸**：旧画法保留为 drawDreamClassic，`?draw=classic` 即时切回、无需重新部署(单机静态站的真回滚手段)。
+- 自校验：Workflow 多智能体对抗式复核 diff(正确性/几何/安全i18n) + 全站回归(排盘出盘/i18n繁体/EN零泄漏)。
